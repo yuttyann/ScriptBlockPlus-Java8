@@ -1,0 +1,97 @@
+name: ${project.name}
+main: com.github.yuttyann.scriptblockplus.ScriptBlock
+version: ${project.version}
+description: ${project.description}
+author: yuttyann44581
+website: ${project.url}
+api-version: 1.13
+softdepend: [Vault, ScriptBlock, ProtocolLib, PlaceholderAPI]
+
+commands:
+  scriptblockplus:
+    description: ScriptBlockPlus Commands
+    usage: |
+           /<command> tool - get the scriptblock tools
+           /<command> reload - reload the plugin
+           /<command> backup - make a backup of the plugin data
+           /<command> checkver - check new version
+           /<command> datamigr - migrate old data from ScriptBlock to ScriptBlockPlus
+           /<command> export <sound | material> - output BukkitAPI Sound and Material as text
+           /<command> <scriptkey> create <options> - create new scriptblock
+           /<command> <scriptkey> add <options> - add new script to the block
+           /<command> <scriptkey> remove - remove script of block
+           /<command> <scriptkey> view - view the script of block
+           /<command> <scriptkey> run <world> <x> <y> <z> - execute the specified script
+           /<command> selector paste <pasteonair> [overwrite] - paste scriptblock for selected area
+           /<command> selector remove - remove scriptblock for selected area
+    aliases: [sbp]
+
+permissions:
+  scriptblockplus.*:
+    default: op
+    children:
+      scriptblockplus.option.*: true
+      scriptblockplus.command.*: true
+      scriptblockplus.tool.*: true
+      scriptblockplus.interact.use: true
+      scriptblockplus.break.use: true
+      scriptblockplus.walk.use: true
+      scriptblockplus.hit.use: true
+  scriptblockplus.option.*:
+    default: op
+  scriptblockplus.command.*:
+    default: op
+    children:
+      scriptblockplus.command.tool: true
+      scriptblockplus.command.reload: true
+      scriptblockplus.command.backup: true
+      scriptblockplus.command.checkver: true
+      scriptblockplus.command.datamigr: true
+      scriptblockplus.command.export: true
+      scriptblockplus.command.interact: true
+      scriptblockplus.command.break: true
+      scriptblockplus.command.walk: true
+      scriptblockplus.command.hit: true
+      scriptblockplus.command.selector: true
+  scriptblockplus.tool.*:
+    default: op
+    children:
+      scriptblockplus.tool.blockselector: true
+      scriptblockplus.tool.scripteditor: true
+      scriptblockplus.tool.scriptviewer: true
+  scriptblockplus.command.tool:
+    default: false
+  scriptblockplus.command.reload:
+    default: false
+  scriptblockplus.command.backup:
+    default: false
+  scriptblockplus.command.checkver:
+    default: false
+  scriptblockplus.command.datamigr:
+    default: false
+  scriptblockplus.command.export:
+    default: false
+  scriptblockplus.command.interact:
+    default: false
+  scriptblockplus.command.break:
+    default: false
+  scriptblockplus.command.walk:
+    default: false
+  scriptblockplus.command.hit:
+    default: false
+  scriptblockplus.command.selector:
+    default: false
+  scriptblockplus.interact.use:
+    default: true
+  scriptblockplus.break.use:
+    default: true
+  scriptblockplus.walk.use:
+    default: true
+  scriptblockplus.hit.use:
+    default: true
+  scriptblockplus.tool.blockselector:
+    default: false
+  scriptblockplus.tool.scripteditor:
+    default: false
+  scriptblockplus.tool.scriptviewer:
+    default: false

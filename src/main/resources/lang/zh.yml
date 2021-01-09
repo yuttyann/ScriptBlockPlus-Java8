@@ -1,0 +1,164 @@
+# ScriptBlockPlus v${project.version} Lang #
+# MCBBS PCD小组 秋风残叶 搬运并汉化 请支持原作者 yuttyann44581
+# 本配置源语言为日本语，可能存在翻译不准确的地方
+
+
+## ===== Commands ===== ##
+# 沒有佔位符
+ToolCommandMessage: 'tool - 获得脚本编辑工具'
+ReloadCommandMessage: 'reload - 重载插件'
+BackupCommandMessage: 'backup - 备份插件数据'
+CheckVerCommandMessage: 'checkver - 查询最新版本'
+DataMigrCommandMessage: 'datamigr - 将ScriptBlock的旧数据转移至ScriptBlockPlus'
+ExportCommandMessage: 'export <sound | material> - 将BukkitAPI声音和材质输出为文本'
+CreateCommandMessage: '<交互方式> create <脚本内容> - 创建脚本方块'
+AddCommandMessage: '<交互方式> add <脚本内容> - 添加脚本方块'
+RemoveCommandMessage: '<交互方式> remove - 移除脚本方块'
+ViewCommandMessage: '<交互方式> view - 查看方块的脚本'
+RunCommandMessage: '<交互方式> run <世界名> <x> <y> <z> - 执行指定的脚本'
+SelectorPasteCommandMessage: 'selector paste <pasteonair> [overwrite] - 粘贴选区内的脚本方块'
+SelectorRemoveCommandMessage: 'selector remove - 移除选区内的脚本方块'
+
+# &(code) : 可以使用彩色代码
+
+## ===== BlockSelector ===== ##
+# 沒有佔位符
+BlockSelector:
+- '&a这是一个可以选择方块区域的工具'
+- '&6左键点击: &e选择区域的起点'
+- '&6右键点击: &e选择区域的结束点'
+- '&6Shift+左键点击: &e将当前位置设置为区域的起点'
+- '&6Shift+右键点击: &e将当前位置设置为区域的结束点'
+
+## ===== ScriptEditor ===== ##
+# %scriptkey% : 脚本键
+ScriptEditor:
+- '&a这是一个可以复制并粘贴脚本的工具'
+- '&6左键点击: &e更改选择模式'
+- '&6右键点击: &e复制脚本'
+- '&6Shift+左键点击: &e删除脚本'
+- '&6Shift+右键点击: &e粘贴脚本'
+
+## ===== ScriptViewer ===== ##
+# %scriptkey% : 脚本键
+ScriptViewer:
+- '&a该工具支持脚本检查。'
+- '&6左键点击: &e开始搜索周围的脚本。'
+- '&6右键点击: &e停止搜索周围的脚本。'
+
+# |~ \n : 改行
+
+## ===== Messages ===== ##
+# 沒有佔位符
+NotVaultMessage: '&cVault经济插件前置未找到'
+SenderNoPlayerMessage: '&c控制台不能这么做'
+NotPermissionMessage: '&c你没有权限'
+GiveToolMessage: '&a获得选择工具'
+AllFileReloadMessage: '&a插件成功重载，汉化 by 秋风残叶'
+PluginBackupMessage: '&a插件数据的备份已完成'
+ErrorPluginBackupMessage: '&c插件数据的备份已完成'
+NotLatestPluginMessage: '&c已是最新版本'
+NotScriptBlockFileMessage: '&cScriptBlock无数据或者数据损坏'
+DataMigrStartMessage: '&7开始从ScriptBlock转移数据....'
+DataMigrEndMessage: '&b数据转移完毕'
+UpdateDownloadStartMessage: '&6开始下载最新版本ScriptBlockPlus...如果发生卡顿 请不要启用自动更新'
+
+# %name% : 班级名称(Sound, Material)
+ExportStartMessage: '&7将BukkitAPI的"%name%"输出到文本....'
+ExportEndMessage: '&bBukkitAPI"%name%"输出完成。'
+
+# %filename% : 文件名
+# %filepath% : 文件路径
+# %filesize% : 文件大小
+UpdateDownloadEndMessage: '&6新更新下载完成|~文件名: %filename%|~文件大小: %filesize%|~文件路径: %filepath%'
+
+# %pluginname%    : 插件名
+# %latestversion% : 最新版本
+# %details%       : 更新内容
+UpdateCheckMessage: '&b新版本插件可用|~v%latestversion% 最新版本|~插件名: %pluginname%|~☆更新内容☆|~%details%'
+
+# 沒有佔位符
+ErrorUpdateMessage: '&c查询更新失败，可能是国内网络导致的，建议去这个中文搬运帖查看更新http://www.mcbbs.net/thread-691900-1-1.html'
+
+# %scriptkey% : 脚本键
+ScriptCopyMessage: '&a复制一个种类是"%scriptkey%"的脚本'
+ScriptPasteMessage: '&a粘贴一个种类是"%scriptkey%"的脚本'
+ScriptCreateMessage: '&a创建一个种类是"%scriptkey%"的脚本'
+ScriptAddMessage: '&a添加一个种类是"%scriptkey%"的脚本'
+ScriptRemoveMessage: '&c删除一个种类是"%scriptkey%"的脚本'
+
+# 沒有佔位符
+NotSelectionMessage: '&cBlockSelector坐标范围未选择'
+
+# 沒有佔位符
+ScriptViewerStartMessage: '&a开始搜索周围的脚本。'
+ScriptViewerStopMessage: '&c对周围脚本的搜索已停止。'
+
+# %world%  : 世界名
+# %coords% : 坐标(x, y, z)
+SelectorPos1Message: '&b已选择起点"%coords%"'
+SelectorPos2Message: '&b已选择终点"%coords%"'
+
+# %scriptkey%  : 脚本键
+# %blockcount% : 塊數
+SelectorPasteMessage: '&a脚本键"%scriptkey%"已通过BlockSelector进行粘贴'
+SelectorRemoveMessage: '&c脚本键"%scriptkey%"已通过BlockSelector移除'
+
+# %option% : 脚本名称
+# %cause%  : 错误发生原因
+OptionFailedToExecuteMessage: '&c脚本"%option%"执行失败|~&c可能的原因: %cause%'
+
+# 沒有佔位符
+ActiveDelayMessage: '&c该脚本在延迟中 你暂时不能使用'
+
+# %hour%   : 时
+# %minute% : 分
+# %second% : 秒
+ActiveCooldownMessage: '&c脚本还在冷却中 [%hour%时%minute%分%second%秒]'
+
+# %actiontype% : 动作类型
+SuccActionDataMessage: '&a脚本键"%actiontype%"的设定已选定。请点击需要生效的方块'
+
+# 沒有佔位符
+ErrorActionDataMessage: '&c设定出现错误'
+ErrorScriptCheckMessage: '&c脚本输入错误！'
+ErrorScriptFileCheckMessage: '&c无脚本'
+
+# %scriptkey% : 脚本键
+ErrorScriptExecMessage: '&c脚本键"%scriptkey%"执行失败'
+
+# %group% : 权限组名
+ErrorGroupMessage: '&c只有属于权限组"%group%"的玩家才可以运行该脚本'
+
+# %material% : 物品种类
+# %amount%   : 物品的数量
+# %damage%   : 物品的子ID
+# %name%     : 物品的名称
+ErrorHandMessage: '&c您的手持物品不满足条件，所需物品必须满足"%name%(%material%:%damage%)"以及数量"%amount%个"'
+ErrorItemMessage: '&c您的背包内物品不满足条件，所需物品必须满足"%name%(%material%:%damage%)"以及数量"%amount%个"'
+
+# %cost%   : 需要支付的金额
+# %result% : 至少应该剩余的金钱
+ErrorCostMessage: '&c你的金钱至少应该有"%result%"，执行这个脚本需要花费金钱"%cost%"'
+
+# %scriptkey%  : 脚本键
+# %player%     : 玩家ID
+# %world%      : 世界名
+# %coords%     : 坐标(x, y, z)
+ConsoleScriptCopyMessage: '&a创建者"%player%"、脚本键"%scriptkey%"、位置"%world%, %coords%"脚本已被复制'
+ConsoleScriptPasteMessage: '&a创建者"%player%"、脚本键"%scriptkey%"、位置"%world%, %coords%"脚本已被粘贴'
+ConsoleScriptCreateMessage: '&a创建者"%player%"、脚本键"%scriptkey%"、位置"%world%, %coords%"脚本已被创建'
+ConsoleScriptAddMessage: '&a更新者"%player%"、脚本键"%scriptkey%"、位置"%world%, %coords%"脚本已被添加'
+ConsoleScriptRemoveMessage: '&c删除者"%player%"、脚本键"%scriptkey%"、位置"%world%, %coords%"脚本已被删除'
+ConsoleScriptViewMessage: '&a执行者"%player%"、脚本键"%scriptkey%"、位置"%world%, %coords%"脚本正在被预览'
+ConsoleSuccScriptExecMessage: '&a执行者"%player%"、脚本键"%scriptkey%"、位置"%world%, %coords%"脚本被触发了'
+ConsoleErrorScriptExecMessage: '&c执行者"%player%"、脚本键"%scriptkey%"、位置"%world%, %coords%"脚本触发失败'
+
+# %scriptkey%  : 脚本键
+# %blockcount% : 方块数量
+# %player%     : 玩家ID
+# %world%      : 世界名
+# %mincoords%  : 最小位置(x, y, z)
+# %maxcoords%  : 最大位置(x, y, z)
+ConsoleSelectorPasteMessage: '&a脚本键"%scriptkey%"位置范围Min"%world%, %mincoords%", Max"%world%, %maxcoords%"已完成粘贴'
+ConsoleSelectorRemoveMessage: '&c脚本键"%scriptkey%"位置范围Min"%world%, %mincoords%", Max"%world%, %maxcoords%"已被删除'

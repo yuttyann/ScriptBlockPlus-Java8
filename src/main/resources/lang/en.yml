@@ -1,0 +1,163 @@
+# ScriptBlockPlus v${project.version} Lang #
+# Created by yuttyann44581  Translated by AndyYu
+# There may be some mistakes in grammar
+
+
+## ===== Commands ===== ##
+# There are no placeholders
+ToolCommandMessage: 'tool - get the scriptblock tools'
+ReloadCommandMessage: 'reload - reload the plugin'
+BackupCommandMessage: 'backup - make a backup of the plugin data'
+CheckVerCommandMessage: 'checkver - check new version'
+DataMigrCommandMessage: 'datamigr - migrate old data from ScriptBlock to ScriptBlockPlus'
+ExportCommandMessage: 'export <sound | material> - output BukkitAPI Sound and Material as text'
+CreateCommandMessage: '<scriptkey> create <options> - create new scriptblock'
+AddCommandMessage: '<scriptkey> add <options> - add new script to the block'
+RemoveCommandMessage: '<scriptkey> remove - remove script of block'
+ViewCommandMessage: '<scriptkey> view - view the script of block'
+RunCommandMessage: '<scriptkey> run <world> <x> <y> <z> - execute the specified script'
+SelectorPasteCommandMessage: 'selector paste <pasteonair> [overwrite] - paste scriptblock for selected area'
+SelectorRemoveCommandMessage: 'selector remove - remove scriptblock for selected area'
+
+# &(code) : you can use color code
+
+## ===== BlockSelector ===== ##
+# There are no placeholders
+BlockSelector:
+- '&aThis tool supports range selection.'
+- '&6Left-click: &eSpecify the block as Pos1.'
+- '&6Right-click: &eSpecify the block as Pos2.'
+- '&6Shift+Leftclick: &eSpecify Player as Pos1.'
+- '&6Shift+Rightclick: &eSpecify Player as Pos1.'
+
+## ===== ScriptEditor ===== ##
+# %scriptkey% : Script key
+ScriptEditor:
+- '&aThis tool supports script editing.'
+- '&6Left-click: &eChange the target of the tool.'
+- '&6Right-click: &eCopy the script.'
+- '&6Shift+Leftclick: &eDelete the script.'
+- '&6Shift+Rightclick: &ePaste the script.'
+
+## ===== ScriptViewer ===== ##
+# There are no placeholders
+ScriptViewer:
+- '&aThis tool supports script checking.'
+- '&6Left-click: &eStart searching for surrounding scripts.'
+- '&6Right-click: &eStop searching for surrounding scripts.'
+
+# |~, \n : change the line
+
+## ===== Messages ===== ##
+# There are no placeholders
+NotVaultMessage: '&cVault not found!'
+SenderNoPlayerMessage: '&cYou cannot do this as console.'
+NotPermissionMessage: '&cYou dont have permission to do this.'
+GiveToolMessage: '&aAuxiliary tools were distributed.'
+AllFileReloadMessage: '&aReloaded successfully.'
+PluginBackupMessage: '&aBackup of plugin data is complete.'
+ErrorPluginBackupMessage: '&cBackup of plugin data failed.'
+NotLatestPluginMessage: '&cNo latest version!'
+NotScriptBlockFileMessage: '&cNo ScriptBlock File.'
+DataMigrStartMessage: '&7Start migrating from Scriptblock....'
+DataMigrEndMessage: '&bMigrating completed.'
+UpdateDownloadStartMessage: '&6Start downloading the latest ScriptBlockPlus...'
+
+# %name% : name of the class(Sound, Material)
+ExportStartMessage: '&7Outputing BukkitAPI %name% to text ....'
+ExportEndMessage: '&bOutput of BukkitAPI''s Sound is complete.'
+
+# %filename% : Downloaded file name
+# %filepath% : File save destination
+# %filesize% : File capacity
+UpdateDownloadEndMessage: '&6Download completed!|~File name: %filename%|~File size: %filesize%|~File path: %filepath%'
+
+# %pluginname%    : Name of the updated plugin
+# %latestversion% : Latest version
+# %details%       : update information
+UpdateCheckMessage: '&bNew version available!|~v%latestversion% the latest ver.|~Name: %pluginname%|~☆Change log☆|~%details%'
+
+# There are no placeholders
+ErrorUpdateMessage: '&cError occured while checking new version.'
+
+# %scriptkey% : Script key
+ScriptCopyMessage: '&aCopy the scriptblock for the "%scriptkey%" scriptkey.'
+ScriptPasteMessage: '&aPaste the scriptblock for the "%scriptkey%" scriptkey.'
+ScriptCreateMessage: '&aCreate the scriptblock for the "%scriptkey%" scriptkey.'
+ScriptAddMessage: '&aAdd the script to the scriptblock of the "INTERACT" scriptkey.'
+ScriptRemoveMessage: '&cRemove the scriptblock for the "%scriptkey%" scriptkey.'
+
+# There are no placeholders
+NotSelectionMessage: '&cBlockSelector area not selected.'
+
+# There are no placeholders
+ScriptViewerStartMessage: '&aSearch for surrounding scripts has started.'
+ScriptViewerStopMessage: '&cSearch for surrounding scripts has stopped.'
+
+# %world%  : name of the world
+# %coords% : Coordinate(x, y, z)
+SelectorPos1Message: '&bI selected the starting point "%coords%".'
+SelectorPos2Message: '&bI chose the end point "%coords%".'
+
+# %scriptkey%  : Script key
+# %blockcount% : Block amount
+SelectorPasteMessage: '&aScriptblock "%scriptkey%" has been pasted from selected area.'
+SelectorRemoveMessage: '&cScriptblock "%scriptkey%" has been removed from selected area.'
+
+# %option% : Name of the option where the error occurred
+# %cause%  : Cause of error
+OptionFailedToExecuteMessage: '&cError occured while executing script "%option%"|~&cPossible reason: %cause%'
+
+# There are no placeholders
+ActiveDelayMessage: '&cThis scriptblock is in delay, you cant use it now.'
+
+# %hour%   : hour
+# %minute% : minute
+# %second% : second
+ActiveCooldownMessage: '&cThis scriptblock is in cooldown [%hour%h %minute%m %second%s]'
+
+# %actiontype% : Type of action
+SuccActionDataMessage: '&aActiontype "%actiontype%" selected.'
+
+# There are no placeholders
+ErrorActionDataMessage: '&cInvaild setting.'
+ErrorScriptCheckMessage: '&cInvaild script.'
+ErrorScriptFileCheckMessage: '&cNo script file.'
+
+# %scriptkey% : Script key
+ErrorScriptExecMessage: '&cFail to execute script from the scriptblock of the "%scriptkey%" scriptkey.'
+
+# %group% : Permission group name
+ErrorGroupMessage: '&cOnly players in group "%group%" can interact with this scriptblock.'
+
+# %material% : Type of item
+# %amount%   : Amount of item
+# %damage%   : Damage value of item
+# %name%     : Item name
+ErrorHandMessage: '&cThe items you hold in hand is not vaild, you must hold at least "%name%(%material%:%damage%)" with amount "%amount%x"'
+ErrorItemMessage: '&cThe items in your inventory is not vaild, you must keep in your inventory at least "%name%(%material%:%damage%)" with amount "%amount%x"'
+
+# %cost%   : Required amount
+# %result% : Missing amount
+ErrorCostMessage: '&cYou need money "%cost%" to do this.'
+
+# %scriptkey%  : Script key
+# %player%     : Player ID
+# %world%      : The name of the world
+# %coords%     : Coordinate(x, y, z)
+ConsoleScriptCopyMessage: '&aCreator"%player%"、Key"%scriptkey%"、Location"%world%, %coords%" has been copied.'
+ConsoleScriptPasteMessage: '&aCreator"%player%"、Key"%scriptkey%"、Location"%world%, %coords%" has been pasted.'
+ConsoleScriptCreateMessage: '&aCreator"%player%"、Key"%scriptkey%"、Location"%world%, %coords%" has been created.'
+ConsoleScriptAddMessage: '&aOperator"%player%"、Key"%scriptkey%"、Location"%world%, %coords%" has been added new script.'
+ConsoleScriptRemoveMessage: '&cOperator"%player%"、Key"%scriptkey%"、Location"%world%, %coords%" has been removed.'
+ConsoleScriptViewMessage: '&aOperator"%player%"、Key"%scriptkey%"、Location"%world%, %coords%" has been viewed.'
+ConsoleSuccScriptExecMessage: '&aOperator"%player%"、Key"%scriptkey%"、Location"%world%, %coords%" executed successfully.'
+ConsoleErrorScriptExecMessage: '&cOperator"%player%"、Key"%scriptkey%"、Location"%world%, %coords%" fail to execute.'
+
+# %scriptkey%  : Script key
+# %blockcount% : Block amount
+# %world%      : The name of the world
+# %mincoords%  : Minimum coordinate(x, y, z)
+# %maxcoords%  : Maximum coordinate(x, y, z)
+ConsoleSelectorPasteMessage: '&aKey"%scriptkey%" LocationMin"%world%, %mincoords%", Max"%world%, %maxcoords%" has been pasted.'
+ConsoleSelectorRemoveMessage: '&cKey"%scriptkey%" LocationMin"%world%, %mincoords%", Max"%world%, %maxcoords%" has been removed.'

@@ -1,0 +1,86 @@
+package com.github.yuttyann.scriptblockplus.enums;
+
+import java.util.Arrays;
+import java.util.stream.Stream;
+
+import com.github.yuttyann.scriptblockplus.script.ScriptKey;
+import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
+import com.github.yuttyann.scriptblockplus.utils.StringUtils;
+
+import org.bukkit.permissions.Permissible;
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * ScriptBlockPlus Permission 列挙型
+ * @author yuttyann44581
+ */
+public enum Permission {
+    COMMAND_TOOL("scriptblockplus.command.tool"),
+    COMMAND_RELOAD("scriptblockplus.command.reload"),
+    COMMAND_BACKUP("scriptblockplus.command.backup"),
+    COMMAND_CHECKVER("scriptblockplus.command.checkver"),
+    COMMAND_DATAMIGR("scriptblockplus.command.datamigr"),
+    COMMAND_EXPORT("scriptblockplus.command.export"),
+    /*
+    COMMAND_INTERACT("scriptblockplus.command.interact"),
+    COMMAND_BREAK("scriptblockplus.command.break"),
+    COMMAND_WALK("scriptblockplus.command.walk"),
+    */
+    COMMAND_SELECTOR("scriptblockplus.command.selector"),
+    /*
+    INTERACT_USE("scriptblockplus.interact.use"),
+    BREAK_USE("scriptblockplus.break.use"),
+    WALK_USE("scriptblockplus.walk.use"),
+    */
+    TOOL_BLOCK_SELECTOR("scriptblockplus.tool.blockselector"),
+    TOOL_SCRIPT_EDITOR("scriptblockplus.tool.scripteditor"),
+    TOOL_SCRIPT_VIEWER("scriptblockplus.tool.scriptviewer"),
+
+    // Minecraft Permissions
+    MINECRAFT_COMMAND_SAY("minecraft.command.say"),
+    MINECRAFT_COMMAND_TITLE("minecraft.command.title");
+
+    private static final String SBP_PREFIX = "scriptblockplus.";
+
+    private final String node;
+
+    Permission(@NotNull String node) {
+        this.node = node;
+    }
+
+    @NotNull
+    public String getNode() {
+        return node;
+    }
+
+    @Override
+    public String toString() {
+        return node;
+    }
+
+    public boolean has(@NotNull Permissible permissible) {
+        return has(permissible, node);
+    }
+
+    public static boolean has(@NotNull Permissible permissible, @NotNull String node) {
+        return StringUtils.isNotEmpty(node) && permissible.hasPermission(node);
+    }
+
+    public static boolean has(@NotNull Permissible permissible, @NotNull String... nodes) {
+        return Stream.of(nodes).anyMatch(n -> has(permissible, n));
+    }
+
+    public static boolean has(@NotNull Permissible permissible, @NotNull ScriptKey scriptKey, boolean isCMDorUse) {
+        return Permission.has(permissible, getTypeNode(scriptKey, isCMDorUse));
+    }
+
+    @NotNull
+    public static String[] getTypeNodes(boolean isCMDorUse) {
+        return StreamUtils.toArray(Arrays.asList(ScriptKey.values()), t -> getTypeNode(t, isCMDorUse), new String[ScriptKey.size()]);
+    }
+
+    @NotNull
+    public static String getTypeNode(@NotNull ScriptKey scriptKey, boolean isCMDorUse) {
+        return isCMDorUse ? SBP_PREFIX + "command." + scriptKey.getName() : SBP_PREFIX + scriptKey.getName() + ".use";
+    }
+}

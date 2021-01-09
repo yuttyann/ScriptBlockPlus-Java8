@@ -1,0 +1,163 @@
+# ScriptBlockPlus v${project.version} Lang #
+# 作成者: yuttyann44581
+# コメントアウトすることで、非表示にすることができます。
+
+
+## ===== Commands ===== ##
+# プレースホルダはありません
+ToolCommandMessage: 'tool - 実行者に補助ツールを配布します。'
+ReloadCommandMessage: 'reload - 全てのファイルの再読み込みを行います。'
+BackupCommandMessage: 'backup - プラグインデータのバックアップを作成します。'
+CheckVerCommandMessage: 'checkver - 最新のプラグインが存在するかチェックします。'
+DataMigrCommandMessage: 'datamigr - ScriptBlockのスクリプトをPlusに移行します。'
+ExportCommandMessage: 'export <sound | material> - BukkitAPIのSound、MaterialをTXTに出力します。'
+CreateCommandMessage: '<scriptkey> create <options> - ブロックにスクリプトを設定します。'
+AddCommandMessage: '<scriptkey> add <options> - ブロックにスクリプトを追加します。'
+RemoveCommandMessage: '<scriptkey> remove - ブロックのスクリプトを削除します。'
+ViewCommandMessage: '<scriptkey> view - ブロックのスクリプトを表示します。'
+RunCommandMessage: '<scriptkey> run <world> <x> <y> <z> - 指定したスクリプトを実行します。'
+SelectorPasteCommandMessage: 'selector paste <pasteonair> [overwrite] - 選択範囲にスクリプトをペーストします。'
+SelectorRemoveCommandMessage: 'selector remove - 選択範囲のスクリプトを削除します。'
+
+# &(code) : カラーコード(以降の項目全て対象)
+
+## ===== BlockSelector ===== ##
+# プレースホルダはありません
+BlockSelector:
+- '&aこのツールは、範囲選択をサポートします。'
+- '&6左クリック: &eブロックを選択範囲の始点に指定します。'
+- '&6右クリック: &eブロックを選択範囲の終点に指定します。'
+- '&6シフト+左クリック: &e現在位置を選択範囲の始点に指定します。'
+- '&6シフト+右クリック: &e現在位置を選択範囲の終点に指定します。'
+
+## ===== ScriptEditor ===== ##
+# プレースホルダはありません
+ScriptEditor:
+- '&aこのツールは、スクリプトの編集をサポートします。'
+- '&6左クリック: &eツールの対象を切り替えます。'
+- '&6右クリック: &eスクリプトのコピーを行います。'
+- '&6シフト+左クリック: &eスクリプトの削除を行います。'
+- '&6シフト+右クリック: &eスクリプトのペーストを行います。'
+
+## ===== ScriptViewer ===== ##
+# プレースホルダはありません
+ScriptViewer:
+- '&aこのツールは、スクリプトのチェックをサポートします。'
+- '&6左クリック: &e周囲のスクリプトの検索を開始します。'
+- '&6右クリック: &e周囲のスクリプトの検索を停止します。'
+
+# |~, \n : 改行(以降の項目全て対象)
+
+## ===== Messages ===== ##
+# プレースホルダはありません
+NotVaultMessage: '&cVaultが導入されていないため、プラグインを無効化します。'
+SenderNoPlayerMessage: '&cコマンドはゲーム内から実行してください。'
+NotPermissionMessage: '&cパーミッションが無いため、実行できません。'
+GiveToolMessage: '&a補助ツールが配布されました。'
+AllFileReloadMessage: '&a全てのファイルの再読み込みが完了しました。'
+PluginBackupMessage: '&aプラグインデータのバックアップが完了しました。'
+ErrorPluginBackupMessage: '&cプラグインデータのバックアップに失敗しました。'
+NotLatestPluginMessage: '&b現在のバージョンが最新です。'
+NotScriptBlockFileMessage: '&cScriptBlockのデータファイルが見つかりません。'
+DataMigrStartMessage: '&7ScriptBlockのスクリプトを移行しています....'
+DataMigrEndMessage: '&bスクリプトの移行が完了しました。'
+UpdateDownloadStartMessage: '&6最新のプラグインをダウンロードしています...'
+
+# %name% : クラス名(Sound, Material)
+ExportStartMessage: '&7BukkitAPIの"%name%"をTXTに出力しています....'
+ExportEndMessage: '&bBukkitAPIの"%name%"の出力が完了しました。'
+
+# %filename% : ファイル名
+# %filepath% : ファイルパス
+# %filesize% : ファイルサイズ
+UpdateDownloadEndMessage: '&6ダウンロードが終了しました。|~ファイル名: %filename%|~ファイルサイズ: %filesize%|~ファイルパス: %filepath%'
+
+# %pluginname%    : プラグイン名
+# %latestversion% : 最新バージョン
+# %details%       : 更新内容
+UpdateCheckMessage: '&b最新のバージョンを検出しました。|~v%latestversion%にアップデートしてください。|~プラグイン名: %pluginname%|~☆アップデート内容☆|~%details%'
+
+# プレースホルダはありません
+ErrorUpdateMessage: '&cアップデートに失敗しました。'
+
+# %scriptkey% : スクリプトキー
+ScriptCopyMessage: '&aブロック"%scriptkey%"のスクリプトをコピーしました。'
+ScriptPasteMessage: '&aブロック"%scriptkey%"にスクリプトをペーストしました。'
+ScriptCreateMessage: '&aブロック"%scriptkey%"のスクリプトを作成しました。'
+ScriptAddMessage: '&aブロック"%scriptkey%"にスクリプトを追加しました。'
+ScriptRemoveMessage: '&cブロック"%scriptkey%"のスクリプトを削除しました。'
+
+# プレースホルダはありません
+NotSelectionMessage: '&cBlockSelectorで座標を選択してください。'
+
+# プレースホルダはありません
+ScriptViewerStartMessage: '&a周囲のスクリプトの検索を開始しました。'
+ScriptViewerStopMessage: '&c周囲のスクリプトの検索を停止しました。'
+
+# %world%  : ワールドの名前
+# %coords% : 座標(x, y, z)
+SelectorPos1Message: '&b始点"%coords%"を選択しました。'
+SelectorPos2Message: '&b終点"%coords%"を選択しました。'
+
+# %scriptkey%  : スクリプトキー
+# %blockcount% : ブロック数
+SelectorPasteMessage: '&aブロック(%blockcount%)"%scriptkey%"にスクリプトをペーストしました。'
+SelectorRemoveMessage: '&cブロック(%blockcount%)"%scriptkey%"のスクリプトを削除しました。'
+
+# %option% : オプション名
+# %cause%  : 発生原因
+OptionFailedToExecuteMessage: '&cオプション"%option%"の実行に失敗しました。|~&c発生原因: %cause%'
+
+# プレースホルダはありません
+ActiveDelayMessage: '&c遅延したスクリプトが実行されるまで、再度実行することはできません。'
+
+# %hour%   : 時
+# %minute% : 分
+# %second% : 秒
+ActiveCooldownMessage: '&cクールダウン終了まで、%hour%時間%minute%分%second%秒です。'
+
+# %actiontype% : アクションの種類
+SuccActionDataMessage: '&aアクション"%actiontype%"を選択しました。'
+
+# プレースホルダはありません
+ErrorActionDataMessage: '&c既にアクションが選択されています。'
+ErrorScriptCheckMessage: '&c入力されたスクリプトが正しくありません。'
+ErrorScriptFileCheckMessage: '&cスクリプトが見つかりません。'
+
+# %scriptkey% : スクリプトキー
+ErrorScriptExecMessage: '&cブロック"%scriptkey%"のスクリプトの実行に失敗しました。'
+
+# %group% : グループ名
+ErrorGroupMessage: '&cグループ"%group%"のメンバーのみ、スクリプトを実行することが出来ます。'
+
+# %material% : アイテムの種類
+# %amount%   : アイテムの個数
+# %damage%   : アイテムのダメージ値
+# %name%     : アイテムの名前(アイテム名が無い場合は"アイテムの種類"と同じになります。)
+ErrorHandMessage: '&cアイテム"&r%name%(%material%:%damage%)&r &e%amount%個&c"を持っていません。'
+ErrorItemMessage: '&cアイテム"&r%name%(%material%:%damage%)&r &e%amount%個&c"を所持していません。'
+
+# %cost%   : 必要な金額
+# %result% : 足りない金額
+ErrorCostMessage: '&cお金が"%result%円"足りません。スクリプトの実行には"%cost%円"必要です。'
+
+# %scriptkey%  : スクリプトキー
+# %player%     : プレイヤーのID
+# %world%      : ワールドの名前
+# %coords%     : 座標(x, y, z)
+ConsoleScriptCopyMessage: '&aスクリプトがコピーされました。[作成者"%player%"、キー"%scriptkey%"、座標"%world%, %coords%"]'
+ConsoleScriptPasteMessage: '&aスクリプトがペーストされました。[作成者"%player%"、キー"%scriptkey%"、座標"%world%, %coords%"]'
+ConsoleScriptCreateMessage: '&aスクリプトが作成されました。[作成者"%player%"、キー"%scriptkey%"、座標"%world%, %coords%"]'
+ConsoleScriptAddMessage: '&aスクリプトが追加されました。[作成者"%player%"、キー"%scriptkey%"、座標"%world%, %coords%"]'
+ConsoleScriptRemoveMessage: '&cスクリプトが削除されました。[作成者"%player%"、キー"%scriptkey%"、座標"%world%, %coords%"]'
+ConsoleScriptViewMessage: '&aスクリプトが表示されました。[作成者"%player%"、キー"%scriptkey%"、座標"%world%, %coords%"]'
+ConsoleSuccScriptExecMessage: '&aスクリプトが実行されました。[作成者"%player%"、キー"%scriptkey%"、座標"%world%, %coords%"]'
+ConsoleErrorScriptExecMessage: '&cスクリプトの実行に失敗しました。[作成者"%player%"、キー"%scriptkey%"、座標"%world%, %coords%"]'
+
+# %scriptkey%  : スクリプトキー
+# %blockcount% : ブロック数
+# %world%      : ワールドの名前
+# %mincoords%  : 最小座標(x, y, z)
+# %maxcoords%  : 最大座標(x, y, z)
+ConsoleSelectorPasteMessage: '&aスクリプトがペーストされました。[キー"%scriptkey%"、最小座標"%world%, %mincoords%"、最大座標"%world%, %maxcoords%"]'
+ConsoleSelectorRemoveMessage: '&cスクリプトが削除されました。[キー"%scriptkey%"、最小座標"%world%, %mincoords%"、最大座標"%world%, %maxcoords%"]'
