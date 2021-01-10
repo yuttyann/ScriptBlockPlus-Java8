@@ -5,6 +5,7 @@ import com.github.yuttyann.scriptblockplus.ScriptBlock;
 import com.github.yuttyann.scriptblockplus.enums.ActionType;
 import com.github.yuttyann.scriptblockplus.enums.Permission;
 import com.github.yuttyann.scriptblockplus.enums.reflection.PackageType;
+import com.github.yuttyann.scriptblockplus.file.Json;
 import com.github.yuttyann.scriptblockplus.file.SBFiles;
 import com.github.yuttyann.scriptblockplus.file.config.SBConfig;
 import com.github.yuttyann.scriptblockplus.file.config.YamlConfig;
@@ -31,6 +32,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
@@ -93,7 +95,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
         } else if (args.length == 2) {
             if (equals(args[0], "export") && equals(args[1], "sound", "material")) {
                 return doExport(sender, args);
-            } if (equals(args[0], ScriptKey.types()) && equals(args[1], "remove", "view")) {
+            } else if (equals(args[0], ScriptKey.types()) && equals(args[1], "remove", "view")) {
                 return setAction(sender, args);
             } else if (equals(args[0], "selector") && equals(args[1], "remove")) {
                 return doSelector(sender, args);
@@ -115,11 +117,11 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
     }
 
     private boolean doExport(@NotNull CommandSender sender, @NotNull String[] args) {
-        if (!hasPermission(sender, Permission.COMMAND_EXPORT, false)) {
+        if (!hasPermission(sender, Permission.COMMAND_EXPORT, false) || !equals(args[1], "sound", "material")) {
             return false;
         }
-        String type = args[1].equalsIgnoreCase("sound") ? "Sound" : "Material";
-        String path = "export" + SBFiles.S + type.toLowerCase() + "_v" + Utils.getServerVersion() + "_.txt";
+        String type = args[1].toLowerCase(Locale.ROOT);
+        String path = "export" + SBFiles.S + type + "_v" + Utils.getServerVersion() + "_.txt";
         File file = new File(getPlugin().getDataFolder(), path);
         File parent = file.getParentFile();
         if (!parent.exists()) {
@@ -128,7 +130,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
         new Thread(() -> {
             SBConfig.EXPORT_START.replace(type).send(sender);
             try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8))) {
-                for (Enum<?> value : type.equals("Sound") ? Sound.values() : Material.values()) {
+                for (Enum<?> value : type.equals("sound") ? Sound.values() : Material.values()) {
                     writer.write(value.name());
                     writer.newLine();
                 }
@@ -161,6 +163,13 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
         NameFetcher.clear();
         PackageType.clear();
         setUsage(getUsages());
+        try {
+            Field field = Json.class.getDeclaredField("LIST_CACHE");
+            field.setAccessible(true);
+            ((Map<?, ?>) field.get(null)).clear();
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        }
         SBConfig.ALL_FILE_RELOAD.send(sender);
         return true;
     }
@@ -256,7 +265,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
     }
 
     private boolean doRun(@NotNull CommandSender sender, @NotNull String[] args) {
-        ScriptKey scriptKey = ScriptKey.valueOf(args[0].toUpperCase());
+        ScriptKey scriptKey = ScriptKey.valueOf(args[0]);
         if (!isPlayer(sender) || !Permission.has(sender, scriptKey, true)) {
             return false;
         }
@@ -266,7 +275,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
     }
 
     private boolean setAction(@NotNull CommandSender sender, @NotNull String[] args) {
-        ScriptKey scriptKey = ScriptKey.valueOf(args[0].toUpperCase());
+        ScriptKey scriptKey = ScriptKey.valueOf(args[0]);
         if (!isPlayer(sender) || !Permission.has(sender, scriptKey, true)) {
             return false;
         }
@@ -275,7 +284,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
             SBConfig.ERROR_ACTION_DATA.send(sbPlayer);
             return true;
         }
-        ActionType actionType = ActionType.valueOf(args[1].toUpperCase());
+        ActionType actionType = ActionType.valueOf(args[1].toUpperCase(Locale.ROOT));
         ScriptEdit scriptEdit = new ScriptEdit(scriptKey, actionType);
         if (args.length > 2 && (actionType == ActionType.CREATE || actionType == ActionType.ADD)) {
             String script = StringUtils.createString(args, 2).trim();
@@ -311,9 +320,9 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
             try {
                 SBClipboard sbClipboard = sbPlayer.getSBClipboard().get();
                 CuboidRegionPaste regionPaste = new CuboidRegionPaste(sbClipboard, region).paste(pasteonair, overwrite);
-                String scriptKey = regionPaste.getScriptKey().getName();
-                SBConfig.SELECTOR_PASTE.replace(scriptKey, regionPaste.getRegionBlocks().getCount()).send(sbPlayer);
-                SBConfig.CONSOLE_SELECTOR_PASTE.replace(scriptKey, regionPaste.getRegionBlocks()).console();
+                String scriptKeyName = regionPaste.getScriptKey().getName();
+                SBConfig.SELECTOR_PASTE.replace(scriptKeyName, regionPaste.getRegionBlocks().getCount()).send(sbPlayer);
+                SBConfig.CONSOLE_SELECTOR_PASTE.replace(scriptKeyName, regionPaste.getRegionBlocks()).console();
             } finally {
                 sbPlayer.setSBClipboard(null);
             }
@@ -334,25 +343,25 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
     @Override
     public void tabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args, @NotNull List<String> empty) {
         if (args.length == 1) {
-            String prefix = args[0].toLowerCase();
+            String prefix = args[0].toLowerCase(Locale.ROOT);
             Set<String> set = setCommandPermissions(sender, new LinkedHashSet<>());
             StreamUtils.fForEach(set, s -> StringUtils.startsWith(s, prefix), empty::add);
         } else if (args.length == 2) {
             if (equals(args[0], "export")) {
                 if (Permission.COMMAND_EXPORT.has(sender)) {
-                    String prefix = args[1].toLowerCase();
+                    String prefix = args[1].toLowerCase(Locale.ROOT);
                     String[] answers = new String[] { "sound", "material" };
                     StreamUtils.fForEach(answers, s -> s.startsWith(prefix), empty::add);
                 }
             } else if (equals(args[0], "selector")) {
                 if (Permission.COMMAND_SELECTOR.has(sender)) {
-                    String prefix = args[1].toLowerCase();
+                    String prefix = args[1].toLowerCase(Locale.ROOT);
                     String[] answers = new String[] { "paste", "remove" };
                     StreamUtils.fForEach(answers, s -> s.startsWith(prefix), empty::add);
                 }
             } else if (equals(args[0], ScriptKey.types())) {
-                if (Permission.has(sender, ScriptKey.valueOf(args[0].toUpperCase()), true)) {
-                    String prefix = args[1].toLowerCase();
+                if (Permission.has(sender, ScriptKey.valueOf(args[0]), true)) {
+                    String prefix = args[1].toLowerCase(Locale.ROOT);
                     String[] answers = new String[] { "create", "add", "remove", "view", "run" };
                     StreamUtils.fForEach(answers, s -> s.startsWith(prefix), empty::add);
                 }
@@ -360,25 +369,25 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
         } else if (args.length > 2) {
             if (args.length == 3 && equals(args[0], "selector") && equals(args[1], "paste")) {
                 if (Permission.COMMAND_SELECTOR.has(sender)) {
-                    String prefix = args[2].toLowerCase();
+                    String prefix = args[2].toLowerCase(Locale.ROOT);
                     String[] answers = new String[] { "true", "false" };
                     StreamUtils.fForEach(answers, s -> s.startsWith(prefix), empty::add);
                 }
             } else if (args.length == 4 && equals(args[0], "selector") && equals(args[1], "paste")) {
                 if (Permission.COMMAND_SELECTOR.has(sender)) {
-                    String prefix = args[3].toLowerCase();
+                    String prefix = args[3].toLowerCase(Locale.ROOT);
                     String[] answers = new String[] { "true", "false" };
                     StreamUtils.fForEach(answers, s -> s.startsWith(prefix), empty::add);
                 }
             } else if (equals(args[0], ScriptKey.types())) {
-                if (Permission.has(sender, ScriptKey.valueOf(args[0].toUpperCase()), true)) {
+                if (Permission.has(sender, ScriptKey.valueOf(args[0]), true)) {
                     if (args.length == 3 && equals(args[1], "run")) {
                         List<World> worlds = Bukkit.getWorlds();
-                        String prefix = args[args.length - 1].toLowerCase();
+                        String prefix = args[args.length - 1].toLowerCase(Locale.ROOT);
                         String[] answers = StreamUtils.toArray(worlds, World::getName, new String[worlds.size()]);
                         StreamUtils.fForEach(answers, s -> s.startsWith(prefix), empty::add);
                     } else if (equals(args[1], "create", "add")) {
-                        String prefix = args[args.length - 1].toLowerCase();
+                        String prefix = args[args.length - 1].toLowerCase(Locale.ROOT);
                         String[] answers = OptionManager.getSyntaxs();
                         Arrays.sort(answers);
                         StreamUtils.fForEach(answers, s -> s.startsWith(prefix), s -> empty.add(s.trim()));
@@ -390,13 +399,13 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
 
     @NotNull
     private Set<String> setCommandPermissions(@NotNull CommandSender sender, @NotNull Set<String> set) {
-        StreamUtils.filter(set, s -> Permission.COMMAND_TOOL.has(sender), s -> s.add("tool"));
-        StreamUtils.filter(set, s -> Permission.COMMAND_RELOAD.has(sender), s -> s.add("reload"));
-        StreamUtils.filter(set, s -> Permission.COMMAND_BACKUP.has(sender), s -> s.add("backup"));
-        StreamUtils.filter(set, s -> Permission.COMMAND_CHECKVER.has(sender), s -> s.add("checkver"));
-        StreamUtils.filter(set, s -> Permission.COMMAND_DATAMIGR.has(sender), s -> s.add("datamigr"));
-        StreamUtils.filter(set, s -> Permission.COMMAND_EXPORT.has(sender), s -> s.add("export"));
-        StreamUtils.filter(set, s -> Permission.COMMAND_SELECTOR.has(sender), s -> s.add("selector"));
+        StreamUtils.ifAction(Permission.COMMAND_TOOL.has(sender), () -> set.add("tool"));
+        StreamUtils.ifAction(Permission.COMMAND_RELOAD.has(sender), () -> set.add("reload"));
+        StreamUtils.ifAction(Permission.COMMAND_BACKUP.has(sender), () -> set.add("backup"));
+        StreamUtils.ifAction(Permission.COMMAND_CHECKVER.has(sender), () -> set.add("checkver"));
+        StreamUtils.ifAction(Permission.COMMAND_DATAMIGR.has(sender), () -> set.add("datamigr"));
+        StreamUtils.ifAction(Permission.COMMAND_EXPORT.has(sender), () -> set.add("export"));
+        StreamUtils.ifAction(Permission.COMMAND_SELECTOR.has(sender), () -> set.add("selector"));
         StreamUtils.fForEach(ScriptKey.values(), s -> Permission.has(sender, s, true), s -> set.add(s.getName()));
         return set;
     }

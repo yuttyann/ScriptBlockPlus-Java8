@@ -10,7 +10,7 @@ import org.bukkit.event.block.Action;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
+import java.util.stream.Stream;
 
 /**
  * ScriptBlockPlus ScriptAction オプションクラス
@@ -29,14 +29,14 @@ public class ScriptAction extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {
+        if (!getTempMap().has(KEY)) {
+            return false;
+        }
         Action action = getTempMap().get(KEY);
-        return Arrays.stream(StringUtils.split(getOptionValue(), ',')).allMatch(s -> equals(action, s));
+        return Stream.of(StringUtils.split(getOptionValue(), ',')).allMatch(s -> equals(action, s));
     }
 
     private boolean equals(@Nullable Action action, @NotNull String type) {
-        if (action == null) {
-            return false;
-        }
         if (type.equalsIgnoreCase("shift")) {
             return getPlayer().isSneaking();
         }

@@ -30,7 +30,7 @@ public class Execute extends BaseOption {
     protected boolean isValid() throws Exception {
         String[] array = StringUtils.split(getOptionValue(), '/');
         String[] wxyz = StringUtils.split(array[1], ',');
-        ScriptKey scriptKey = ScriptKey.valueOf(array[0].toUpperCase());
+        ScriptKey scriptKey = ScriptKey.valueOf(array[0]);
         int x = Integer.parseInt(wxyz[1]), y = Integer.parseInt(wxyz[2]), z = Integer.parseInt(wxyz[3]);
         return API.read(getPlayer(), new Location(Utils.getWorld(wxyz[0]), x, y, z), scriptKey, 0);
     }

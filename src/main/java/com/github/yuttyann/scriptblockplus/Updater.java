@@ -14,6 +14,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
@@ -23,7 +24,6 @@ import java.math.RoundingMode;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * ScriptBlockPlus Updater クラス
@@ -175,7 +175,7 @@ public final class Updater {
 
     @NotNull
     private Document getDocument(@NotNull String name) throws ParserConfigurationException, SAXException, IOException {
-        InputStream is = FileUtils.getWebFile("https://xml.yuttyann44581.net/uploads/" + name + ".xml");
-        return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(Objects.requireNonNull(is));
+        DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        return builder.parse(FileUtils.getWebFile("https://xml.yuttyann44581.net/uploads/" + name + ".xml"));
     }
 }
