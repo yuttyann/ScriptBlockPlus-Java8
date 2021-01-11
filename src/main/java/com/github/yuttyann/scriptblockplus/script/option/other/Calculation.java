@@ -15,7 +15,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -73,7 +72,7 @@ public class Calculation extends BaseOption {
         }
         if (source.startsWith("%player_others_in_range_") && source.endsWith("%")) {
             source = source.substring("%player_others_in_range_".length(), source.length() - 1);
-            World world = Objects.requireNonNull(player.getLocation().getWorld());
+            World world = player.getLocation().getWorld();
             int count = 0, result = Integer.parseInt(source) * Integer.parseInt(source);
             for (Player worldPlayer : world.getPlayers()) {
                 if (player != worldPlayer && player.getLocation().distanceSquared(worldPlayer.getLocation()) <= result) {
@@ -100,8 +99,7 @@ public class Calculation extends BaseOption {
         }
         if (source.startsWith("%objective_score_") && source.endsWith("%")) {
             source = source.substring("%objective_score_".length(), source.length() - 1);
-            Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
-            Objective objective = scoreboard.getObjective(source);
+            Objective objective = Bukkit.getScoreboardManager().getMainScoreboard().getObjective(source);
             return objective == null ? 0 : objective.getScore(player.getName()).getScore();
         }
         switch (source) {

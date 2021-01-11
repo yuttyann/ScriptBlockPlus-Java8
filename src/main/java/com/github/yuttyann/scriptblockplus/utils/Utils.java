@@ -142,7 +142,7 @@ public final class Utils {
                 world = Bukkit.createWorld(WorldCreator.name(name));
             }
         }
-        return Objects.requireNonNull(world);
+        return Objects.requireNonNull(world, name + "does not exist");
     }
 
     @SuppressWarnings("deprecation")

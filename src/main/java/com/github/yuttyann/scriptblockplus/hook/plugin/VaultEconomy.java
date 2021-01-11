@@ -20,6 +20,8 @@ public final class VaultEconomy extends HookPlugin {
     private String name;
     private Economy economy;
 
+    private VaultEconomy() { }
+
     @Override
     @NotNull
     public String getPluginName() {

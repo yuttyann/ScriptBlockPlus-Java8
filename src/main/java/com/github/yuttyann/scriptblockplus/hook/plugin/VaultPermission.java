@@ -20,6 +20,8 @@ public final class VaultPermission extends HookPlugin {
     private String name;
     private Permission permission;
 
+    private VaultPermission() { }
+
     @Override
     @NotNull
     public String getPluginName() {
