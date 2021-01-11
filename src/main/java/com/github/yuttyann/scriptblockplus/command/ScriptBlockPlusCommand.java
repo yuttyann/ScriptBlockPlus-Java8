@@ -32,7 +32,6 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
@@ -40,6 +39,7 @@ import java.util.stream.Collectors;
 
 /**
  * ScriptBlockPlus ScriptBlockPlusCommand コマンドクラス
+ * 
  * @author yuttyann44581
  */
 public final class ScriptBlockPlusCommand extends BaseCommand {
@@ -57,8 +57,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
     @Override
     public CommandData[] getUsages() {
         String[] typeNodes = Permission.getTypeNodes(true);
-        return new CommandData[] {
-                new CommandData(SBConfig.TOOL_COMMAND.getValue(), Permission.COMMAND_TOOL.getNode()),
+        return new CommandData[] { new CommandData(SBConfig.TOOL_COMMAND.getValue(), Permission.COMMAND_TOOL.getNode()),
                 new CommandData(SBConfig.RELOAD_COMMAND.getValue(), Permission.COMMAND_RELOAD.getNode()),
                 new CommandData(SBConfig.BACKUP_COMMAND.getValue(), Permission.COMMAND_BACKUP.getNode()),
                 new CommandData(SBConfig.CHECKVER_COMMAND.getValue(), Permission.COMMAND_CHECKVER.getNode()),
@@ -70,12 +69,12 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
                 new CommandData(SBConfig.VIEW_COMMAND.getValue(), typeNodes),
                 new CommandData(SBConfig.RUN_COMMAND.getValue(), typeNodes),
                 new CommandData(SBConfig.SELECTOR_PASTE_COMMAND.getValue(), Permission.COMMAND_SELECTOR.getNode()),
-                new CommandData(SBConfig.SELECTOR_REMOVE_COMMAND.getValue(), Permission.COMMAND_SELECTOR.getNode())
-        };
+                new CommandData(SBConfig.SELECTOR_REMOVE_COMMAND.getValue(), Permission.COMMAND_SELECTOR.getNode()) };
     }
 
     @Override
-    public boolean runCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
+    public boolean runCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
+            String[] args) {
         if (args.length == 1) {
             if (equals(args[0], "tool")) {
                 return doTool(sender);
@@ -159,17 +158,11 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
         if (!hasPermission(sender, Permission.COMMAND_RELOAD, false)) {
             return false;
         }
+        Json.clear();
         SBFiles.reload();
         NameFetcher.clear();
         PackageType.clear();
         setUsage(getUsages());
-        try {
-            Field field = Json.class.getDeclaredField("LIST_CACHE");
-            field.setAccessible(true);
-            ((Map<?, ?>) field.get(null)).clear();
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
-        }
         SBConfig.ALL_FILE_RELOAD.send(sender);
         return true;
     }
