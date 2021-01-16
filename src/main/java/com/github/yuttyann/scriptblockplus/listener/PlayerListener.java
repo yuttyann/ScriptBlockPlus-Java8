@@ -52,6 +52,7 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * ScriptBlockPlus JoinQuitListener クラス
+ * 
  * @author yuttyann44581
  */
 public class PlayerListener implements Listener {
@@ -123,7 +124,7 @@ public class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onScriptReadStart(ScriptReadStartEvent event) {
         ObjectMap objectMap = event.getSBRead().getSBPlayer().getObjectMap();
-        Set<UUID> uuids = objectMap.get(KEY_INVENTORY, new HashSet<>());
+        Set<UUID> uuids = objectMap.get(KEY_INVENTORY, new HashSet<UUID>());
         uuids.add(event.getUniqueId());
         objectMap.put(KEY_INVENTORY, uuids);
     }

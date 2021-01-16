@@ -29,6 +29,7 @@ import org.bukkit.entity.Player;
 
 /**
  * ScriptBlockPlus EntityActionListener クラス
+ * 
  * @author yuttyann44581
  */
 public class EntityActionListener extends PacketAdapter {

@@ -17,9 +17,10 @@ package com.github.yuttyann.scriptblockplus.file;
 
 import com.github.yuttyann.scriptblockplus.ScriptBlock;
 import com.github.yuttyann.scriptblockplus.enums.reflection.ClassType;
-import com.github.yuttyann.scriptblockplus.file.json.FieldExclusion;
 import com.github.yuttyann.scriptblockplus.file.json.annotation.Exclude;
-import com.github.yuttyann.scriptblockplus.file.json.annotation.JsonOptions;
+import com.github.yuttyann.scriptblockplus.file.json.annotation.FieldExclusion;
+import com.github.yuttyann.scriptblockplus.file.json.annotation.JsonTag;
+import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.google.common.base.Charsets;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
@@ -45,13 +46,13 @@ public abstract class Json<T> {
     private static final Map<Integer, List<?>> LIST_CACHE = new HashMap<>();
 
     @Exclude
+    private final JsonTag jsonTag;
+
+    @Exclude
     private final File file;
 
     @Exclude
     private final Class<?>[] classes;
-
-    @Exclude
-    private final JsonOptions jsonOptions;
 
     @SerializedName("id")
     private final String id;
@@ -60,7 +61,7 @@ public abstract class Json<T> {
     private List<T> list = new ArrayList<>();
 
     {
-        this.jsonOptions = getClass().getAnnotation(JsonOptions.class);
+        this.jsonTag = getClass().getAnnotation(JsonTag.class);
     }
 
     public Json(@NotNull UUID uuid) {
@@ -70,8 +71,8 @@ public abstract class Json<T> {
     @SuppressWarnings("unchecked")
     public Json(@NotNull String id) {
         this.id = id;
-        this.file = getFile(jsonOptions);
-        this.classes = jsonOptions.classes();
+        this.file = getFile(jsonTag);
+        this.classes = jsonTag.classes();
 
         int hash = hashCode();
         if (LIST_CACHE.containsKey(hash)) {
@@ -155,7 +156,7 @@ public abstract class Json<T> {
             throw new IllegalArgumentException("Classes do not match " + equal);
         }
         int hash = hashCode(args);
-        Optional<T> value = list.stream().filter(t -> t.hashCode() == hash).findFirst();
+        Optional<T> value = StreamUtils.filterFirst(list, t -> t.hashCode() == hash);
         if (!value.isPresent()) {
             T instance = newInstance(args);
             list.add(instance);
@@ -181,7 +182,7 @@ public abstract class Json<T> {
             throw new IllegalArgumentException("Classes do not match " + equal);
         }
         int hash = hashCode(args);
-        return list.stream().filter(t -> t.hashCode() == hash).findFirst().isPresent();
+        return StreamUtils.filterFirst(list, t -> t.hashCode() == hash).isPresent();
     }
 
     protected int hashCode(@NotNull Object[] args) {
@@ -216,8 +217,8 @@ public abstract class Json<T> {
     }
 
     @NotNull
-    private File getFile(@NotNull JsonOptions jsonOptions) {
-        String path = jsonOptions.path() + SBFiles.S + jsonOptions.file();
+    private File getFile(@NotNull JsonTag jsonTag) {
+        String path = jsonTag.path() + SBFiles.S + jsonTag.file();
         path = StringUtils.replace(path, "/", SBFiles.S);
         path = StringUtils.replace(path, "{id}", id);
         return new File(ScriptBlock.getInstance().getDataFolder(), path);
@@ -225,8 +226,8 @@ public abstract class Json<T> {
 
     @NotNull
     public static String[] getNames(@NotNull Class<? extends Json<?>> jsonClass) {
-        JsonOptions jsonOptions = jsonClass.getAnnotation(JsonOptions.class);
-        File folder = new File(ScriptBlock.getInstance().getDataFolder(), jsonOptions.path());
+        JsonTag jsonTag = jsonClass.getAnnotation(JsonTag.class);
+        File folder = new File(ScriptBlock.getInstance().getDataFolder(), jsonTag.path());
         if (folder.exists()) {
             String[] files = folder.list();
             String[] names = new String[files.length];

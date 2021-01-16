@@ -33,6 +33,7 @@ import java.util.function.Predicate;
 
 /**
  * ScriptBlockPlus ItemUtils クラス
+ * 
  * @author yuttyann44581
  */
 public class ItemUtils {
@@ -106,7 +107,7 @@ public class ItemUtils {
         if (KEY_MATERIALS == null) {
             return material.getKey().toString();
         }
-        Predicate<Entry<?, ?>> filter = (e) -> e.getValue() == material;
+        Predicate<Entry<?, ?>> filter = e -> e.getValue() == material;
         return KEY_MATERIALS.entrySet().stream().filter(filter).findFirst().get().getKey();
     }
 

@@ -36,6 +36,7 @@ import java.util.*;
 
 /**
  * ScriptBlockPlus SBFiles クラス
+ * 
  * @author yuttyann44581
  */
 public final class SBFiles {
@@ -48,7 +49,7 @@ public final class SBFiles {
 
     public static void reload() {
         // ScriptBlockのインスタンス
-        Plugin plugin = ScriptBlock.getInstance();
+        ScriptBlock plugin = ScriptBlock.getInstance();
 
         // ファイルの内容を読み込む
         ConfigKeys.clear();

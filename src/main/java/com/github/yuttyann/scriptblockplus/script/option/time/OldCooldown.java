@@ -26,6 +26,7 @@ import java.util.UUID;
 
 /**
  * ScriptBlockPlus OldCooldown オプションクラス
+ * 
  * @author yuttyann44581
  */
 @OptionTag(name = "oldcooldown", syntax = "@oldcooldown:")

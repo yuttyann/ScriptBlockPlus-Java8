@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 
 /**
  * ScriptBlockPlus Calculation オプションクラス
+ * 
  * @author yuttyann44581
  */
 @OptionTag(name = "calculation", syntax = "@calc:")
@@ -77,7 +78,7 @@ public class Calculation extends BaseOption {
         }
         if (source.startsWith("%player_count_") && source.endsWith("%")) {
             source = source.substring("%player_count_".length(), source.length() - 1);
-            String[] array = source.split("/");
+            String[] array = StringUtils.split(source, '/');
             if (array.length < 1 || array.length > 2) {
                 return 0;
             }
@@ -90,7 +91,8 @@ public class Calculation extends BaseOption {
             World world = player.getLocation().getWorld();
             int count = 0, result = Integer.parseInt(source) * Integer.parseInt(source);
             for (Player worldPlayer : world.getPlayers()) {
-                if (player != worldPlayer && player.getLocation().distanceSquared(worldPlayer.getLocation()) <= result) {
+                if (player != worldPlayer
+                        && player.getLocation().distanceSquared(worldPlayer.getLocation()) <= result) {
                     count++;
                 }
             }

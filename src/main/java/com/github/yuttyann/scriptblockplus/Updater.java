@@ -42,6 +42,7 @@ import java.util.List;
 
 /**
  * ScriptBlockPlus Updater クラス
+ * 
  * @author yuttyann44581
  */
 public final class Updater {
@@ -101,21 +102,21 @@ public final class Updater {
                     continue;
                 }
                 switch (cNode.getNodeName()) {
-                case "download":
-                    downloadURL = ((Element) cNode).getAttribute("url");
-                    break;
-                case "changelog":
-                    changeLogURL = ((Element) cNode).getAttribute("url");
-                    break;
-                case "details":
-                    NodeList detailsChildren = cNode.getChildNodes();
-                    details = new ArrayList<>(detailsChildren.getLength());
-                    for (int k = 0; k < detailsChildren.getLength(); k++) {
-                        Node dNode = detailsChildren.item(k);
-                        if (dNode.getNodeType() == Node.ELEMENT_NODE) {
-                            details.add(((Element) dNode).getAttribute("info"));
+                    case "download":
+                        downloadURL = ((Element) cNode).getAttribute("url");
+                        break;
+                    case "changelog":
+                        changeLogURL = ((Element) cNode).getAttribute("url");
+                        break;
+                    case "details":
+                        NodeList detailsChildren = cNode.getChildNodes();
+                        details = new ArrayList<>(detailsChildren.getLength());
+                        for (int k = 0; k < detailsChildren.getLength(); k++) {
+                            Node dNode = detailsChildren.item(k);
+                            if (dNode.getNodeType() == Node.ELEMENT_NODE) {
+                                details.add(((Element) dNode).getAttribute("info"));
+                            }
                         }
-                    }
                 }
             }
         }
@@ -172,10 +173,8 @@ public final class Updater {
         if (!file.exists()) {
             return false;
         }
-        try (
-                BufferedReader reader1 = new BufferedReader(new FileReader(file));
-                BufferedReader reader2 = new BufferedReader(new InputStreamReader(new URL(url).openStream()))
-            ) {
+        try (BufferedReader reader1 = new BufferedReader(new FileReader(file));
+                BufferedReader reader2 = new BufferedReader(new InputStreamReader(new URL(url).openStream()))) {
             while (reader1.ready() && reader2.ready()) {
                 if (!reader1.readLine().equals(reader2.readLine())) {
                     return false;

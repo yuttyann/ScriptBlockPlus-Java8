@@ -28,7 +28,7 @@ public enum ActionType {
      */
     CREATE("create"),
 
-    /**
+    /**d
      * スクリプトの追加
      */
     ADD("add"),
@@ -41,7 +41,12 @@ public enum ActionType {
     /**
      * スクリプトの詳細
      */
-    VIEW("view");
+    VIEW("view"),
+
+    /**
+     * セレクターの設定
+     */
+    REDSTONE("redstone");
 
     private final String name;
 

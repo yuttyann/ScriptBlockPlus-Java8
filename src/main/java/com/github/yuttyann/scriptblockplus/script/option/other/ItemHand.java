@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 
 /**
  * ScriptBlockPlus ItemHand オプションクラス
+ * 
  * @author yuttyann44581
  */
 @OptionTag(name = "itemhand", syntax = "@hand:")

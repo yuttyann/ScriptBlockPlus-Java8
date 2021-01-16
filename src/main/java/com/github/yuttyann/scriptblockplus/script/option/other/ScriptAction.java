@@ -47,7 +47,7 @@ public class ScriptAction extends BaseOption {
         if (!getTempMap().has(KEY)) {
             return false;
         }
-        Action action = getTempMap().get(KEY);
+        Action action = (Action) getTempMap().get(KEY);
         return Stream.of(StringUtils.split(getOptionValue(), ',')).allMatch(s -> equals(action, s));
     }
 

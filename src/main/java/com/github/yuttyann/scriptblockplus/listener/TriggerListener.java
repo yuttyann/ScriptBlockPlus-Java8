@@ -44,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * ScriptBlockPlus TriggerListener クラス
+ * 
  * @param <E> イベントの型
  * @author yuttyann44581
  */
@@ -59,7 +60,7 @@ public abstract class TriggerListener<E extends Event> implements Listener {
     private final EventPriority eventPriority;
 
     {
-        Class<E> genericClass = (Class<E>) null;
+        Class<E> genericClass = null;
         try {
             Type type = getClass().getGenericSuperclass();
             Type[] args = ((ParameterizedType) type).getActualTypeArguments();
@@ -72,8 +73,9 @@ public abstract class TriggerListener<E extends Event> implements Listener {
 
     /**
      * コンストラクタ
-     * @param plugin - プラグイン
-     * @param scriptKey - スクリプトキー
+     * 
+     * @param plugin        - プラグイン
+     * @param scriptKey     - スクリプトキー
      * @param eventPriority - イベントの優先度
      */
     public TriggerListener(@NotNull Plugin plugin, @NotNull ScriptKey scriptKey, @NotNull EventPriority eventPriority) {
@@ -84,6 +86,7 @@ public abstract class TriggerListener<E extends Event> implements Listener {
 
     /**
      * トリガーを登録します。
+     * 
      * @param listener - {@link TriggerListener}を実装したクラスのインスタンス
      */
     public static void register(@NotNull TriggerListener<? extends Event> listener) {
@@ -95,6 +98,7 @@ public abstract class TriggerListener<E extends Event> implements Listener {
 
     /**
      * プラグインを取得します。
+     * 
      * @return {@link Plugin} - プラグイン
      */
     @NotNull
@@ -104,6 +108,7 @@ public abstract class TriggerListener<E extends Event> implements Listener {
 
     /**
      * {@link Bukkit}のイベントのクラスを取得します。
+     * 
      * @return Class&lt;{@link E} extends {@link Event}&gt; - イベントのクラス
      */
     @NotNull
@@ -113,6 +118,7 @@ public abstract class TriggerListener<E extends Event> implements Listener {
 
     /**
      * スクリプトキーを取得します。
+     * 
      * @return {@link ScriptKey} - スクリプトキー
      */
     @NotNull
@@ -122,6 +128,7 @@ public abstract class TriggerListener<E extends Event> implements Listener {
 
     /**
      * イベントの優先度を取得します。
+     * 
      * @return {@link EventPriority} - イベントの優先度
      */
     @NotNull
@@ -133,6 +140,7 @@ public abstract class TriggerListener<E extends Event> implements Listener {
      * トリガーを生成します。
      * <p>
      * nullを返した場合は処理を行わずに終了します。
+     * 
      * <pre>
      * 　
      * // 実装例
@@ -151,6 +159,7 @@ public abstract class TriggerListener<E extends Event> implements Listener {
 
     /**
      * 各プロセスから呼び出されます。
+     * 
      * <pre>
      * 　
      * // プロセスの進行度
@@ -184,6 +193,7 @@ public abstract class TriggerListener<E extends Event> implements Listener {
 
     /**
      * トリガーの処理です。
+     * 
      * @param event - イベント
      */
     private void onTrigger(@NotNull Event event) {

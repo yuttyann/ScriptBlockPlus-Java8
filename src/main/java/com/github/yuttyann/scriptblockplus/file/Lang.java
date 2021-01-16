@@ -58,7 +58,7 @@ public final class Lang {
     @NotNull
     public String getPath() {
         String path = directory + "/" + language + ".yml";
-        String code = FileUtils.getResource(plugin, path) != null ? language : DEFAULT_LANGUAGE;
+        String code = FileUtils.getResource(plugin, path) == null ? DEFAULT_LANGUAGE : language;
         File file = new File(plugin.getDataFolder(), StringUtils.replace(this.filePath, "{code}", code));
         return !file.exists() && !code.equals(language) ? directory + "/" + code + ".yml" : path;
     }
@@ -66,7 +66,7 @@ public final class Lang {
     @NotNull
     public File getFile() {
         String path = directory + "/" + language + ".yml";
-        String code = FileUtils.getResource(plugin, path) != null ? language : DEFAULT_LANGUAGE;
+        String code = FileUtils.getResource(plugin, path) == null ? DEFAULT_LANGUAGE : language;
         File file = new File(plugin.getDataFolder(), StringUtils.replace(this.filePath, "{code}", code));
         if (!file.exists()) {
             if (!code.equals(language)) {

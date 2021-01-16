@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus GroupRemove オプションクラス
+ * 
  * @author yuttyann44581
  */
 @OptionTag(name = "group_remove", syntax = "@groupREMOVE:")

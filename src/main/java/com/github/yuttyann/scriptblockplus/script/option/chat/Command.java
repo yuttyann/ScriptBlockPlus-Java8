@@ -21,10 +21,13 @@ import com.github.yuttyann.scriptblockplus.script.option.Option;
 import com.github.yuttyann.scriptblockplus.script.option.OptionTag;
 import com.github.yuttyann.scriptblockplus.utils.StringUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
+
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus Command オプションクラス
+ * 
  * @author yuttyann44581
  */
 @OptionTag(name = "command", syntax = "@command ")
@@ -38,7 +41,8 @@ public class Command extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {
+        Player player = getPlayer();
         String command = StringUtils.setColor(getOptionValue());
-        return CommandLog.supplier(getSBPlayer().getWorld(), () -> Utils.dispatchCommand(getSBPlayer(), command));
+        return CommandLog.supplier(player.getWorld(), () -> Utils.dispatchCommand(player, getLocation(), command));
     }
 }

@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 
 /**
  * ScriptBlockPlus HitTrigger クラス
+ * 
  * @author yuttyann44581
  */
 public class HitTrigger extends TriggerListener<ProjectileHitEvent> {
@@ -87,7 +88,7 @@ public class HitTrigger extends TriggerListener<ProjectileHitEvent> {
         Vector start = event.getEntity().getLocation().toVector();
         Vector direction = event.getEntity().getVelocity().normalize();
         BlockIterator iterator = new BlockIterator(event.getEntity().getWorld(), start, direction, 0.0D, 4);
-        Block hitBlock = null;
+        Block hitBlock = (Block) null;
         while (iterator.hasNext()) {
             hitBlock = iterator.next();
             if (hitBlock.getType() != Material.AIR) {

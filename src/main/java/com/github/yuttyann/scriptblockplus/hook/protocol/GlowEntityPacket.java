@@ -45,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus GlowEntityPacket クラス
+ * 
  * @author yuttyann44581
  */
 public class GlowEntityPacket {
@@ -70,7 +71,8 @@ public class GlowEntityPacket {
     }
 
     @NotNull
-    public GlowEntity spawnGlowEntity(@NotNull SBPlayer sbPlayer, @NotNull Location location, @NotNull TeamColor teamColor) {
+    public GlowEntity spawnGlowEntity(@NotNull SBPlayer sbPlayer, @NotNull Location location,
+            @NotNull TeamColor teamColor) {
         // エンティティのID
         int id = EntityCount.next();
         UUID uuid = UUID.randomUUID();
@@ -96,11 +98,8 @@ public class GlowEntityPacket {
     }
 
     public void destroyGlowEntity(@NotNull SBPlayer sbPlayer, @NotNull Location location) {
-        if (!has(sbPlayer, location)) {
-            return;
-        }
         Predicate<GlowEntity> filter = g -> g.equals(location.getX(), location.getY(), location.getZ());
-        GLOW_ENTITIES.get(sbPlayer.getUniqueId()).stream().filter(filter).findFirst().ifPresent(this::destroyGlowEntity);
+        StreamUtils.filterFirst(GLOW_ENTITIES.get(sbPlayer.getUniqueId()), filter).ifPresent(this::destroyGlowEntity);
     }
 
     public void destroyGlowEntity(@NotNull GlowEntity glowEntity) {
@@ -135,7 +134,7 @@ public class GlowEntityPacket {
     public void destroyAll(@NotNull SBPlayer sbPlayer) {
         Collection<GlowEntity> glowEntities = GLOW_ENTITIES.get(sbPlayer.getUniqueId());
         if (!glowEntities.isEmpty()) {
-            StreamUtils.forEach(glowEntities.toArray(new GlowEntity[0]), this::destroyGlowEntity);
+            StreamUtils.forEach(glowEntities.toArray(new GlowEntity[glowEntities.size()]), this::destroyGlowEntity);
             GLOW_ENTITIES.removeAll(sbPlayer.getUniqueId());
         }
     }
@@ -143,7 +142,7 @@ public class GlowEntityPacket {
     public void removeAll() {
         Collection<GlowEntity> glowEntities = GLOW_ENTITIES.values();
         if (!glowEntities.isEmpty()) {
-            StreamUtils.forEach(glowEntities.toArray(new GlowEntity[0]), this::broadcastDestroy);
+            StreamUtils.forEach(glowEntities.toArray(new GlowEntity[glowEntities.size()]), this::broadcastDestroy);
             GLOW_ENTITIES.clear();
         }
     }
@@ -153,9 +152,10 @@ public class GlowEntityPacket {
             return false;
         }
         Predicate<GlowEntity> filter = g -> g.equals(location.getX(), location.getY(), location.getZ());
-        return GLOW_ENTITIES.get(sbPlayer.getUniqueId()).stream().anyMatch(filter);
+        return StreamUtils.anyMatch(GLOW_ENTITIES.get(sbPlayer.getUniqueId()), filter);
     }
 
+    @NotNull
     private PacketContainer createEntity(final int id, @NotNull UUID uuid, @NotNull Vector vector) {
         PacketType packetType = PacketType.Play.Server.SPAWN_ENTITY_LIVING;
         PacketContainer spawnEntity = ProtocolLibrary.getProtocolManager().createPacket(packetType);
@@ -166,6 +166,7 @@ public class GlowEntityPacket {
         return spawnEntity;
     }
 
+    @NotNull
     private PacketContainer createMetadata(final int id) {
         PacketType packetType = PacketType.Play.Server.ENTITY_METADATA;
         PacketContainer entityMetadata = ProtocolLibrary.getProtocolManager().createPacket(packetType);

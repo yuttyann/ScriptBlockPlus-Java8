@@ -23,6 +23,7 @@ import com.github.yuttyann.scriptblockplus.player.SBPlayer;
 import com.google.common.base.Splitter;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
@@ -43,6 +44,7 @@ import static com.github.yuttyann.scriptblockplus.utils.StringUtils.*;
 
 /**
  * ScriptBlockPlus Utils クラス
+ * 
  * @author yuttyann44581
  */
 public final class Utils {
@@ -51,7 +53,7 @@ public final class Utils {
     public static final String DATE_PATTERN = "yyyy/MM/dd HH:mm:ss";
 
     private static final String SERVER_VERSION = getServerVersion();
-    private static final Map<String, Boolean> VC_CACHE = new HashMap<>();
+    private static final Map<String, Boolean> VERSION_CACHE = new HashMap<>();
 
     @NotNull
     public static String randomUUID() {
@@ -79,9 +81,9 @@ public final class Utils {
     }
 
     public static boolean isCBXXXorLater(@NotNull String version) {
-        Boolean result = VC_CACHE.get(version);
+        Boolean result = VERSION_CACHE.get(version);
         if (result == null) {
-            VC_CACHE.put(version, result = isUpperVersion(getServerVersion(), version));
+            VERSION_CACHE.put(version, result = isUpperVersion(getServerVersion(), version));
         }
         return result;
     }
@@ -121,7 +123,8 @@ public final class Utils {
         }
     }
 
-    public static boolean tempPerm(@NotNull SBPlayer sbPlayer, @NotNull Permission permission, @NotNull Supplier<Boolean> supplier) {
+    public static boolean tempPerm(@NotNull SBPlayer sbPlayer, @NotNull Permission permission,
+            @NotNull Supplier<Boolean> supplier) {
         return sbPlayer.isOnline() && CommandLog.supplier(sbPlayer.getWorld(), () -> {
             if (sbPlayer.hasPermission(permission.getNode())) {
                 return supplier.get();
@@ -138,10 +141,15 @@ public final class Utils {
     }
 
     public static boolean dispatchCommand(@NotNull CommandSender sender, @NotNull String command) {
+        return dispatchCommand(sender, null, command);
+    }
+
+    public static boolean dispatchCommand(@NotNull CommandSender sender, @Nullable Location location,
+            @NotNull String command) {
         command = command.startsWith("/") ? command.substring(1) : command;
         CommandSender commandSender = sender instanceof SBPlayer ? ((SBPlayer) sender).getPlayer() : sender;
         if (CommandSelector.INSTANCE.has(command)) {
-            List<String> commands = CommandSelector.INSTANCE.build(commandSender, command);
+            List<String> commands = CommandSelector.INSTANCE.build(commandSender, location, command);
             return commands.stream().allMatch(s -> Bukkit.dispatchCommand(commandSender, s));
         }
         return Bukkit.dispatchCommand(commandSender, command);

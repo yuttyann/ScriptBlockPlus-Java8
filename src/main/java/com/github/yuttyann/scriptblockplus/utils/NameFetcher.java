@@ -30,28 +30,29 @@ import java.util.UUID;
 
 /**
  * ScriptBlockPlus NameFetcher クラス
+ * 
  * @author yuttyann44581
  */
 public final class NameFetcher {
 
     private static final String URL = "https://sessionserver.mojang.com/session/minecraft/profile/";
 
-    private static final Map<UUID, String> CACHE = new HashMap<>();
+    private static final Map<UUID, String> NAME_CACHE = new HashMap<>();
 
     public static void clear() {
-        CACHE.clear();
+        NAME_CACHE.clear();
     }
 
     @NotNull
     public static String getName(@NotNull UUID uuid) throws IOException {
-        String name = CACHE.get(uuid);
+        String name = NAME_CACHE.get(uuid);
         if (name == null) {
             JsonObject json = getJsonObject(URL + StringUtils.replace(uuid.toString(), "-", ""));
             String error = json.get("errorMessage").getAsString();
             if (StringUtils.isNotEmpty(error)) {
                 throw new IllegalStateException(error);
             }
-            CACHE.put(uuid, name = json.get("name").getAsString());
+            NAME_CACHE.put(uuid, name = json.get("name").getAsString());
         }
         return name;
     }

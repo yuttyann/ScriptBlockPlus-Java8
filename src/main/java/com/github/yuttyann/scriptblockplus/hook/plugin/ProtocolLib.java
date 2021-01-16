@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus ProtocolLib クラス
+ * 
  * @author yuttyann44581
  */
 public class ProtocolLib extends HookPlugin {
@@ -39,7 +40,8 @@ public class ProtocolLib extends HookPlugin {
     public static final ProtocolLib INSTANCE = new ProtocolLib();
     public static final GlowEntityPacket GLOW_ENTITY = new GlowEntityPacket();
 
-    private ProtocolLib() { }
+    private ProtocolLib() {
+    }
 
     @Override
     @NotNull

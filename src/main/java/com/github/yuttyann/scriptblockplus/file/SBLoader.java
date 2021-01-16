@@ -34,6 +34,7 @@ import java.util.function.Consumer;
 
 /**
  * ScriptBlockPlus ScriptLoader クラス
+ * 
  * @author yuttyann44581
  */
 public final class SBLoader {
@@ -77,7 +78,7 @@ public final class SBLoader {
         if (StringUtils.isEmpty(author)) {
             return new ArrayList<>();
         }
-        List<UUID> uuids = new ArrayList<>();
+        List<UUID> uuids = new ArrayList<UUID>();
         StreamUtils.forEach(StringUtils.split(author, ','), s -> uuids.add(UUID.fromString(s.trim())));
         return uuids;
     }

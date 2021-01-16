@@ -17,6 +17,7 @@ package com.github.yuttyann.scriptblockplus.item;
 
 import com.github.yuttyann.scriptblockplus.event.RunItemEvent;
 import com.github.yuttyann.scriptblockplus.utils.ItemUtils;
+import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.unmodifiable.UnmodifiableItemStack;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -92,7 +93,7 @@ public abstract class ItemAction implements Cloneable {
     }
 
     public static boolean has(@NotNull Permissible permissible, @Nullable ItemStack item, boolean permission) {
-        Optional<ItemAction> itemAction = ITEMS.stream().filter(i -> i.equals(item)).findFirst();
+        Optional<ItemAction> itemAction = StreamUtils.filterFirst(ITEMS, i -> i.equals(item));
         return itemAction.filter(i -> !permission || i.hasPermission(permissible)).isPresent();
     }
 

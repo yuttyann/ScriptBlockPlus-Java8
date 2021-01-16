@@ -17,7 +17,7 @@ package com.github.yuttyann.scriptblockplus.file.json;
 
 import com.github.yuttyann.scriptblockplus.file.Json;
 import com.github.yuttyann.scriptblockplus.file.SBLoader;
-import com.github.yuttyann.scriptblockplus.file.json.annotation.JsonOptions;
+import com.github.yuttyann.scriptblockplus.file.json.annotation.JsonTag;
 import com.github.yuttyann.scriptblockplus.file.json.element.BlockScript;
 import com.github.yuttyann.scriptblockplus.file.json.element.ScriptParam;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
@@ -31,13 +31,23 @@ import java.util.UUID;
 
 /**
  * ScriptBlockPlus BlockScriptJson クラス
+ * 
  * @author yuttyann44581
  */
-@JsonOptions(path = "json/blockscript", file = "{id}.json")
+@JsonTag(path = "json/blockscript")
 public class BlockScriptJson extends Json<BlockScript> {
 
     public BlockScriptJson(@NotNull ScriptKey scriptKey) {
         super(scriptKey.getName());
+    }
+
+    public static boolean has(@NotNull Location location) {
+        for (ScriptKey scriptKey : ScriptKey.values()) {
+            if (has(location, new BlockScriptJson(scriptKey))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean has(@NotNull Location location, @NotNull ScriptKey scriptKey) {

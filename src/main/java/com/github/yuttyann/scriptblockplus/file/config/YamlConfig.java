@@ -515,8 +515,8 @@ public class YamlConfig {
         return yaml.getByteList(path);
     }
 
-    @NotNull
     @Override
+    @NotNull
     public String toString() {
         return yaml.toString();
     }

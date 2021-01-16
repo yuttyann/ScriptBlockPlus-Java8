@@ -20,6 +20,7 @@ import com.github.yuttyann.scriptblockplus.script.option.BaseOption;
 import com.github.yuttyann.scriptblockplus.script.option.Option;
 import com.github.yuttyann.scriptblockplus.script.option.OptionIndex;
 import com.github.yuttyann.scriptblockplus.script.option.OptionTag;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +37,7 @@ public final class OptionMap extends HashMap<String, Option> {
     private static final Field ORDINAL;
 
     static {
-        Field field = (Field) null;
+        Field field = null;
         try {
             field = Option.class.getDeclaredField("ordinal");
             field.setAccessible(true);
@@ -64,12 +65,6 @@ public final class OptionMap extends HashMap<String, Option> {
         return super.put(syntax, new SBConstructor<>(optionClass).newInstance(InstanceType.REFLECTION));
     }
 
-    @Override
-    @Deprecated
-    public Option put(@Nullable String key, @Nullable Option value) {
-        throw new UnsupportedOperationException();
-    }
-
     @NotNull
     private String addSyntax(@NotNull OptionIndex optionIndex, @NotNull String syntax) {
         if (!containsKey(syntax)) {
@@ -88,6 +83,12 @@ public final class OptionMap extends HashMap<String, Option> {
             }
         }
         return syntax;
+    }
+
+    @Override
+    @Deprecated
+    public Option put(@Nullable String key, @Nullable Option value) {
+        throw new UnsupportedOperationException();
     }
 
     @NotNull

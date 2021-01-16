@@ -30,7 +30,6 @@ import com.github.yuttyann.scriptblockplus.raytrace.RayResult;
 import com.github.yuttyann.scriptblockplus.raytrace.RayTrace;
 import com.github.yuttyann.scriptblockplus.region.CuboidRegionBlocks;
 import com.github.yuttyann.scriptblockplus.region.PlayerRegion;
-import com.github.yuttyann.scriptblockplus.region.Region;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
@@ -50,6 +49,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * ScriptBlockPlus TickRunnable クラス
+ * 
  * @author yuttyann44581
  */
 public class TickRunnable extends BukkitRunnable {
@@ -107,8 +107,8 @@ public class TickRunnable extends BukkitRunnable {
         destroyEntity(sbPlayer, rayResult.getRelative().getLocation(), locations);
         if (locations.size() > 0) {
             tempLocations.addAll(locations);
-            for (Location location : RayTrace.rayTraceBlocks(player, getDistance(player), 0.01D, true)) {
-                Location blockLocation = location.getBlock().getLocation();
+            for (Block block : RayTrace.rayTraceBlocks(player, getDistance(player), 0.01D, true)) {
+                Location blockLocation = block.getLocation();
                 if (tempLocations.contains(blockLocation)) {
                     break;
                 }
@@ -120,7 +120,7 @@ public class TickRunnable extends BukkitRunnable {
     }
 
     private void spawnGlowEntity(@NotNull SBPlayer sbPlayer) {
-        Region region = new PlayerRegion(sbPlayer.getPlayer(), 20);
+        PlayerRegion region = new PlayerRegion(sbPlayer.getPlayer(), 20);
         Set<Block> blocks = getBlocks(new CuboidRegionBlocks(region));
         Set<Location> locations = getLocations(sbPlayer, KEY);
         for (Block block : blocks) {
@@ -134,8 +134,9 @@ public class TickRunnable extends BukkitRunnable {
             }
         }
         Multimap<UUID, GlowEntity> glowEntities = GLOW_ENTITY_PACKET.getEntities();
-        for(GlowEntity glowEntity : glowEntities.get(sbPlayer.getUniqueId()).toArray(new GlowEntity[0])) {
-            if(!StreamUtils.anyMatch(blocks, b -> glowEntity.equals(b.getX(), b.getY(), b.getZ()))) {
+        for (GlowEntity glowEntity : glowEntities.get(sbPlayer.getUniqueId())
+                .toArray(new GlowEntity[glowEntities.size()])) {
+            if (!StreamUtils.anyMatch(blocks, b -> glowEntity.equals(b.getX(), b.getY(), b.getZ()))) {
                 GLOW_ENTITY_PACKET.destroyGlowEntity(glowEntity);
             }
         }
@@ -150,7 +151,7 @@ public class TickRunnable extends BukkitRunnable {
             }
         } else {
             int count = 0;
-            Region region = new PlayerRegion(sbPlayer.getPlayer(), 10);
+            PlayerRegion region = new PlayerRegion(sbPlayer.getPlayer(), 10);
             for (Block block : getBlocks(new CuboidRegionBlocks(region))) {
                 if (count++ < 800) {
                     spawnParticlesOnBlock(sbPlayer.getPlayer(), block, null);
@@ -161,7 +162,7 @@ public class TickRunnable extends BukkitRunnable {
 
     @NotNull
     private Set<Block> getBlocks(@NotNull CuboidRegionBlocks regionBlocks) {
-        Set<Block> result = new HashSet<>();
+        Set<Block> result = new HashSet<Block>();
         Set<Block> blocks = regionBlocks.getBlocks();
         for (ScriptKey scriptKey : ScriptKey.values()) {
             BlockScript blockScript = new BlockScriptJson(scriptKey).load();
@@ -188,7 +189,7 @@ public class TickRunnable extends BukkitRunnable {
     }
 
     private boolean destroyEntity(@NotNull SBPlayer sbPlayer, @NotNull Location location, @NotNull Set<Location> locations) {
-        if (!hasBlockScript(location)) {
+        if (!BlockScriptJson.has(location)) {
             return false;
         }
         GLOW_ENTITY_PACKET.destroyGlowEntity(sbPlayer, location);
@@ -196,20 +197,11 @@ public class TickRunnable extends BukkitRunnable {
         return true;
     }
 
-    private boolean hasBlockScript(@NotNull Location location) {
-        for (ScriptKey scriptKey : ScriptKey.values()) {
-            if (BlockScriptJson.has(location, scriptKey)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private void spawnParticlesOnBlock(@NotNull Player player, @NotNull Block block, @Nullable Color color) {
         if (color == null) {
             color = block.getType() == Material.AIR ? Color.AQUA : Color.LIME;
         }
-        double x = block.getX(), y = block.getY(), z = block.getZ(), a = 1;
+        double x = block.getX(), y = block.getY(), z = block.getZ(), a = 1D;
         if (Utils.isCBXXXorLater("1.13")) {
             DustOptions dust = new DustOptions(color, 1);
             player.spawnParticle(Particle.REDSTONE, x, y, z, 0, 0, 0, 0, dust);

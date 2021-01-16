@@ -19,23 +19,53 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
  * ScriptBlockPlus StreamUtils クラス
+ * <p>
+ * シンプルな処理ならパフォーマンスが向上するはず。
+ * 
  * @author yuttyann44581
  */
 public final class StreamUtils {
 
     @NotNull
-    public static <T, R> R[] toArray(@NotNull Collection<T> collection, @NotNull Function<T, R> mapper, @NotNull R[] array) {
+    public static <T, R> R[] toArray(@NotNull T[] array, @NotNull Function<T, R> mapper, @NotNull R[] newArray) {
+        for (int i = 0; i < array.length; i++) {
+            newArray[i] = mapper.apply(array[i]);
+        }
+        return newArray;
+    }
+
+    @NotNull
+    public static <T, R> R[] toArray(@NotNull Collection<T> collection, @NotNull Function<T, R> mapper, @NotNull R[] newArray) {
         Iterator<T> iterator = collection.iterator();
         for (int i = 0; iterator.hasNext(); i++) {
-            array[i] = mapper.apply(iterator.next());
+            newArray[i] = mapper.apply(iterator.next());
         }
-        return array;
+        return newArray;
+    }
+
+    public static <T> Optional<T> filterFirst(@NotNull T[] array, @NotNull Predicate<T> filter) {
+        for (T t : array) {
+            if (filter.test(t)) {
+                return t == null ? Optional.empty() : Optional.of(t);
+            }
+        }
+        return Optional.empty();
+    }
+
+    public static <T> Optional<T> filterFirst(@NotNull Collection<T> collection, @NotNull Predicate<T> filter) {
+        for (T t : collection) {
+            if (filter.test(t)) {
+                return t == null ? Optional.empty() : Optional.of(t);
+            }
+        }
+        return Optional.empty();
     }
 
     public static <T> void fForEach(@NotNull T[] array, @NotNull Predicate<T> filter, @NotNull Consumer<T> action) {
@@ -52,7 +82,7 @@ public final class StreamUtils {
         }
     }
 
-    public static <T> boolean anyMatch(@NotNull T[] array, @NotNull Predicate<T> filter) {
+    public static <T> boolean anyMatch(@NotNull T[] array, Predicate<T> filter) {
         for (T t : array) {
             if (filter.test(t)) {
                 return true;
@@ -61,7 +91,7 @@ public final class StreamUtils {
         return false;
     }
 
-    public static <T> boolean anyMatch(@NotNull Collection<T> collection, @NotNull Predicate<T> filter) {
+    public static <T> boolean anyMatch(@NotNull Collection<T> collection, Predicate<T> filter) {
         for (T t : collection) {
             if (filter.test(t)) {
                 return true;

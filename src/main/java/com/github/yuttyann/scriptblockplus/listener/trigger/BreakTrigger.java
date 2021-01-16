@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * ScriptBlockPlus BreakTrigger クラス
+ * 
  * @author yuttyann44581
  */
 public class BreakTrigger extends TriggerListener<BlockBreakEvent> {

@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus Bypass オプションクラス
+ * 
  * @author yuttyann44581
  */
 @OptionTag(name = "bypass_op", syntax = "@bypass ")
@@ -40,15 +41,15 @@ public class BypassOP extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {
-        Player player = getSBPlayer().getPlayer();
+        Player player = getPlayer();
         String command = StringUtils.setColor(getOptionValue());
         return CommandLog.supplier(player.getWorld(), () -> {
             if (player.isOp()) {
-                return Utils.dispatchCommand(player, command);
+                return Utils.dispatchCommand(player, getLocation(), command);
             } else {
                 try {
                     player.setOp(true);
-                    return Utils.dispatchCommand(player, command);
+                    return Utils.dispatchCommand(player, getLocation(), command);
                 } finally {
                     player.setOp(false);
                 }

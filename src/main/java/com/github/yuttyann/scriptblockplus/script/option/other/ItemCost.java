@@ -24,12 +24,13 @@ import com.github.yuttyann.scriptblockplus.utils.StringUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus ItemCost オプションクラス
+ * 
  * @author yuttyann44581
  */
 @OptionTag(name = "itemcost", syntax = "$item:")
@@ -58,7 +59,7 @@ public class ItemCost extends BaseOption {
         String name = StringUtils.isEmpty(create) ? material.name() : StringUtils.setColor(create);
 
         Player player = getPlayer();
-        Inventory inventory = player.getInventory();
+        PlayerInventory inventory = player.getInventory();
         ItemStack[] inventoryItems = inventory.getContents();
         if (!getTempMap().has(KEY_OPTION)) {
             getTempMap().put(KEY_OPTION, copyItems(inventoryItems));

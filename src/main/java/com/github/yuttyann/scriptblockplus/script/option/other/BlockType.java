@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus BlockType オプションクラス
+ * 
  * @author yuttyann44581
  */
 @OptionTag(name = "blocktype", syntax = "@blocktype:")

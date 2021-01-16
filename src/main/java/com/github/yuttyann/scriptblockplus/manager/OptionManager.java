@@ -25,7 +25,6 @@ import com.github.yuttyann.scriptblockplus.script.option.time.Delay;
 import com.github.yuttyann.scriptblockplus.script.option.time.OldCooldown;
 import com.github.yuttyann.scriptblockplus.script.option.vault.*;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
@@ -71,8 +70,8 @@ public final class OptionManager {
         OPTION_MAP.updateOrdinal();
     }
 
-    public static void register(@NotNull OptionIndex priority, @NotNull Class<? extends BaseOption> optionClass) {
-        OPTION_MAP.put(priority, optionClass);
+    public static void register(@NotNull OptionIndex optionIndex, @NotNull Class<? extends BaseOption> optionClass) {
+        OPTION_MAP.put(optionIndex, optionClass);
         OPTION_MAP.updateOrdinal();
     }
 

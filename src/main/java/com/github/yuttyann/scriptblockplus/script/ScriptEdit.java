@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * ScriptBlockPlus ScriptEdit クラス
+ * 
  * @author yuttyann44581
  */
 public class ScriptEdit {
@@ -33,15 +34,15 @@ public class ScriptEdit {
     private final ScriptKey scriptKey;
     private final ActionType actionType;
 
-    private String script;
+    private String value;
 
     public ScriptEdit(@NotNull ScriptKey scriptKey, @NotNull ActionType actionType) {
         this.scriptKey = scriptKey;
         this.actionType = actionType;
     }
 
-    public void setScriptLine(@Nullable String script) {
-        this.script = script;
+    public void setValue(@Nullable String value) {
+        this.value = value;
     }
 
     @NotNull
@@ -63,16 +64,19 @@ public class ScriptEdit {
             SBOperation sbOperation = new SBOperation(scriptKey);
             switch (actionType) {
                 case CREATE:
-                    sbOperation.create(player, location, script);
+                    sbOperation.create(player, location, value);
                     break;
                 case ADD:
-                    sbOperation.add(player, location, script);
+                    sbOperation.add(player, location, value);
                     break;
                 case REMOVE:
                     sbOperation.remove(player, location);
                     break;
                 case VIEW:
                     sbOperation.view(player, location);
+                    break;
+                case REDSTONE:
+                    sbOperation.redstone(player, location, value);
                     break;
             }
         } finally {

@@ -16,16 +16,20 @@
 package com.github.yuttyann.scriptblockplus.raytrace;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.enums.reflection.PackageType;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
 
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
@@ -34,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * ScriptBlockPlus AdvancedRayTrace クラス
+ * 
  * @author yuttyann44581
  */
 public final class RayTrace {
@@ -64,29 +69,50 @@ public final class RayTrace {
                     return PackageType.rayTraceBlocks(player, distance);
                 } catch (ReflectiveOperationException e) {
                     e.printStackTrace();
-                }  
+                }
+            } else {
+                // 疑似的に再現、ブロックの側面取得の精度は劣る
+                Set<Block> blocks = rayTraceBlocks(player, distance, 0.05D, true);
+                if (blocks.size() > 1) {
+                    Block old = null, now = null;
+                    Iterator<Block> iterator = blocks.iterator();
+                    BlockCoords blockCoords = new BlockCoords(player.getEyeLocation());
+                    while (iterator.hasNext()) {
+                        old = now;
+                        now = iterator.next();
+                        if (blockCoords.equals(now.getLocation())) {
+                            continue;
+                        }
+                        if (old != null && now.getType().isOccluding()) {
+                            BlockFace blockFace = now.getFace(old);
+                            return new RayResult(now, blockFace);
+                        }
+                    }
+                }
             }
             return null;
         }
     }
-    
+
     @NotNull
-    public static Set<Location> rayTraceBlocks(@NotNull Player player, final double distance, final double accuracy, final boolean square) {
+    public static Set<Block> rayTraceBlocks(@NotNull Player player, final double distance, final double accuracy, final boolean square) {
         World world = player.getWorld();
+        Set<Block> blocks = new LinkedHashSet<>();
         RayTrace rayTrace = new RayTrace(player);
-        Set<Location> locations = new LinkedHashSet<>();
         for(Vector position : rayTrace.traverse(distance, accuracy)) {
             Location location = position.toLocation(world);
             if(rayTrace.intersects(new SBBoundingBox(location.getBlock(), square), distance, accuracy)){
-                locations.add(location);
+                blocks.add(location.getBlock());
             }
         }
-        return locations;
+        return blocks;
     }
 
     @NotNull
     public Vector getPostion(final double distance) {
-        return start.clone().add(direction.clone().multiply(distance));
+        Vector vector1 = new Vector(start.getX(), start.getY(), start.getZ());
+        Vector vector2 = new Vector(direction.getX(), direction.getY(), direction.getZ());
+        return vector1.add(vector2.multiply(distance));
     }
 
     public boolean isOnLine(@NotNull Vector position) {
@@ -110,7 +136,7 @@ public final class RayTrace {
     public Vector positionOfIntersection(@NotNull Vector min, @NotNull Vector max, final double distance, final double accuracy) {
         List<Vector> positions = traverse(distance, accuracy);
         for (Vector position : positions) {
-            if (intersects(position, min, max)) {
+            if (intersects(position, new SBBoundingBox(min, max))) {
                 return position;
             }
         }
@@ -120,7 +146,7 @@ public final class RayTrace {
     public boolean intersects(@NotNull Vector min, @NotNull Vector max, final double distance, final double accuracy) {
         List<Vector> positions = traverse(distance, accuracy);
         for (Vector position : positions) {
-            if (intersects(position, min, max)) {
+            if (intersects(position, new SBBoundingBox(min, max))) {
                 return true;
             }
         }
@@ -131,7 +157,7 @@ public final class RayTrace {
     public Vector positionOfIntersection(@NotNull SBBoundingBox boundingBox, final double distance, final double accuracy) {
         List<Vector> positions = traverse(distance, accuracy);
         for (Vector position : positions) {
-            if (intersects(position, boundingBox.getMin(), boundingBox.getMax())) {
+            if (intersects(position, boundingBox)) {
                 return position;
             }
         }
@@ -141,19 +167,19 @@ public final class RayTrace {
     public boolean intersects(@NotNull SBBoundingBox boundingBox, final double distance, final double accuracy) {
         List<Vector> positions = traverse(distance, accuracy);
         for (Vector position : positions) {
-            if (intersects(position, boundingBox.getMin(), boundingBox.getMax())) {
+            if (intersects(position, boundingBox)) {
                 return true;
             }
         }
         return false;
     }
 
-    public static boolean intersects(@NotNull Vector position, @NotNull Vector min, @NotNull Vector max) {
-        if (position.getX() < min.getX() || position.getX() > max.getX()) {
+    public static boolean intersects(@NotNull Vector position, @NotNull SBBoundingBox boundingBox) {
+        if (position.getX() < boundingBox.getMinX() || position.getX() > boundingBox.getMaxX()) {
             return false;
-        } else if (position.getY() < min.getY() || position.getY() > max.getY()) {
+        } else if (position.getY() < boundingBox.getMinY() || position.getY() > boundingBox.getMaxY()) {
             return false;
-        } else if (position.getZ() < min.getZ() || position.getZ() > max.getZ()) {
+        } else if (position.getZ() < boundingBox.getMinZ() || position.getZ() > boundingBox.getMaxZ()) {
             return false;
         }
         return true;

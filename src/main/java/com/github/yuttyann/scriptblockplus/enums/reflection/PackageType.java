@@ -25,6 +25,8 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -34,13 +36,17 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Map.Entry;
 
 /**
  * ScriptBlockPlus PackageType 列挙型
  * @author yuttyann44581
  */
 public enum PackageType {
+    MJN("com.mojang.brigadier"),
     NMS("net.minecraft.server." + Utils.getPackageVersion()),
     CB("org.bukkit.craftbukkit." + Utils.getPackageVersion()),
     CB_BLOCK(CB, "block"),
@@ -93,7 +99,7 @@ public enum PackageType {
         HAS_NMS = hasNMS;
     }
 
-    private static final Map<String, Object> CACHE = new HashMap<>();
+    private static final Map<Integer, Object> REFLECTION_CACHE = new HashMap<>();
 
     private final String path;
 
@@ -106,7 +112,7 @@ public enum PackageType {
     }
 
     public static void clear() {
-        CACHE.clear();
+        REFLECTION_CACHE.clear();
     }
 
     @NotNull
@@ -138,8 +144,8 @@ public enum PackageType {
 
     @Nullable
     public Field getField(boolean declared, @NotNull String className, @NotNull String fieldName) throws ReflectiveOperationException {
-        String key = createKey(ReturnType.FIELD, className, fieldName, null);
-        Field field = (Field) CACHE.get(key);
+        int hash = createHash(ReturnType.FIELD, className, fieldName, null);
+        Field field = (Field) REFLECTION_CACHE.get(hash);
         if (field == null) {
             if (declared) {
                 field = getClass(className).getDeclaredField(fieldName);
@@ -147,7 +153,7 @@ public enum PackageType {
             } else {
                 field = getClass(className).getField(fieldName);
             }
-            CACHE.put(key, field);
+            REFLECTION_CACHE.put(hash, field);
         }
         return field;
     }
@@ -188,8 +194,8 @@ public enum PackageType {
         if (parameterTypes == null) {
             parameterTypes = ArrayUtils.EMPTY_CLASS_ARRAY;
         }
-        String key = createKey(ReturnType.METHOD, className, methodName, parameterTypes);
-        Method method = (Method) CACHE.get(key);
+        int hash = createHash(ReturnType.METHOD, className, methodName, parameterTypes);
+        Method method = (Method) REFLECTION_CACHE.get(hash);
         if (method == null) {
             if (declared) {
                 method = getClass(className).getDeclaredMethod(methodName, parameterTypes);
@@ -197,7 +203,7 @@ public enum PackageType {
             } else {
                 method = getClass(className).getMethod(methodName, parameterTypes);
             }
-            CACHE.put(key, method);
+            REFLECTION_CACHE.put(hash, method);
         }
         return method;
     }
@@ -235,8 +241,8 @@ public enum PackageType {
         if (parameterTypes == null) {
             parameterTypes = ArrayUtils.EMPTY_CLASS_ARRAY;
         }
-        String key = createKey(ReturnType.CONSTRUCTOR, className, null, parameterTypes);
-        Constructor<?> constructor = (Constructor<?>) CACHE.get(key);
+        int hash = createHash(ReturnType.CONSTRUCTOR, className, null, parameterTypes);
+        Constructor<?> constructor = (Constructor<?>) REFLECTION_CACHE.get(hash);
         if (constructor == null) {
             if (declared) {
                 constructor = getClass(className).getDeclaredConstructor(parameterTypes);
@@ -244,7 +250,7 @@ public enum PackageType {
             } else {
                 constructor = getClass(className).getConstructor(parameterTypes);
             }
-            CACHE.put(key, constructor);
+            REFLECTION_CACHE.put(hash, constructor);
         }
         return constructor;
     }
@@ -263,43 +269,33 @@ public enum PackageType {
         if (StringUtils.isEmpty(className)) {
             throw new IllegalArgumentException();
         }
-        String pass = this + "." + className;
-        String key = ReturnType.CLASS + pass;
-        Class<?> clazz = (Class<?>) CACHE.get(key);
+        int hash = createHash(ReturnType.CLASS, className, null, null);
+        Class<?> clazz = (Class<?>) REFLECTION_CACHE.get(hash);
         if (clazz == null) {
-            clazz = Class.forName(pass);
-            CACHE.put(key, clazz);
+            clazz = Class.forName(this + "." + className);
+            REFLECTION_CACHE.put(hash, clazz);
         }
         return clazz;
     }
 
     @NotNull
-    private String createKey(@NotNull ReturnType returnType, @NotNull String className, @Nullable String name, @Nullable Class<?>[] objects) {
+    private int createHash(@NotNull ReturnType returnType, @NotNull String className, @Nullable String name, @Nullable Class<?>[] objects) {
         if (!HAS_NMS || StringUtils.isEmpty(className)) {
-            return "null";
+            return 0;
         }
-        String rName = returnType.toString();
-        int lastLength = objects == null ? -1 : objects.length - 1;
-        if (lastLength == -1) {
-            if (name != null) {
-                return rName + this + "." + className + "=" + name + "[]";
-            }
-            return rName + this + "." + className;
+        int baseHash = returnType.toString().hashCode() + toString().hashCode() + className.hashCode();
+        if (objects == null) {
+            return name == null ? 11 * baseHash : 21 * (baseHash + name.hashCode());
         }
-        StringBuilder builder = new StringBuilder();
-        boolean notEmptyName = StringUtils.isNotEmpty(name);
-        builder.append(rName).append(this).append('.').append(className).append(notEmptyName ? '=' : '[');
-        if (notEmptyName) {
-            builder.append(name).append('[');
+        int hash = 1;
+        int prime = 31;
+        hash = prime * hash + baseHash;
+        hash = prime * hash + String.valueOf(name).hashCode();
+        hash = prime * hash + Boolean.hashCode(StringUtils.isNotEmpty(name));
+        for (Object object : objects) {
+            hash += Objects.hashCode(object);
         }
-        for (int i = 0; i < objects.length; i++) {
-            builder.append(objects[i] == null ? null : objects[i].getName());
-            if (i == lastLength) {
-                return builder.append(']').toString();
-            }
-            builder.append(',');
-        }
-        return builder.toString();
+        return hash;
     }
 
     public static int getMagmaCubeId() {
@@ -345,19 +341,17 @@ public enum PackageType {
     }
 
     public static void sendActionBar(@NotNull Player player, @NotNull String text) throws ReflectiveOperationException {
-        String chatSerializer = "IChatBaseComponent$ChatSerializer";
-        Object component = NMS.invokeMethod(null, chatSerializer, "a", "{\"text\": \"" + text + "\"}");
-        Class<?>[] classes = new Class<?>[] { NMS.getClass("IChatBaseComponent"), byte.class };
+        Object component = NMS.invokeMethod(null, "IChatBaseComponent$ChatSerializer", "a", "{\"text\": \"" + text + "\"}");
+        Class<?>[] classes = { NMS.getClass("IChatBaseComponent"), byte.class };
         Object value = (byte) 2;
         if (Utils.isCBXXXorLater("1.12")) {
             value = NMS.getEnumValueOf("ChatMessageType", "GAME_INFO");
             classes[1] = value.getClass();
         }
-        Class<?> packetClass = NMS.getClass("Packet");
         Object handle = CB_ENTITY.invokeMethod(player, "CraftPlayer", "getHandle");
         Object connection = NMS.getField("EntityPlayer", "playerConnection").get(handle);
         Object packetChat = NMS.getConstructor("PacketPlayOutChat", classes).newInstance(component, value);
-        NMS.getMethod("PlayerConnection", "sendPacket", packetClass).invoke(connection, packetChat);
+        NMS.getMethod("PlayerConnection", "sendPacket", NMS.getClass("Packet")).invoke(connection, packetChat);
     }
 
     @Nullable
@@ -365,7 +359,7 @@ public enum PackageType {
         Location eyeLocation = player.getEyeLocation();
         Object vec3d1 = toNMSVec3D(eyeLocation.toVector());
         Object vec3d2 = toNMSVec3D(eyeLocation.toVector().add(eyeLocation.getDirection().normalize().multiply(distance)));
-        Object[] arguments = (Object[]) null;
+        Object[] arguments = null;
         if (Utils.isCBXXXorLater("1.13")) {
             Object NEVER = NMS.getEnumValueOf("FluidCollisionOption", "NEVER");
             arguments = new Object[] { vec3d1, vec3d2, NEVER, false, false };
@@ -384,6 +378,24 @@ public enum PackageType {
             return new RayResult(world.getBlockAt(x, y, z), BlockFace.valueOf(((Enum<?>) enumDirection.get(rayTrace)).name()));
         }
         return null;
+    }
+
+    @NotNull
+    public static Entity[] selectEntities(@NotNull CommandSender sender, @NotNull Location location, @NotNull String selector) throws ReflectiveOperationException {
+        String argmentEntity = Utils.isCBXXXorLater("1.14") ? "multipleEntities" : "b";
+        String entitySelector = Utils.isCBXXXorLater("1.14") ? "getEntities" : "b";
+        Object vector = toNMSVec3D(location.toVector());
+        Object entity = NMS.invokeMethod(null, "ArgumentEntity", argmentEntity);
+        Object reader = MJN.newInstance("StringReader", selector);
+        Object listener = CB_COMMAND.getMethod("VanillaCommandWrapper", "getListener", CommandSender.class).invoke(null, sender);
+        Object wrapper = NMS.invokeMethod(listener, "CommandListenerWrapper", "a", vector);
+        Object parse = NMS.invokeMethod(entity, "ArgumentEntity", "parse", reader, true);
+        List<?> nmsList = (List<?>) NMS.invokeMethod(parse, "EntitySelector", entitySelector, wrapper);
+        Entity[] entities = new Entity[nmsList.size()];
+        for (int i = 0; i < nmsList.size(); i++) {
+            entities[i] = (Entity) PackageType.NMS.invokeMethod(nmsList.get(i), "Entity", "getBukkitEntity");
+        }
+        return entities;
     }
 
     @NotNull
@@ -408,7 +420,7 @@ public enum PackageType {
         Method material = CB_UTIL.getMethod("CraftMagicNumbers", "getMaterial", NMS.getClass("Item"));
         Object registory = NMS.getField("Item", "REGISTRY").get(null);
         Map<?, ?> registorySimple = (Map<?, ?>) NMS.getField(true, "RegistrySimple", "c").get(registory);
-        for (Map.Entry<?, ?> entry : registorySimple.entrySet()) {
+        for (Entry<?, ?> entry : registorySimple.entrySet()) {
             items.put(entry.getKey().toString(), (Material) material.invoke(null, entry.getValue()));
         }
         return items;

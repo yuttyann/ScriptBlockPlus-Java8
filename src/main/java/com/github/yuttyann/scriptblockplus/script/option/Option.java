@@ -118,7 +118,7 @@ public abstract class Option implements SBInstance<Option>, Comparable<Option> {
      * @return {@link String} - 正常だった場合はtrue
      */
     public final boolean isOption(@NotNull String script) {
-        return script.length() > length && script.indexOf(syntax) == 0;
+        return script.length() >= length && script.indexOf(syntax) == 0;
     }
 
     /**
