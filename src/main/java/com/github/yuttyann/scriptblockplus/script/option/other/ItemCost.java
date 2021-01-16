@@ -30,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus ItemCost オプションクラス
- * 
  * @author yuttyann44581
  */
 @OptionTag(name = "itemcost", syntax = "$item:")

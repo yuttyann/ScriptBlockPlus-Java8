@@ -32,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus ProtocolLib クラス
- * 
  * @author yuttyann44581
  */
 public class ProtocolLib extends HookPlugin {

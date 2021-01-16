@@ -30,7 +30,6 @@ import java.util.UUID;
 
 /**
  * ScriptBlockPlus NameFetcher クラス
- * 
  * @author yuttyann44581
  */
 public final class NameFetcher {

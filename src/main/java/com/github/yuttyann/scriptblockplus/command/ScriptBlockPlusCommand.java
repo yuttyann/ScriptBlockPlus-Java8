@@ -54,7 +54,6 @@ import java.util.stream.Collectors;
 
 /**
  * ScriptBlockPlus ScriptBlockPlusCommand コマンドクラス
- * 
  * @author yuttyann44581
  */
 public final class ScriptBlockPlusCommand extends BaseCommand {

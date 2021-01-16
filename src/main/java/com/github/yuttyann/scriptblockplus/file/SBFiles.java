@@ -36,7 +36,6 @@ import java.util.*;
 
 /**
  * ScriptBlockPlus SBFiles クラス
- * 
  * @author yuttyann44581
  */
 public final class SBFiles {

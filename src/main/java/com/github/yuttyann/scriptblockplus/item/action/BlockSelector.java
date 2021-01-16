@@ -31,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus BlockSelector クラス
- * 
  * @author yuttyann44581
  */
 public class BlockSelector extends ItemAction {

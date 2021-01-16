@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus Command オプションクラス
- * 
  * @author yuttyann44581
  */
 @OptionTag(name = "command", syntax = "@command ")

@@ -33,7 +33,6 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * ScriptBlockPlus InteractTrigger クラス
- * 
  * @author yuttyann44581
  */
 public class InteractTrigger extends TriggerListener<BlockClickEvent> {

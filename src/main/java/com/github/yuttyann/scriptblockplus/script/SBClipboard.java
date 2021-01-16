@@ -35,7 +35,6 @@ import java.util.UUID;
 
 /**
  * ScriptBlockPlus ScriptClipboard クラス
- * 
  * @author yuttyann44581
  */
 public class SBClipboard {

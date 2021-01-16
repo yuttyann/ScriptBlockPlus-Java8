@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 
 /**
  * ScriptBlockPlus SBOperation クラス
- * 
  * @author yuttyann44581
  */
 public final class SBOperation {

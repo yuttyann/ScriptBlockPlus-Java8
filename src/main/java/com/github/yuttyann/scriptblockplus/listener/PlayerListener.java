@@ -52,7 +52,6 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * ScriptBlockPlus JoinQuitListener クラス
- * 
  * @author yuttyann44581
  */
 public class PlayerListener implements Listener {

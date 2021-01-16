@@ -26,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus Amount オプションクラス
- * 
  * @author yuttyann44581
  */
 @OptionTag(name = "amount", syntax = "@amount:")

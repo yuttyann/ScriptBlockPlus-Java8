@@ -37,7 +37,6 @@ import java.util.regex.Pattern;
 
 /**
  * ScriptBlockPlus Calculation オプションクラス
- * 
  * @author yuttyann44581
  */
 @OptionTag(name = "calculation", syntax = "@calc:")

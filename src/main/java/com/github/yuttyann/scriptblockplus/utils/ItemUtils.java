@@ -33,7 +33,6 @@ import java.util.function.Predicate;
 
 /**
  * ScriptBlockPlus ItemUtils クラス
- * 
  * @author yuttyann44581
  */
 public class ItemUtils {

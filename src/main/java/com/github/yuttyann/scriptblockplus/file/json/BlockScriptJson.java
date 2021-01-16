@@ -31,7 +31,6 @@ import java.util.UUID;
 
 /**
  * ScriptBlockPlus BlockScriptJson クラス
- * 
  * @author yuttyann44581
  */
 @JsonTag(path = "json/blockscript")

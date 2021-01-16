@@ -38,7 +38,6 @@ import java.util.stream.Stream;
 
 /**
  * ScriptBlockPlus HitTrigger クラス
- * 
  * @author yuttyann44581
  */
 public class HitTrigger extends TriggerListener<ProjectileHitEvent> {

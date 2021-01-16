@@ -42,7 +42,6 @@ import java.util.List;
 
 /**
  * ScriptBlockPlus Updater クラス
- * 
  * @author yuttyann44581
  */
 public final class Updater {

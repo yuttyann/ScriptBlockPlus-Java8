@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * ScriptBlockPlus ScriptEdit クラス
- * 
  * @author yuttyann44581
  */
 public class ScriptEdit {

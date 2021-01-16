@@ -26,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus GroupAdd オプションクラス
- * 
  * @author yuttyann44581
  */
 @OptionTag(name = "group_add", syntax = "@groupADD:")

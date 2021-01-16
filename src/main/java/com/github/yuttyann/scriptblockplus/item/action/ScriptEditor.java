@@ -36,7 +36,6 @@ import java.util.Optional;
 
 /**
  * ScriptBlockPlus ScriptEditor クラス
- * 
  * @author yuttyann44581
  */
 public class ScriptEditor extends ItemAction {

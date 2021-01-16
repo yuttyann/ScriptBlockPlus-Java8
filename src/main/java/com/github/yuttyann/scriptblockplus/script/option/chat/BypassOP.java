@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus Bypass オプションクラス
- * 
  * @author yuttyann44581
  */
 @OptionTag(name = "bypass_op", syntax = "@bypass ")

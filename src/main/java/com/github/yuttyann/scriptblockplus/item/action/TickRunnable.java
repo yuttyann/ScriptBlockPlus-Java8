@@ -49,7 +49,6 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * ScriptBlockPlus TickRunnable クラス
- * 
  * @author yuttyann44581
  */
 public class TickRunnable extends BukkitRunnable {

@@ -40,7 +40,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * ScriptBlockPlus InteractListener クラス
- * 
  * @author yuttyann44581
  */
 public class InteractListener implements Listener {

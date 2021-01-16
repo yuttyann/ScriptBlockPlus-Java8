@@ -44,7 +44,6 @@ import static com.github.yuttyann.scriptblockplus.utils.StringUtils.*;
 
 /**
  * ScriptBlockPlus Utils クラス
- * 
  * @author yuttyann44581
  */
 public final class Utils {

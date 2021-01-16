@@ -25,7 +25,6 @@ import java.util.Set;
 
 /**
  * ScriptBlockPlus Cooldown オプションクラス
- * 
  * @author yuttyann44581
  */
 @OptionTag(name = "cooldown", syntax = "@cooldown:")

@@ -27,7 +27,6 @@ import java.net.URLConnection;
 
 /**
  * ScriptBlockPlus FileUtils クラス
- * 
  * @author yuttyann44581
  */
 public final class FileUtils {

@@ -34,7 +34,6 @@ import java.util.function.Consumer;
 
 /**
  * ScriptBlockPlus ScriptLoader クラス
- * 
  * @author yuttyann44581
  */
 public final class SBLoader {

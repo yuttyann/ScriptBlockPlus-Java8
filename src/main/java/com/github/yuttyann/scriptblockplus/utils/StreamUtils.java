@@ -28,7 +28,6 @@ import java.util.function.Predicate;
  * ScriptBlockPlus StreamUtils クラス
  * <p>
  * シンプルな処理ならパフォーマンスが向上するはず。
- * 
  * @author yuttyann44581
  */
 public final class StreamUtils {

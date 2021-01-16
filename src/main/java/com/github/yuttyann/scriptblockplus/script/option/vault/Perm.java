@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus Perm オプションクラス
- * 
  * @author yuttyann44581
  */
 @OptionTag(name = "permission", syntax = "@perm:")

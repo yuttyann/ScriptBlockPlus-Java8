@@ -45,7 +45,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus GlowEntityPacket クラス
- * 
  * @author yuttyann44581
  */
 public class GlowEntityPacket {
