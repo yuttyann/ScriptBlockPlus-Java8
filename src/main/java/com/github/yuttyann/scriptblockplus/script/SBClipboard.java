@@ -26,6 +26,7 @@ import com.github.yuttyann.scriptblockplus.utils.unmodifiable.UnmodifiableLocati
 
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -46,6 +47,7 @@ public class SBClipboard {
 
     private final Set<UUID> author;
     private final List<String> script;
+    private final String selector;
     private final int amount;
 
     public SBClipboard(@NotNull SBPlayer sbPlayer, @NotNull Location location, @NotNull BlockScriptJson scriptJson) {
@@ -57,6 +59,7 @@ public class SBClipboard {
         ScriptParam scriptParam = scriptJson.load().get(location);
         this.author = new LinkedHashSet<>(scriptParam.getAuthor());
         this.script = new ArrayList<>(scriptParam.getScript());
+        this.selector = scriptParam.getSelector();
         this.amount = scriptParam.getAmount();
     }
 
@@ -83,6 +86,11 @@ public class SBClipboard {
     @NotNull
     public List<String> getScript() {
         return script;
+    }
+
+    @Nullable
+    public String getSelector() {
+        return selector;
     }
 
     public int getAmount() {
@@ -118,6 +126,7 @@ public class SBClipboard {
             scriptParam.getAuthor().add(sbPlayer.getUniqueId());
             scriptParam.setScript(script);
             scriptParam.setLastEdit(Utils.getFormatTime(Utils.DATE_PATTERN));
+            scriptParam.setSelector(selector);
             scriptParam.setAmount(amount);
             scriptJson.saveFile();
             TimerOption.removeAll(location, scriptKey);
