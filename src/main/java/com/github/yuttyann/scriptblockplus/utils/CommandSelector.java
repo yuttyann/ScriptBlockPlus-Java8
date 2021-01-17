@@ -19,6 +19,7 @@ import com.github.yuttyann.scriptblockplus.enums.reflection.PackageType;
 import com.github.yuttyann.scriptblockplus.hook.plugin.Placeholder;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
 import com.github.yuttyann.scriptblockplus.script.option.other.Calculation;
+import com.google.common.collect.Lists;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -70,8 +71,7 @@ public final class CommandSelector {
     public static List<String> build(@NotNull CommandSender sender, @Nullable Location location, @NotNull String command) {
         int modCount = 0;
         List<Index> indexList = new ArrayList<>();
-        List<String> commandList = new ArrayList<>();
-        commandList.add(parse(command, sender, indexList));
+        List<String> commandList = Lists.newArrayList(parse(command, sender, indexList));
         for (int i = 0; i < indexList.size(); i++) {
             String selector = indexList.get(i).substring(command);
             Entity[] entities = getTargets(sender, location, selector);
