@@ -58,7 +58,7 @@ public class Calculation extends BaseOption {
         Object value2 = parse(player, array[2]);
         String operator = array[1];
 
-        if (result(value1, value2, operator)) {
+        if (result(operator, value1, value2)) {
             return true;
         }
         if (array.length > 3) {
@@ -71,6 +71,7 @@ public class Calculation extends BaseOption {
         return false;
     }
 
+    @NotNull
     private Object parse(@NotNull Player player, @NotNull String source) throws Exception {
         if (REALNUMBER_PATTERN.matcher(source).matches()) {
             return Double.parseDouble(source);
@@ -208,9 +209,16 @@ public class Calculation extends BaseOption {
         }
     }
 
-    private boolean result(Object value1, Object value2, @NotNull String operator) {
+    private boolean result(@NotNull String operator, @NotNull Object value1, @NotNull Object value2) {
         if (!(value1 instanceof Number && value2 instanceof Number)) {
-            return operator.equals("==") && Objects.equals(value1, value2);
+            switch (operator) {
+                case "==":
+                    return Objects.equals(value1, value2);
+                case "!=":
+                    return !Objects.equals(value1, value2);
+                default:
+                    return false;
+            }
         }
         double v1 = Double.parseDouble(value1.toString());
         double v2 = Double.parseDouble(value2.toString());
