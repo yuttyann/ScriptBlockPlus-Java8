@@ -288,8 +288,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
             return false;
         }
         int x = Integer.parseInt(args[3]), y = Integer.parseInt(args[4]), z = Integer.parseInt(args[5]);
-        ScriptBlock.getInstance().getAPI().read((Player) sender, new Location(Utils.getWorld(args[2]), x, y, z),
-                scriptKey, 0);
+        ScriptBlock.getInstance().getAPI().read((Player) sender, new Location(Utils.getWorld(args[2]), x, y, z), scriptKey, 0);
         return true;
     }
 
@@ -422,6 +421,10 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
                         StreamUtils.fForEach(answers, s -> s.startsWith(prefix), empty::add);
                     } else if (args.length == 4 && equals(args[1], "redstone") && equals(args[2], "true")) {
                         String prefix = args[3].toLowerCase(Locale.ROOT);
+                        String[] answers = new String[] { "tag{op=}", "tag{perm=}", "tag{op=,perm=}", "@a", "@e", "@p", "@r" };
+                        StreamUtils.fForEach(answers, s -> s.startsWith(prefix), empty::add);
+                    } else if (args.length == 5 && equals(args[1], "redstone") && equals(args[2], "true") && args[3].startsWith("tag{")) {
+                        String prefix = args[4].toLowerCase(Locale.ROOT);
                         String[] answers = new String[] { "@a", "@e", "@p", "@r" };
                         StreamUtils.fForEach(answers, s -> s.startsWith(prefix), empty::add);
                     }
