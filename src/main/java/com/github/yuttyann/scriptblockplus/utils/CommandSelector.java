@@ -122,7 +122,7 @@ public final class CommandSelector {
                     String xyz = k == 0 ? "x" : k == 1 ? "y" : k == 2 ? "z" : "x";
                     StringBuilder tempBuilder = new StringBuilder();
                     for (int l = type; l < chars.length; l++) {
-                        if ("0123456789".indexOf(chars[l]) > -1) {
+                        if ("+-0123456789".indexOf(chars[l]) > -1) {
                             i++;
                             tempBuilder.append(chars[l]);
                         } else {

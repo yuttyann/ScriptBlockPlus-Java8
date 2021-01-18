@@ -18,28 +18,28 @@ package com.github.yuttyann.scriptblockplus.enums;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * ScriptBlockPlus Tag 列挙型
+ * ScriptBlockPlus Filter 列挙型
  * @author yuttyann44581
  */
-public enum Tag {
+public enum Filter {
     OP("op="),
     PERM("perm="),
     LIMIT("limit="),
     NONE("");
 
-    private static final Tag[] TAGS = { OP, PERM, LIMIT };
+    private static final Filter[] FILTERS = { OP, PERM, LIMIT };
 
     private final String prefix;
 
-    Tag(@NotNull String prefix) {
+    Filter(@NotNull String prefix) {
         this.prefix = prefix;
     }
 
     @NotNull
-    public static Tag[] getTags() {
-        Tag[] tags = new Tag[TAGS.length];
-        System.arraycopy(TAGS, 0, tags, 0, TAGS.length);
-        return tags;
+    public static Filter[] getFilters() {
+        Filter[] filters = new Filter[FILTERS.length];
+        System.arraycopy(FILTERS, 0, filters, 0, FILTERS.length);
+        return filters;
     }
 
     @NotNull
