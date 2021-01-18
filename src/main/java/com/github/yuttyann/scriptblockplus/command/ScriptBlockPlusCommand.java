@@ -424,9 +424,9 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
                     } else if (args.length == 4 && equals(args[1], "redstone") && equals(args[2], "true")) {
                         String prefix = args[3].toLowerCase(Locale.ROOT);
                         List<String> answers = Lists.newArrayList("@a", "@e", "@p", "@r");
-                        StreamUtils.forEach(Filter.getFilters(), t -> answers.add("filter{" + t.getPrefix() + "}"));
+                        StreamUtils.forEach(Filter.getFilters(), t -> answers.add(Filter.getPrefix() + t.getSyntax() + "}"));
                         StreamUtils.fForEach(answers, s -> s.startsWith(prefix), empty::add);
-                    } else if (args.length == 5 && equals(args[1], "redstone") && equals(args[2], "true") && args[3].startsWith("filter{")) {
+                    } else if (args.length == 5 && equals(args[1], "redstone") && equals(args[2], "true") && args[3].startsWith(Filter.getPrefix())) {
                         String prefix = args[4].toLowerCase(Locale.ROOT);
                         String[] answers = new String[] { "@a", "@e", "@p", "@r" };
                         StreamUtils.fForEach(answers, s -> s.startsWith(prefix), empty::add);

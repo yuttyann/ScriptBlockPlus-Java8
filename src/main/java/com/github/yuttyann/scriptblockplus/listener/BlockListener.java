@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class BlockListener implements Listener {
 
-    private static final int LENGTH = "filter{".length();
+    private static final int LENGTH = Filter.getPrefix().length();
     private static final Set<String> REDSTONE_FLAG = new HashSet<>();
     private static final FilterValue[] EMPTY_FILTER_ARRAY = new FilterValue[0];
 
@@ -55,7 +55,7 @@ public class BlockListener implements Listener {
         private final String selector;
 
         private FilterSplit(@NotNull String source) {
-            if (source.startsWith("filter{")) {
+            if (source.startsWith(Filter.getPrefix())) {
                 int end = source.indexOf("}");
                 this.filters = source.substring(LENGTH, end).trim();
                 this.selector = source.substring(end + 1, source.length()).trim();
@@ -63,6 +63,11 @@ public class BlockListener implements Listener {
                 this.filters = null;
                 this.selector = source;
             }
+        }
+
+        @NotNull
+        public String getSelector() {
+            return selector;
         }
 
         @Nullable
@@ -73,11 +78,6 @@ public class BlockListener implements Listener {
             String[] array = StringUtils.split(filters, ',');
             return StreamUtils.toArray(array, FilterValue::new, new FilterValue[array.length]);
         }
-
-        @NotNull
-        public String getSelector() {
-            return selector;
-        }
     }
 
     private class FilterValue {
@@ -87,14 +87,14 @@ public class BlockListener implements Listener {
 
         private FilterValue(@NotNull String source) {
             for (Filter filter : Filter.values()) {
-                if (source.startsWith(filter.getPrefix())) {
+                if (source.startsWith(filter.getSyntax())) {
+                    this.value = filter.getValue(source);
                     this.filter = filter;
-                    this.value = filter.substring(source);
                     return;
                 }
             }
+            this.value = null;
             this.filter = Filter.NONE;
-            this.value = "null";
         }
 
         @Nullable

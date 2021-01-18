@@ -15,6 +15,8 @@
  */
 package com.github.yuttyann.scriptblockplus.enums;
 
+import com.github.yuttyann.scriptblockplus.utils.StringUtils;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -29,10 +31,25 @@ public enum Filter {
 
     private static final Filter[] FILTERS = { OP, PERM, LIMIT };
 
-    private final String prefix;
+    private final String syntax;
 
-    Filter(@NotNull String prefix) {
-        this.prefix = prefix;
+    Filter(@NotNull String syntax) {
+        this.syntax = syntax;
+    }
+
+    @NotNull
+    public String getValue(@NotNull String source) {
+        return StringUtils.removeStart(source, syntax);
+    }
+
+    @NotNull
+    public String getSyntax() {
+        return syntax;
+    }
+
+    @NotNull
+    public static String getPrefix() {
+        return "filter{";
     }
 
     @NotNull
@@ -40,15 +57,5 @@ public enum Filter {
         Filter[] filters = new Filter[FILTERS.length];
         System.arraycopy(FILTERS, 0, filters, 0, FILTERS.length);
         return filters;
-    }
-
-    @NotNull
-    public String getPrefix() {
-        return prefix;
-    }
-
-    @NotNull
-    public String substring(@NotNull String source) {
-        return source.substring(prefix.length(), source.length());
     }
 }
