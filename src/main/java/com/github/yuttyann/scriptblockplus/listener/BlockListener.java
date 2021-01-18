@@ -24,9 +24,9 @@ import com.github.yuttyann.scriptblockplus.file.json.BlockScriptJson;
 import com.github.yuttyann.scriptblockplus.file.json.element.BlockScript;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
 import com.github.yuttyann.scriptblockplus.script.ScriptRead;
-import com.github.yuttyann.scriptblockplus.utils.CommandSelector;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.StringUtils;
+import com.github.yuttyann.scriptblockplus.utils.nms.CommandSelector;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -135,7 +135,7 @@ public class BlockListener implements Listener {
             int[] index = new int[] { 0 };
             FilterSplit filterSplit = new FilterSplit(selector);
             FilterValue[] filterValues = filterSplit.getFilterValues();
-            for (Entity target : CommandSelector.getTargets(Bukkit.getConsoleSender(), location, filterSplit.getSelector())) {
+            for (Entity target : CommandSelector.getTargets(Bukkit.getConsoleSender(), setCenter(location), filterSplit.getSelector())) {
                 if (!(target instanceof Player)) {
                     continue;
                 }
@@ -165,5 +165,13 @@ public class BlockListener implements Listener {
             default:
                 return false;
         }
+    }
+
+    @NotNull
+    private Location setCenter(@NotNull Location location) {
+        location.setX(location.getBlockX() + 0.5D);
+        location.setY(location.getBlockY());
+        location.setZ(location.getBlockZ() + 0.5D);
+        return location;
     }
 }

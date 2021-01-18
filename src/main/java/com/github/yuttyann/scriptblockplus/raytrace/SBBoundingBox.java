@@ -19,6 +19,7 @@ import java.lang.reflect.Field;
 
 import com.github.yuttyann.scriptblockplus.enums.reflection.PackageType;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
+import com.github.yuttyann.scriptblockplus.utils.nms.NMSHelper;
 
 import org.bukkit.block.Block;
 import org.bukkit.util.BoundingBox;
@@ -50,7 +51,7 @@ public class SBBoundingBox {
             } else {
                 if (PackageType.HAS_NMS) {
                     try {
-                        Object axisAlignedBB = PackageType.getAxisAlignedBB(block);
+                        Object axisAlignedBB = NMSHelper.getAxisAlignedBB(block);
                         if (axisAlignedBB == null) {
                             setSquare(block);
                         } else {
