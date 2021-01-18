@@ -71,11 +71,7 @@ public class BlockListener implements Listener {
                 return EMPTY_ARRAY;
             }
             String[] array = StringUtils.split(tags, ',');
-            TagValue[] values = new TagValue[array.length];
-            for (int i = 0; i < array.length; i++) {
-                values[i] = new TagValue(array[i]);
-            }
-            return values;
+            return StreamUtils.toArray(array, TagValue::new, new TagValue[array.length]);
         }
 
         @NotNull
