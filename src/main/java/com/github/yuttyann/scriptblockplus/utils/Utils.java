@@ -19,7 +19,7 @@ import com.github.yuttyann.scriptblockplus.ScriptBlock;
 import com.github.yuttyann.scriptblockplus.enums.CommandLog;
 import com.github.yuttyann.scriptblockplus.enums.Permission;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
-import com.github.yuttyann.scriptblockplus.utils.nms.CommandSelector;
+import com.github.yuttyann.scriptblockplus.utils.selector.CommandSelector;
 import com.google.common.base.Splitter;
 
 import org.bukkit.Bukkit;
@@ -143,8 +143,7 @@ public final class Utils {
         return dispatchCommand(sender, null, command);
     }
 
-    public static boolean dispatchCommand(@NotNull CommandSender sender, @Nullable Location location,
-            @NotNull String command) {
+    public static boolean dispatchCommand(@NotNull CommandSender sender, @Nullable Location location, @NotNull String command) {
         command = command.startsWith("/") ? command.substring(1) : command;
         CommandSender commandSender = sender instanceof SBPlayer ? ((SBPlayer) sender).getPlayer() : sender;
         if (CommandSelector.has(command)) {

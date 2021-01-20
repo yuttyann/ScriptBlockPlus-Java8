@@ -13,12 +13,12 @@
  * You should have received a copy of the GNU General Public License along with this program.
  * If not, see <https://www.gnu.org/licenses/>.
  */
-package com.github.yuttyann.scriptblockplus.utils.nms;
+package com.github.yuttyann.scriptblockplus.utils.selector;
 
 import com.github.yuttyann.scriptblockplus.enums.reflection.PackageType;
 import com.github.yuttyann.scriptblockplus.hook.plugin.Placeholder;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
-import com.github.yuttyann.scriptblockplus.script.option.other.Calculation;
+import com.github.yuttyann.scriptblockplus.utils.NMSHelper;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.StringUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
@@ -32,7 +32,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ProxiedCommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.minecart.CommandMinecart;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,7 +72,7 @@ public final class CommandSelector {
     @NotNull
     public static List<String> build(@NotNull CommandSender sender, @Nullable Location location, @NotNull String command) {
         int modCount = 0;
-        List<Index> indexList = new ArrayList<>();
+        List<Index> indexList = new ArrayList<Index>();
         List<String> commandList = Lists.newArrayList(parse(command, sender, indexList));
         for (int i = 0; i < indexList.size(); i++) {
             String selector = indexList.get(i).substring(command);
@@ -116,30 +115,14 @@ public final class CommandSelector {
     private static String parse(@NotNull String source, @NotNull CommandSender sender, @NotNull List<Index> indexList) {
         char[] chars = source.toCharArray();
         StringBuilder builder = new StringBuilder();
+        Location location = null;
         for (int i = 0, j = 0, k = 0; i < chars.length; i++) {
-            int type = i + 1, tag = i + 2;
-            if (chars[i] == '~' || chars[i] == '^') {
-                if (k >= 3) {
-                    builder.append(sender.getName());
-                } else {
-                    String xyz = k == 0 ? "x" : k == 1 ? "y" : k == 2 ? "z" : "x";
-                    StringBuilder tempBuilder = new StringBuilder();
-                    for (int l = type; l < chars.length; l++) {
-                        if ("+-.0123456789".indexOf(chars[l]) > -1) {
-                            i++;
-                            tempBuilder.append(chars[l]);
-                        } else {
-                            break;
-                        }
-                    }
-                    builder.append(getRelative(tempBuilder.toString(), xyz, (Entity) sender));
-                    k++;
-                }
-            } else if (chars[i] == '@' && type < chars.length && SELECTOR_SUFFIX.indexOf(chars[type]) > -1) {
+            int one = i + 1, two = one + 1;
+            if (chars[i] == '@' && one < chars.length && SELECTOR_SUFFIX.indexOf(chars[one]) > -1) {
                 Index textIndex = new Index(i);
-                textIndex.end = type;
-                if (tag < chars.length && chars[tag] == '[') {
-                    for (int l = tag, m = 0; l < chars.length; l++) {
+                textIndex.end = one;
+                if (two < chars.length && chars[two] == '[') {
+                    for (int l = two, m = 0; l < chars.length; l++) {
                         if (chars[l] == '[') {
                             m++;
                         } else if (chars[l] == ']') {
@@ -155,11 +138,38 @@ public final class CommandSelector {
                 }
                 indexList.add(textIndex);
                 builder.append('{').append(j++).append('}');
+            } else if ((chars[i] == '~' || chars[i] == '^') && (sender instanceof Entity || sender instanceof BlockCommandSender)) {
+                if (k >= 3) {
+                    builder.append(sender.getName());
+                } else {
+                    String relative = k == 0 ? "x" : k == 1 ? "y" : k == 2 ? "z" : "x";
+                    StringBuilder tempBuilder = new StringBuilder().append(chars[i]);
+                    for (int l = one; l < chars.length; l++) {
+                        if ("+-.0123456789".indexOf(chars[l]) > -1) {
+                            i++;
+                            tempBuilder.append(chars[l]);
+                        } else {
+                            break;
+                        }
+                    }
+                    if (location == null) {
+                        location = EntitySelector.copy(sender, null);
+                    }
+                    location.add(EntitySelector.getRelative(location, relative, tempBuilder.toString()));
+                    builder.append('{').append(relative).append('}');
+                    k++;
+                }
             } else {
                 builder.append(chars[i]);
             }
         }
-        return builder.toString();
+        String result = builder.toString();
+        if (location != null) {
+            result = StringUtils.replace(result, "{x}", location.getX());
+            result = StringUtils.replace(result, "{y}", location.getY());
+            result = StringUtils.replace(result, "{z}", location.getZ());
+        }
+        return result;
     }
 
     @NotNull
@@ -174,7 +184,7 @@ public final class CommandSelector {
         } else if (Utils.isCBXXXorLater("1.13.2")) {
             return Bukkit.selectEntities(sender, selector).toArray(new Entity[0]);
         }
-        return CommandUtils.getTargets(sender, location, selector);
+        return EntitySelector.getEntities(sender, location, selector);
     }
 
     @NotNull
@@ -186,38 +196,18 @@ public final class CommandSelector {
         if (sender instanceof ProxiedCommandSender) {
             sender = ((ProxiedCommandSender) sender).getCallee();
         }
-        if (sender instanceof Player) {
-            world = ((Player) sender).getWorld();
+        if (sender instanceof Entity) {
+            world = ((Entity) sender).getWorld();
         } else if (sender instanceof SBPlayer) {
             world = ((SBPlayer) sender).getWorld();
         } else if (sender instanceof BlockCommandSender) {
             world = ((BlockCommandSender) sender).getBlock().getWorld();
-        } else if (sender instanceof CommandMinecart) {
-            world = ((CommandMinecart) sender).getWorld();
         }
         return world == null ? Bukkit.getWorlds().get(0) : world;
-    } 
+    }
 
     @NotNull
     private static String getEntityName(@NotNull Entity entity) {
         return entity instanceof Player ? entity.getName() : entity.getUniqueId().toString();
-    }
-
-    private static double getRelative(@NotNull String target, @NotNull String relative, @NotNull Entity entity) {
-        double number = 0.0D;
-        target = StringUtils.removeStart(target, "+");
-        if (StringUtils.isNotEmpty(target) && Calculation.REALNUMBER_PATTERN.matcher(target).matches()) {
-            number = Double.parseDouble(target);
-        }
-        switch (relative) {
-            case "x":
-                return entity.getLocation().getX() + number;
-            case "y":
-                return entity.getLocation().getY() + number;
-            case "z":
-                return entity.getLocation().getZ() + number;
-            default:
-                return 0;
-        }
     }
 }
