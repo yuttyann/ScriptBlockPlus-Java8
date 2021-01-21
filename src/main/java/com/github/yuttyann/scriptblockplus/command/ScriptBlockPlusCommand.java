@@ -39,7 +39,7 @@ import com.github.yuttyann.scriptblockplus.script.SBClipboard;
 import com.github.yuttyann.scriptblockplus.script.ScriptEdit;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
 import com.github.yuttyann.scriptblockplus.utils.*;
-import com.github.yuttyann.scriptblockplus.utils.selector.CommandSelector;
+import com.github.yuttyann.scriptblockplus.selector.CommandSelector;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 

@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License along with this program.
  * If not, see <https://www.gnu.org/licenses/>.
  */
-package com.github.yuttyann.scriptblockplus.utils.selector;
+package com.github.yuttyann.scriptblockplus.selector.entity;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,21 +56,21 @@ public final class EntitySelector {
     private static final Entity[] EMPTY_ENTITY_ARRAY = new Entity[0];
 
     @NotNull
-    public static Entity[] getEntities(@NotNull CommandSender sender, @Nullable Location start, @NotNull String argment) {
+    public static Entity[] getEntities(@NotNull CommandSender sender, @Nullable Location start, @NotNull String selector) {
         List<Entity> result = new ArrayList<>();
         Location location = copy(sender, start);
-        Selector selector = new Selector(argment);
-        ArgmentValue[] argments = selector.getArgments();
-        switch (selector.getSelector()) {
+        ArgmentSplit argmentSplit = new ArgmentSplit(selector);
+        ArgmentValue[] argmentValues = argmentSplit.getArgments();
+        switch (argmentSplit.getSelector()) {
             case "@p": {
                 List<Player> players = location.getWorld().getPlayers();
                 if (players.size() == 0) {
                     return EMPTY_ENTITY_ARRAY;
                 }
                 int count = 0;
-                int limit = sort(getLimit(argments, 1), location, players);
+                int limit = sort(getLimit(argmentValues, 1), location, players);
                 for (Player player : players) {
-                    if (!StreamUtils.allMatch(argments, t -> canBeAccepted(player, location, t))) {
+                    if (!StreamUtils.allMatch(argmentValues, t -> canBeAccepted(player, location, t))) {
                         continue;
                     }
                     if (limit <= count) {
@@ -87,9 +87,9 @@ public final class EntitySelector {
                     return EMPTY_ENTITY_ARRAY;
                 }
                 int count = 0;
-                int limit = sort(getLimit(argments, players.size()), location, players);
+                int limit = sort(getLimit(argmentValues, players.size()), location, players);
                 for (Player player : players) {
-                    if (!StreamUtils.allMatch(argments, t -> canBeAccepted(player, location, t))) {
+                    if (!StreamUtils.allMatch(argmentValues, t -> canBeAccepted(player, location, t))) {
                         continue;
                     }
                     if (limit <= count) {
@@ -106,12 +106,12 @@ public final class EntitySelector {
                     return EMPTY_ENTITY_ARRAY;
                 }
                 int count = 0;
-                int limit = getLimit(argments, 1);
+                int limit = getLimit(argmentValues, 1);
                 List<Integer> randomInts = IntStream.range(0, players.size()).boxed().collect(Collectors.toList());
                 Collections.shuffle(randomInts, new Random());
                 for (int value : randomInts) {
                     Player player = players.get(value);
-                    if (!StreamUtils.allMatch(argments, t -> canBeAccepted(player, location, t))) {
+                    if (!StreamUtils.allMatch(argmentValues, t -> canBeAccepted(player, location, t))) {
                         continue;
                     }
                     if (limit <= count) {
@@ -128,9 +128,9 @@ public final class EntitySelector {
                     return EMPTY_ENTITY_ARRAY;
                 }
                 int count = 0;
-                int limit = sort(getLimit(argments, entities.size()), location, entities);
+                int limit = sort(getLimit(argmentValues, entities.size()), location, entities);
                 for (Entity entity : entities) {
-                    if (!StreamUtils.allMatch(argments, t -> canBeAccepted(entity, location, t))) {
+                    if (!StreamUtils.allMatch(argmentValues, t -> canBeAccepted(entity, location, t))) {
                         continue;
                     }
                     if (limit <= count) {
@@ -142,7 +142,7 @@ public final class EntitySelector {
                 break;
             }
             case "@s": {
-                if (sender instanceof Entity && StreamUtils.allMatch(argments, t -> canBeAccepted((Entity) sender, location, t))) {
+                if (sender instanceof Entity && StreamUtils.allMatch(argmentValues, t -> canBeAccepted((Entity) sender, location, t))) {
                     result.add((Entity) sender);
                 }
                 break;
@@ -179,8 +179,8 @@ public final class EntitySelector {
         return limit;
     }
 
-    private static int getLimit(@NotNull ArgmentValue[] argments, int other) {
-        for (ArgmentValue argmentValue : argments) {
+    private static int getLimit(@NotNull ArgmentValue[] argmentValues, int other) {
+        for (ArgmentValue argmentValue : argmentValues) {
             if (argmentValue.getArgment() == Argment.C) {
                 return Integer.parseInt(argmentValue.getValue());
             }
