@@ -68,13 +68,7 @@ public final class EntitySelector {
                     return EMPTY_ENTITY_ARRAY;
                 }
                 int count = 0;
-                int limit = getLimit(argments);
-                if (limit >= 0) {
-                    players.sort(Comparator.comparing(p -> p.getLocation().distance(location), Comparator.naturalOrder()));
-                } else {
-                    players.sort(Comparator.comparing(p -> p.getLocation().distance(location), Comparator.reverseOrder()));
-                    limit = -limit;
-                }
+                int limit = sort(getLimit(argments, 1), location, players);
                 for (Player player : players) {
                     if (!StreamUtils.allMatch(argments, t -> canBeAccepted(player, location, t))) {
                         continue;
@@ -93,10 +87,7 @@ public final class EntitySelector {
                     return EMPTY_ENTITY_ARRAY;
                 }
                 int count = 0;
-                int limit = players.size();
-                if (hasTag(argments, Argment.C)) {
-                    limit = getLimit(argments);
-                }
+                int limit = sort(getLimit(argments, players.size()), location, players);
                 for (Player player : players) {
                     if (!StreamUtils.allMatch(argments, t -> canBeAccepted(player, location, t))) {
                         continue;
@@ -115,7 +106,7 @@ public final class EntitySelector {
                     return EMPTY_ENTITY_ARRAY;
                 }
                 int count = 0;
-                int limit = getLimit(argments);
+                int limit = getLimit(argments, 1);
                 List<Integer> randomInts = IntStream.range(0, players.size()).boxed().collect(Collectors.toList());
                 Collections.shuffle(randomInts, new Random());
                 for (int value : randomInts) {
@@ -137,10 +128,7 @@ public final class EntitySelector {
                     return EMPTY_ENTITY_ARRAY;
                 }
                 int count = 0;
-                int limit = entities.size();
-                if (hasTag(argments, Argment.C)) {
-                    limit = getLimit(argments);
-                }
+                int limit = sort(getLimit(argments, entities.size()), location, entities);
                 for (Entity entity : entities) {
                     if (!StreamUtils.allMatch(argments, t -> canBeAccepted(entity, location, t))) {
                         continue;
@@ -178,13 +166,26 @@ public final class EntitySelector {
         return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
 
-    private static int getLimit(@NotNull ArgmentValue[] argments) {
+    @NotNull
+    private static int sort(int limit, @NotNull Location location, @NotNull List<? extends Entity> entities) {
+        Comparator<Double> order = null;
+        if (limit >= 0) {
+            order = Comparator.naturalOrder();
+        } else {
+            order = Comparator.reverseOrder();
+            limit = -limit;
+        }
+        entities.sort(Comparator.comparing((Entity e) -> e.getLocation().distance(location), order).thenComparing(Entity::getTicksLived));
+        return limit;
+    }
+
+    private static int getLimit(@NotNull ArgmentValue[] argments, int other) {
         for (ArgmentValue argmentValue : argments) {
             if (argmentValue.getArgment() == Argment.C) {
                 return Integer.parseInt(argmentValue.getValue());
             }
         }
-        return 1;
+        return other;
     }
 
     private static boolean canBeAccepted(@NotNull Entity entity, @NotNull Location location, @NotNull ArgmentValue argmentValue) {
@@ -230,10 +231,6 @@ public final class EntitySelector {
             default:
                 return false;
         }
-    }
-    
-    private static boolean hasTag(@NotNull ArgmentValue[] argments, @NotNull Argment tag) {
-        return StreamUtils.anyMatch(argments, t -> t.getArgment() == tag);
     }
 
     private static boolean setXYZ(@NotNull Location location, @NotNull ArgmentValue argmentValue) {
