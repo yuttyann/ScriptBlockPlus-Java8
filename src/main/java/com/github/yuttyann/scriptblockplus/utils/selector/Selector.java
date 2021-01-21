@@ -34,7 +34,7 @@ public final class Selector {
     private final String argments, selector;
 
     public Selector(@NotNull String source) {
-        if (source.startsWith("@") && source.indexOf("[") > 0) {
+        if (source.startsWith("@") && source.indexOf("[") != -1 && source.lastIndexOf("]") != -1) {
             int start = source.indexOf("[");
             this.selector = source.substring(0, start).trim();
             this.argments = source.substring(start + 1, source.length() - 1).trim();

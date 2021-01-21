@@ -34,10 +34,10 @@ public final class ArgmentValue {
     private Boolean cacheInverted;
 
     public ArgmentValue(@NotNull String source) {
-        for (Argment tag : Argment.values()) {
-            if (tag.has(source)) {
-                this.value = tag.getValue(source);
-                this.argment = tag;
+        for (Argment argment : Argment.values()) {
+            if (argment.has(source)) {
+                this.value = argment.getValue(source);
+                this.argment = argment;
                 return;
             }
         }
