@@ -256,15 +256,15 @@ public final class EntitySelector {
             double number = value.length() == 1 ? 0.0D : Double.parseDouble(value.substring(1));
             switch (relative.toLowerCase(Locale.ROOT)) {
                 case "x": {
-                    Location empty = new Location(location.getWorld(), 0, 0, 0);
-                    empty.setYaw(normalizeYaw(location.getYaw() - 90));
+                    Location empty = new Location(location.getWorld(), 0.0D, 0.0D, 0.0D);
+                    empty.setYaw(normalizeYaw(location.getYaw() - 90.0F));
                     empty.setPitch(location.getPitch());
                     return empty.getDirection().normalize().multiply(number);
                 }
                 case "y": {
-                    Location empty = new Location(location.getWorld(), 0, 0, 0);
+                    Location empty = new Location(location.getWorld(), 0.0D, 0.0D, 0.0D);
                     empty.setYaw(location.getYaw());
-                    empty.setPitch(location.getPitch() - 90);
+                    empty.setPitch(location.getPitch() - 90.0F);
                     return empty.getDirection().normalize().multiply(number);
                 }
                 case "z":
@@ -281,11 +281,11 @@ public final class EntitySelector {
             }
             switch (relative.toLowerCase(Locale.ROOT)) {
                 case "x":
-                    return new Vector(number, 0, 0);
+                    return new Vector(number, 0.0D, 0.0D);
                 case "y":
-                    return new Vector(0, number, 0);
+                    return new Vector(0.0D, number, 0.0D);
                 case "z":
-                    return new Vector(0, 0, number);
+                    return new Vector(0.0D, 0.0D, number);
                 default:
                     return new Vector();
             }
@@ -293,11 +293,11 @@ public final class EntitySelector {
     }
 
     private static float normalizeYaw(float yaw) {
-        yaw %= 360.0f;
-        if (yaw >= 180.0f) {
-            yaw -= 360.0f;
-        } else if (yaw < -180.0f) {
-            yaw += 360.0f;
+        yaw %= 360.0F;
+        if (yaw >= 180.0F) {
+            yaw -= 360.0F;
+        } else if (yaw < -180.0F) {
+            yaw += 360.0F;
         }
         return yaw;
     }
