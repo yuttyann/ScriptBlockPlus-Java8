@@ -122,8 +122,7 @@ public final class Utils {
         }
     }
 
-    public static boolean tempPerm(@NotNull SBPlayer sbPlayer, @NotNull Permission permission,
-            @NotNull Supplier<Boolean> supplier) {
+    public static boolean tempPerm(@NotNull SBPlayer sbPlayer, @NotNull Permission permission, @NotNull Supplier<Boolean> supplier) {
         return sbPlayer.isOnline() && CommandLog.supplier(sbPlayer.getWorld(), () -> {
             if (sbPlayer.hasPermission(permission.getNode())) {
                 return supplier.get();
@@ -148,7 +147,7 @@ public final class Utils {
         CommandSender commandSender = sender instanceof SBPlayer ? ((SBPlayer) sender).getPlayer() : sender;
         if (CommandSelector.has(command)) {
             List<String> commands = CommandSelector.build(commandSender, location, command);
-            return commands.stream().allMatch(s -> Bukkit.dispatchCommand(commandSender, s));
+            return StreamUtils.allMatch(commands, s -> Bukkit.dispatchCommand(commandSender, s));
         }
         return Bukkit.dispatchCommand(commandSender, command);
     }
