@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.github.yuttyann.scriptblockplus.enums.TeamColor;
-import com.github.yuttyann.scriptblockplus.file.json.BlockScriptJson;
+import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
 import com.github.yuttyann.scriptblockplus.file.json.element.BlockScript;
 import com.github.yuttyann.scriptblockplus.hook.plugin.ProtocolLib;
 import com.github.yuttyann.scriptblockplus.hook.protocol.GlowEntity;
