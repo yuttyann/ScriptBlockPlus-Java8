@@ -31,12 +31,12 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class MultiJson<T> extends BaseJson<T> {
 
-	public MultiJson(@NotNull UUID uuid) {
-		super(uuid);
-	}
+    public MultiJson(@NotNull UUID uuid) {
+        super(uuid);
+    }
     
     public MultiJson(@NotNull String id) {
-		super(id);
+        super(id);
     }
 
     @NotNull
