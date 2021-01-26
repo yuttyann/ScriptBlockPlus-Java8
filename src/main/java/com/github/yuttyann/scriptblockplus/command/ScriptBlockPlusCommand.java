@@ -17,7 +17,7 @@ package com.github.yuttyann.scriptblockplus.command;
 
 import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.ScriptBlock;
-import com.github.yuttyann.scriptblockplus.enums.ActionType;
+import com.github.yuttyann.scriptblockplus.enums.ActionKey;
 import com.github.yuttyann.scriptblockplus.enums.Permission;
 import com.github.yuttyann.scriptblockplus.enums.Filter;
 import com.github.yuttyann.scriptblockplus.enums.reflection.ClassType;
@@ -307,15 +307,15 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
             SBConfig.ERROR_ACTION_DATA.send(sbPlayer);
             return true;
         }
-        ActionType actionType = ActionType.valueOf(args[1].toUpperCase(Locale.ROOT));
-        ScriptEdit scriptEdit = new ScriptEdit(scriptKey, actionType);
-        if (actionType == ActionType.REDSTONE && equals(args[2], "true")) {
+        ActionKey actionKey = ActionKey.valueOf(args[1].toUpperCase(Locale.ROOT));
+        ScriptEdit scriptEdit = new ScriptEdit(scriptKey, actionKey);
+        if (actionKey == ActionKey.REDSTONE && equals(args[2], "true")) {
             String selector = StringUtils.createString(args, 3).trim();
             if (selector.startsWith("@s") || !CommandSelector.has(selector)) {
                 selector = "@p";
             }
             scriptEdit.setValue(selector);
-        } else if (actionType == ActionType.CREATE || actionType == ActionType.ADD) {
+        } else if (actionKey == ActionKey.CREATE || actionKey == ActionKey.ADD) {
             String script = StringUtils.createString(args, 2).trim();
             if (!isScripts(script)) {
                 SBConfig.ERROR_SCRIPT_CHECK.send(sbPlayer);
@@ -324,7 +324,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
             scriptEdit.setValue(script);
         }
         sbPlayer.setScriptEdit(scriptEdit);
-        SBConfig.SUCCESS_ACTION_DATA.replace(scriptKey.getName() + "-" + actionType.getName()).send(sbPlayer);
+        SBConfig.SUCCESS_ACTION_DATA.replace(scriptKey.getName() + "-" + actionKey.getName()).send(sbPlayer);
         return true;
     }
 

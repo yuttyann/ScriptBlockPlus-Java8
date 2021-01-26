@@ -15,9 +15,7 @@
  */
 package com.github.yuttyann.scriptblockplus.script;
 
-import java.util.Objects;
-
-import com.github.yuttyann.scriptblockplus.enums.ActionType;
+import com.github.yuttyann.scriptblockplus.enums.ActionKey;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -31,13 +29,13 @@ import org.jetbrains.annotations.Nullable;
 public class ScriptEdit {
 
     private final ScriptKey scriptKey;
-    private final ActionType actionType;
+    private final ActionKey actionKey;
 
     private String value;
 
-    public ScriptEdit(@NotNull ScriptKey scriptKey, @NotNull ActionType actionType) {
+    public ScriptEdit(@NotNull ScriptKey scriptKey, @NotNull ActionKey actionKey) {
         this.scriptKey = scriptKey;
-        this.actionType = actionType;
+        this.actionKey = actionKey;
     }
 
     public void setValue(@Nullable String value) {
@@ -50,8 +48,8 @@ public class ScriptEdit {
     }
 
     @NotNull
-    public ActionType getActionType() {
-        return actionType;
+    public ActionKey getActionKey() {
+        return actionKey;
     }
 
     public boolean perform(@NotNull SBPlayer sbPlayer, @Nullable Location location) {
@@ -61,7 +59,7 @@ public class ScriptEdit {
         try {
             Player player = sbPlayer.getPlayer();
             SBOperation sbOperation = new SBOperation(scriptKey);
-            switch (actionType) {
+            switch (actionKey) {
                 case CREATE:
                     sbOperation.create(player, location, value);
                     break;
@@ -86,6 +84,10 @@ public class ScriptEdit {
 
     @Override
     public int hashCode() {
-        return Objects.hash(scriptKey, actionType);
+        int hash = 1;
+        int prime = 31;
+        hash = prime * hash + scriptKey.hashCode();
+        hash = prime * hash + actionKey.hashCode();
+        return hash;
     }
 }
