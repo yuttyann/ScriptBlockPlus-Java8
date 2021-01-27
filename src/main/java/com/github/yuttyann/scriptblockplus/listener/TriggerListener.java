@@ -44,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * ScriptBlockPlus TriggerListener クラス
- * 
  * @param <E> イベントの型
  * @author yuttyann44581
  */
@@ -73,9 +72,8 @@ public abstract class TriggerListener<E extends Event> implements Listener {
 
     /**
      * コンストラクタ
-     * 
-     * @param plugin        - プラグイン
-     * @param scriptKey     - スクリプトキー
+     * @param plugin - プラグイン
+     * @param scriptKey - スクリプトキー
      * @param eventPriority - イベントの優先度
      */
     public TriggerListener(@NotNull Plugin plugin, @NotNull ScriptKey scriptKey, @NotNull EventPriority eventPriority) {
@@ -86,7 +84,6 @@ public abstract class TriggerListener<E extends Event> implements Listener {
 
     /**
      * トリガーを登録します。
-     * 
      * @param listener - {@link TriggerListener}を実装したクラスのインスタンス
      */
     public static void register(@NotNull TriggerListener<? extends Event> listener) {
@@ -98,7 +95,6 @@ public abstract class TriggerListener<E extends Event> implements Listener {
 
     /**
      * プラグインを取得します。
-     * 
      * @return {@link Plugin} - プラグイン
      */
     @NotNull
@@ -108,7 +104,6 @@ public abstract class TriggerListener<E extends Event> implements Listener {
 
     /**
      * {@link Bukkit}のイベントのクラスを取得します。
-     * 
      * @return Class&lt;{@link E} extends {@link Event}&gt; - イベントのクラス
      */
     @NotNull
@@ -117,18 +112,7 @@ public abstract class TriggerListener<E extends Event> implements Listener {
     }
 
     /**
-     * スクリプトキーを取得します。
-     * 
-     * @return {@link ScriptKey} - スクリプトキー
-     */
-    @NotNull
-    public final ScriptKey getScriptKey() {
-        return scriptKey;
-    }
-
-    /**
      * イベントの優先度を取得します。
-     * 
      * @return {@link EventPriority} - イベントの優先度
      */
     @NotNull
@@ -139,18 +123,16 @@ public abstract class TriggerListener<E extends Event> implements Listener {
     /**
      * トリガーを生成します。
      * <p>
-     * nullを返した場合は処理を行わずに終了します。
-     * 
+     * また、{@code null}を返した場合は処理を行わずに終了します。
+     * @apiNote
      * <pre>
-     * 　
-     * // 実装例
+     * 実装例です。
      * &#064;Override
      * &#064;Nullable
      * protected Trigger create(&#064;NotNull ExampleEvent event) {
      *     return new Trigger(event.getPlayer(), event.getBlock(), event);
      * }
      * </pre>
-     * 
      * @param event - イベント
      * @return {@link Trigger} - トリガー
      */
@@ -159,17 +141,17 @@ public abstract class TriggerListener<E extends Event> implements Listener {
 
     /**
      * 各プロセスから呼び出されます。
-     * 
+     * @apiNote
      * <pre>
-     * 　
+     * 実装例です。
      * // プロセスの進行度
      * Progress.PERM  = パーミッションの判定
      * Progress.EVENT = イベントの生成
      * Progress.READ  = スクリプトの実行
-     * 
+     *
      * // 進行度を取得します。
      * Progress progress = trigger.getProgress();
-     * 
+     *
      * // 実装例（イベントの作成時に絶対に処理が中断される）
      * &#064;Override
      * &#064;NotNull
@@ -182,7 +164,6 @@ public abstract class TriggerListener<E extends Event> implements Listener {
      *     }
      * }
      * </pre>
-     * 
      * @param trigger - トリガー
      * @return {@link Result} - {@link Result#FAILURE}の場合は処理を中断します。
      */
@@ -193,7 +174,6 @@ public abstract class TriggerListener<E extends Event> implements Listener {
 
     /**
      * トリガーの処理です。
-     * 
      * @param event - イベント
      */
     private void onTrigger(@NotNull Event event) {
