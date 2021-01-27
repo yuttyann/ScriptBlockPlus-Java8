@@ -22,6 +22,7 @@ import com.github.yuttyann.scriptblockplus.enums.Permission;
 import com.github.yuttyann.scriptblockplus.enums.Filter;
 import com.github.yuttyann.scriptblockplus.enums.reflection.ClassType;
 import com.github.yuttyann.scriptblockplus.enums.reflection.PackageType;
+import com.github.yuttyann.scriptblockplus.file.SBFile;
 import com.github.yuttyann.scriptblockplus.file.SBFiles;
 import com.github.yuttyann.scriptblockplus.file.config.SBConfig;
 import com.github.yuttyann.scriptblockplus.file.config.YamlConfig;
@@ -148,7 +149,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
             return false;
         }
         String type = args[1].toLowerCase(Locale.ROOT);
-        String path = "export" + SBFiles.S + type + "_v" + Utils.getServerVersion() + "_.txt";
+        String path = "export/" + type + "_v" + Utils.getServerVersion() + "_.txt";
         File file = new File(getPlugin().getDataFolder(), path);
         File parent = file.getParentFile();
         if (!parent.exists()) {
@@ -215,7 +216,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
             FileVisitor<Path> fileVisitor = new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes attributes) throws IOException {
-                    if (!path.toString().contains(SBFiles.S + "backup" + SBFiles.S)) {
+                    if (!path.toString().contains(SBFile.setSeparator("/backup/"))) {
                         Path targetFile = target.resolve(source.relativize(path));
                         Path parentDir = targetFile.getParent();
                         Files.createDirectories(parentDir);
@@ -243,9 +244,9 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
         if (!hasPermission(sender, Permission.COMMAND_DATAMIGR)) {
             return false;
         }
-        String path = "plugins" + SBFiles.S + "ScriptBlock" + SBFiles.S + "BlocksData" + SBFiles.S;
-        File interactFile = new File(path + "interact_Scripts.yml");
-        File walkFile = new File(path + "walk_Scripts.yml");
+        String path = "plugins/ScriptBlock/BlocksData/";
+        File interactFile = new SBFile(path + "interact_Scripts.yml");
+        File walkFile = new SBFile(path + "walk_Scripts.yml");
         if (!walkFile.exists() && !interactFile.exists()) {
             SBConfig.NOT_SCRIPT_BLOCK_FILE.send(sender);
         } else {

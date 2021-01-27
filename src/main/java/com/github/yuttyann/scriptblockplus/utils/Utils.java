@@ -18,6 +18,7 @@ package com.github.yuttyann.scriptblockplus.utils;
 import com.github.yuttyann.scriptblockplus.ScriptBlock;
 import com.github.yuttyann.scriptblockplus.enums.CommandLog;
 import com.github.yuttyann.scriptblockplus.enums.Permission;
+import com.github.yuttyann.scriptblockplus.file.SBFile;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
 import com.github.yuttyann.scriptblockplus.selector.CommandSelector;
 import com.google.common.base.Splitter;
@@ -156,7 +157,7 @@ public final class Utils {
     public static World getWorld(@NotNull String name) {
         World world = Bukkit.getWorld(name);
         if (world == null) {
-            File file = new File(Bukkit.getWorldContainer(), name + "/level.dat");
+            File file = new SBFile(Bukkit.getWorldContainer(), name + "/level.dat");
             if (file.exists()) {
                 world = Bukkit.createWorld(WorldCreator.name(name));
             }

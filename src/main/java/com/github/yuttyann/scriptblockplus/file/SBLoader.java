@@ -48,7 +48,7 @@ public final class SBLoader {
     private YamlConfig scriptFile;
 
     public SBLoader(@NotNull ScriptKey scriptKey) {
-        String filePath = "scripts" + SBFiles.S + scriptKey.getName() + ".yml";
+        String filePath = "scripts/" + scriptKey.getName() + ".yml";
         this.scriptFile = YamlConfig.load(ScriptBlock.getInstance(), filePath, false);
     }
 

@@ -29,7 +29,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
@@ -42,9 +41,8 @@ public final class SBFiles {
 
     private static final Map<String, YamlConfig> FILES = new HashMap<>();
 
-    public static final String S = File.separator;
     public static final String PATH_CONFIG = "config.yml";
-    public static final String PATH_LANGS = "langs" + S + "{code}.yml";
+    public static final String PATH_LANGS = "langs/{code}.yml";
 
     public static void reload() {
         // ScriptBlockのインスタンス
@@ -79,7 +77,7 @@ public final class SBFiles {
         }
         Set<String> keys = yaml.getKeys(true);
         YamlConfiguration config = YamlConfiguration.loadConfiguration(new InputStreamReader(resource, Charsets.UTF_8));
-        String filePath = plugin.getName() + "/" + StringUtils.replace(yaml.getFolderPath(), S, "/");
+        String filePath = plugin.getName() + "/" + yaml.getFolderPath();
         for (String key : config.getKeys(true)) {
             if (!keys.contains(key)) {
                 Object value = config.get(key) instanceof MemorySection ? "" : config.get(key);
