@@ -36,7 +36,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
@@ -61,7 +60,7 @@ public class GlowEntityPacket {
 
     @NotNull
     public TeamColor getTeamColor(@NotNull Block block) {
-        return block.getType() == Material.AIR ? TeamColor.BLUE : TeamColor.GREEN;
+        return block.getType().name().endsWith("AIR") ? TeamColor.BLUE : TeamColor.GREEN;
     }
 
     @NotNull
