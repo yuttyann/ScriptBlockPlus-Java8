@@ -22,7 +22,6 @@ import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.StringUtils;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * ScriptBlockPlus FilterSplit クラス
@@ -51,7 +50,7 @@ public final class FilterSplit {
         return selector.toLowerCase(Locale.ROOT);
     }
 
-    @Nullable
+    @NotNull
     public FilterValue[] getFilterValues() {
         if (StringUtils.isEmpty(filters)) {
             return EMPTY_FILTER_ARRAY;
