@@ -81,7 +81,7 @@ public final class CommandSelector {
             if (entities == null || entities.length == 0) {
                 if (StreamUtils.anyMatch(SELECTOR_NAMES, s -> selector.startsWith(s + "["))) {
                     continue;
-                } else if (selector.startsWith("@p") && sender instanceof Player) {
+                } else if (selector.startsWith(SELECTOR_NAMES[2]) && sender instanceof Player) {
                     entities = new Entity[] { (Entity) sender };
                 } else {
                     continue;
