@@ -89,7 +89,11 @@ public final class OptionManager {
 
     @NotNull
     public static Option newInstance(@NotNull String syntax) {
-        return OPTION_MAP.getInstance(syntax).newInstance();
+        SBInstance<Option> sbInstance = OPTION_MAP.getInstance(syntax);
+        if (sbInstance == null) {
+            throw new NullPointerException("Option[" + syntax + "] does not exist");
+        }
+        return sbInstance.newInstance();
     }
 
     @NotNull
