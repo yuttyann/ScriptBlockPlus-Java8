@@ -24,7 +24,7 @@
   </properties>
 
   <build>
-    <finalName>${project.artifactId} v${project.version}-JV8</finalName>
+    <finalName>${project.artifactId} v${project.version}</finalName>
     <resources>
       <resource>
         <directory>src/main/resources</directory>
@@ -36,30 +36,20 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
         <version>3.2.1</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
-        <configuration>
-          <compilerArgs>
-            <arg>-Xlint:-deprecation</arg>
-            <arg>-Xlint:-unchecked</arg>
-          </compilerArgs>
-        </configuration>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>3.2.0</version>
         <configuration>
-          <tags>
-            <tag>
-              <name>apiNote</name>
-              <placement>a</placement>
-              <head>API Note:</head>
-            </tag>
-          </tags>
           <author>true</author>
           <source>${java.version}</source>
           <show>protected</show>
@@ -69,6 +59,13 @@
           <docencoding>${project.build.sourceEncoding}</docencoding>
           <destDir>javadoc-latest</destDir>
           <bottom><![CDATA[<b>Yuttyann, 2021</b>]]></bottom>
+          <tags>
+            <tag>
+              <name>apiNote</name>
+              <placement>a</placement>
+              <head>API Note:</head>
+            </tag>
+          </tags>
         </configuration>
         <executions>
           <execution>
