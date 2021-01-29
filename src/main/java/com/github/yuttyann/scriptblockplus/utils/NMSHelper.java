@@ -204,14 +204,20 @@ public final class NMSHelper {
 
     @NotNull
     public static Map<String, Material> getItemRegistry() throws ReflectiveOperationException {
-        Map<String, Material> items = new HashMap<>();
-        Method material = CB_UTIL.getMethod("CraftMagicNumbers", "getMaterial", NMS.getClass("Item"));
+        Map<String, Material> materials = new HashMap<>();
         Object registory = NMS.getFieldValue("Item", "REGISTRY", null);
-        Map<?, ?> registorySimple = (Map<?, ?>) NMS.getFieldValue(true, "RegistrySimple", "c", registory);
-        for (Entry<?, ?> entry : registorySimple.entrySet()) {
-            items.put(entry.getKey().toString(), (Material) material.invoke(null, entry.getValue()));
+        Map<?, ?> registoryMap = (Map<?, ?>) NMS.getFieldValue(true, "RegistrySimple", "c", registory);
+        Method bukkitMaterial = CB_UTIL.getMethod("CraftMagicNumbers", "getMaterial", NMS.getClass("Item"));
+        for (Entry<?, ?> entry : registoryMap.entrySet()) {
+            materials.put(getKey(entry.getKey()), (Material) bukkitMaterial.invoke(null, entry.getValue()));
         }
-        return items;
+        return materials;
+    }
+
+    @NotNull
+    private static String getKey(@NotNull Object minecraftKey) throws ReflectiveOperationException {
+        String name = Utils.isCBXXXorLater("1.12") ? "getKey" : "a";
+        return (String) NMS.invokeMethod(minecraftKey, "MinecraftKey", name);
     }
 
     @NotNull

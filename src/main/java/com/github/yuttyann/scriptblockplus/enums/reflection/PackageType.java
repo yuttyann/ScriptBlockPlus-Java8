@@ -56,7 +56,7 @@ public enum PackageType {
     CB_UPDATER(CB, "updater"),
     CB_UTIL(CB, "util");
 
-    private enum ReturnType {
+    private enum HashType {
         CLASS("class_"),
         FIELD("field_"),
         METHOD("method_"),
@@ -64,7 +64,7 @@ public enum PackageType {
 
         private final String name;
 
-        ReturnType(@NotNull String name) {
+        HashType(@NotNull String name) {
             this.name = name;
         }
 
@@ -142,7 +142,7 @@ public enum PackageType {
 
     @Nullable
     public Field getField(boolean declared, @NotNull String className, @NotNull String fieldName) throws ReflectiveOperationException {
-        int hash = createHash(ReturnType.FIELD, className, fieldName, null);
+        int hash = createHash(HashType.FIELD, className, fieldName, null);
         Field field = (Field) REFLECTION_CACHE.get(hash);
         if (field == null) {
             if (declared) {
@@ -197,7 +197,7 @@ public enum PackageType {
         if (parameterTypes == null) {
             parameterTypes = ArrayUtils.EMPTY_CLASS_ARRAY;
         }
-        int hash = createHash(ReturnType.METHOD, className, methodName, parameterTypes);
+        int hash = createHash(HashType.METHOD, className, methodName, parameterTypes);
         Method method = (Method) REFLECTION_CACHE.get(hash);
         if (method == null) {
             if (declared) {
@@ -249,7 +249,7 @@ public enum PackageType {
         if (parameterTypes == null) {
             parameterTypes = ArrayUtils.EMPTY_CLASS_ARRAY;
         }
-        int hash = createHash(ReturnType.CONSTRUCTOR, className, null, parameterTypes);
+        int hash = createHash(HashType.CONSTRUCTOR, className, null, parameterTypes);
         Constructor<?> constructor = (Constructor<?>) REFLECTION_CACHE.get(hash);
         if (constructor == null) {
             if (declared) {
@@ -277,7 +277,7 @@ public enum PackageType {
         if (StringUtils.isEmpty(className)) {
             throw new IllegalArgumentException();
         }
-        int hash = createHash(ReturnType.CLASS, className, null, null);
+        int hash = createHash(HashType.CLASS, className, null, null);
         Class<?> clazz = (Class<?>) REFLECTION_CACHE.get(hash);
         if (clazz == null) {
             clazz = Class.forName(this + "." + className);
@@ -287,7 +287,7 @@ public enum PackageType {
     }
 
     @NotNull
-    private int createHash(@NotNull ReturnType returnType, @NotNull String className, @Nullable String name, @Nullable Class<?>[] objects) {
+    private int createHash(@NotNull HashType returnType, @NotNull String className, @Nullable String name, @Nullable Class<?>[] objects) {
         if (!HAS_NMS || StringUtils.isEmpty(className)) {
             return 0;
         }
@@ -298,7 +298,7 @@ public enum PackageType {
         int hash = 1;
         int prime = 31;
         hash = prime * hash + baseHash;
-        hash = prime * hash + String.valueOf(name).hashCode();
+        hash = prime * hash + (name == null ? "null" : name).hashCode();
         hash = prime * hash + Boolean.hashCode(StringUtils.isNotEmpty(name));
         for (Object object : objects) {
             hash += Objects.hashCode(object);
