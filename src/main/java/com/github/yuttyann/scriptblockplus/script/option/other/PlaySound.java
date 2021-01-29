@@ -20,7 +20,6 @@ import java.util.Locale;
 
 import com.github.yuttyann.scriptblockplus.ScriptBlock;
 import com.github.yuttyann.scriptblockplus.script.option.BaseOption;
-import com.github.yuttyann.scriptblockplus.script.option.Option;
 import com.github.yuttyann.scriptblockplus.script.option.OptionTag;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.StringUtils;
@@ -45,16 +44,10 @@ public class PlaySound extends BaseOption implements Runnable {
     private boolean sendAllPlayer;
 
     @Override
-    @NotNull
-    public Option newInstance() {
-        return new PlaySound();
-    }
-
-    @Override
     protected boolean isValid() throws Exception {
         String[] array = StringUtils.split(getOptionValue(), '/');
         String[] param = StringUtils.split(array[0], '-');
-        long delay = param.length > 3 ? Long.parseLong(param[3]) : 0;
+        long delay = param.length > 3 ? Long.parseLong(param[3]) : 0L;
         this.name = StringUtils.removeStart(param[0], Utils.MINECRAFT).toLowerCase(Locale.ROOT);
         this.volume = Integer.parseInt(param[1]);
         this.pitch = Integer.parseInt(param[2]);

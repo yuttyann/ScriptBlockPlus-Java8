@@ -34,12 +34,6 @@ public class EndInventory implements EndProcess {
     public static final ItemStack[] EMPTY_ARRAY = new ItemStack[0];
 
     @Override
-    @NotNull
-    public EndProcess newInstance() {
-        return new EndInventory();
-    }
-
-    @Override
     public void success(@NotNull SBRead sbRead) {
         SBPlayer sbPlayer = sbRead.getSBPlayer();
         StreamUtils.ifAction(sbPlayer.isOnline(), () -> Utils.updateInventory(sbPlayer.getPlayer()));

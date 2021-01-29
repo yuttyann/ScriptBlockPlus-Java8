@@ -19,10 +19,8 @@ import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
 import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerCountJson;
 import com.github.yuttyann.scriptblockplus.file.json.element.ScriptParam;
 import com.github.yuttyann.scriptblockplus.script.option.BaseOption;
-import com.github.yuttyann.scriptblockplus.script.option.Option;
 import com.github.yuttyann.scriptblockplus.script.option.OptionTag;
 import com.github.yuttyann.scriptblockplus.script.option.time.TimerOption;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus Amount オプションクラス
@@ -30,12 +28,6 @@ import org.jetbrains.annotations.NotNull;
  */
 @OptionTag(name = "amount", syntax = "@amount:")
 public class Amount extends BaseOption {
-
-    @Override
-    @NotNull
-    public Option newInstance() {
-        return new Amount();
-    }
 
     @Override
     protected boolean isValid() throws Exception {
