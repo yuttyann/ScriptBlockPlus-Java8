@@ -56,8 +56,9 @@ public class CuboidRegionPaste {
         return regionBlocks;
     }
 
+    @NotNull
     public CuboidRegionPaste paste(boolean pasteonair, boolean overwrite) {
-        Set<Location> locations = new HashSet<>(regionBlocks.getCount());
+        Set<Location> locations = new HashSet<>();
         for (Block block : regionBlocks.getBlocks()) {
             if (!pasteonair && (block == null || block.getType() == Material.AIR)) {
                 continue;

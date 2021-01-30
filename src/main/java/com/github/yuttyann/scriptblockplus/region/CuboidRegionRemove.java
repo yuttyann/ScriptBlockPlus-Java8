@@ -56,7 +56,7 @@ public class CuboidRegionRemove {
     public CuboidRegionRemove remove() {
         scriptKeys.clear();
         Set<Block> blocks = regionBlocks.getBlocks();
-        Set<Location> locations = new HashSet<>(regionBlocks.getCount());
+        Set<Location> locations = new HashSet<>();
         for (ScriptKey scriptKey : ScriptKey.values()) {
             BlockScriptJson scriptJson = new BlockScriptJson(scriptKey);
             if (!scriptJson.exists()) {
