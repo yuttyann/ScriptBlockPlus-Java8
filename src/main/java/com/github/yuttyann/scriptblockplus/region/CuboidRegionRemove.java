@@ -52,12 +52,9 @@ public class CuboidRegionRemove {
         return regionBlocks;
     }
 
-    public void init() {
-        scriptKeys.clear();
-    }
-
+    @NotNull
     public CuboidRegionRemove remove() {
-        init();
+        scriptKeys.clear();
         Set<Block> blocks = regionBlocks.getBlocks();
         Set<Location> locations = new HashSet<>(regionBlocks.getCount());
         for (ScriptKey scriptKey : ScriptKey.values()) {
