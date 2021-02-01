@@ -24,6 +24,10 @@ import com.github.yuttyann.scriptblockplus.utils.Utils;
 
 import org.bukkit.entity.Player;
 
+/**
+ * ScriptBlockPlus BypassGroup オプションクラス
+ * @author yuttyann44581
+ */
 @OptionTag(name = "bypass_group", syntax = "@bypassGROUP:")
 public class BypassGroup extends BaseOption {
 

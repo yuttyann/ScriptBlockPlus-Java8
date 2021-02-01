@@ -24,7 +24,7 @@ import com.github.yuttyann.scriptblockplus.utils.Utils;
 import org.bukkit.entity.Player;
 
 /**
- * ScriptBlockPlus Bypass オプションクラス
+ * ScriptBlockPlus BypassOP オプションクラス
  * @author yuttyann44581
  */
 @OptionTag(name = "bypass_op", syntax = "@bypass ")

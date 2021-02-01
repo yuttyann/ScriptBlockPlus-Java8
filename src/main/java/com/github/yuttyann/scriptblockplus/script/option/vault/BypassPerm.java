@@ -24,6 +24,10 @@ import com.github.yuttyann.scriptblockplus.utils.Utils;
 
 import org.bukkit.entity.Player;
 
+/**
+ * ScriptBlockPlus BypassPerm オプションクラス
+ * @author yuttyann44581
+ */
 @OptionTag(name = "bypass_perm", syntax = "@bypassPERM:")
 public class BypassPerm extends BaseOption {
 

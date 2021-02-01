@@ -41,7 +41,6 @@ import com.github.yuttyann.scriptblockplus.script.ScriptEdit;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
 import com.github.yuttyann.scriptblockplus.utils.*;
 import com.github.yuttyann.scriptblockplus.selector.CommandSelector;
-import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 
 import org.bukkit.*;
@@ -81,7 +80,6 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
                 new CommandData(SBConfig.BACKUP_COMMAND.getValue(), Permission.COMMAND_BACKUP.getNode()),
                 new CommandData(SBConfig.CHECKVER_COMMAND.getValue(), Permission.COMMAND_CHECKVER.getNode()),
                 new CommandData(SBConfig.DATAMIGR_COMMAND.getValue(), Permission.COMMAND_DATAMIGR.getNode()),
-                new CommandData(SBConfig.EXPORT_COMMAND.getValue(), Permission.COMMAND_EXPORT.getNode()),
                 new CommandData(SBConfig.CREATE_COMMAND.getValue(), typeNodes),
                 new CommandData(SBConfig.ADD_COMMAND.getValue(), typeNodes),
                 new CommandData(SBConfig.REMOVE_COMMAND.getValue(), typeNodes),
@@ -93,8 +91,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
     }
 
     @Override
-    public boolean runCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
-            String[] args) {
+    public boolean runCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         int length = args.length;
         if (length == 1) {
             if (equals(args[0], "tool")) {
@@ -114,20 +111,16 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
             }
         }
         if (length == 2) {
-            if (equals(args[0], "export") && equals(args[1], "sound", "material")) {
-                return doExport(sender, args);
-            } else if (equals(args[0], ScriptKey.types()) && equals(args[1], "remove", "view")) {
+            if (equals(args[0], ScriptKey.types()) && equals(args[1], "remove", "view")) {
                 return setAction(sender, args);
             } else if (equals(args[0], "selector") && equals(args[1], "paste", "remove")) {
                 return doSelector(sender, args);
             }
         }
-        if (length == 3 && equals(args[0], ScriptKey.types()) && equals(args[1], "redstone")
-                && equals(args[2], "false")) {
+        if (length == 3 && equals(args[0], ScriptKey.types()) && equals(args[1], "redstone") && equals(args[2], "false")) {
             return setAction(sender, args);
         }
-        if (length > 3 && equals(args[0], ScriptKey.types()) && equals(args[1], "redstone")
-                && equals(args[2], "true")) {
+        if (length > 3 && equals(args[0], ScriptKey.types()) && equals(args[1], "redstone") && equals(args[2], "true")) {
             return setAction(sender, args);
         }
         if (length > 2) {
@@ -142,34 +135,6 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
             }
         }
         return false;
-    }
-
-    private boolean doExport(@NotNull CommandSender sender, @NotNull String[] args) {
-        if (!hasPermission(sender, Permission.COMMAND_EXPORT, false) || !equals(args[1], "sound", "material")) {
-            return false;
-        }
-        String type = args[1].toLowerCase(Locale.ROOT);
-        String path = "export/" + type + "_v" + Utils.getServerVersion() + "_.txt";
-        File file = new File(getPlugin().getDataFolder(), path);
-        File parent = file.getParentFile();
-        if (!parent.exists()) {
-            parent.mkdirs();
-        }
-        new Thread(() -> {
-            SBConfig.EXPORT_START.replace(type).send(sender);
-            try (BufferedWriter writer = new BufferedWriter(
-                    new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8))) {
-                for (Enum<?> value : type.equals("sound") ? Sound.values() : Material.values()) {
-                    writer.write(value.name());
-                    writer.newLine();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                SBConfig.EXPORT_END.replace(type).send(sender);
-            }
-        }).start();
-        return true;
     }
 
     private boolean doTool(@NotNull CommandSender sender) {
@@ -377,13 +342,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
             Set<String> set = setCommandPermissions(sender, new LinkedHashSet<String>());
             StreamUtils.fForEach(set, s -> StringUtils.startsWith(s, prefix), empty::add);
         } else if (args.length == 2) {
-            if (equals(args[0], "export")) {
-                if (Permission.COMMAND_EXPORT.has(sender)) {
-                    String prefix = args[1].toLowerCase(Locale.ROOT);
-                    String[] answers = new String[] { "sound", "material" };
-                    StreamUtils.fForEach(answers, s -> s.startsWith(prefix), empty::add);
-                }
-            } else if (equals(args[0], "selector")) {
+            if (equals(args[0], "selector")) {
                 if (Permission.COMMAND_SELECTOR.has(sender)) {
                     String prefix = args[1].toLowerCase(Locale.ROOT);
                     String[] answers = new String[] { "paste", "remove" };
@@ -428,7 +387,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
                     } else if (args.length == 4 && equals(args[1], "redstone") && equals(args[2], "true")) {
                         String prefix = args[3].toLowerCase(Locale.ROOT);
                         List<String> answers = Lists.newArrayList("@a", "@e", "@p", "@r");
-                        StreamUtils.forEach(Filter.values(), t -> answers.add(Filter.getPrefix() + t.getSyntax() + "}"));
+                        StreamUtils.forEach(Filter.values(), f -> answers.add(Filter.getPrefix() + f.getSyntax() + "}"));
                         StreamUtils.fForEach(answers, s -> s.startsWith(prefix), empty::add);
                     } else if (args.length == 5 && equals(args[1], "redstone") && equals(args[2], "true") && args[3].startsWith(Filter.getPrefix())) {
                         String prefix = args[4].toLowerCase(Locale.ROOT);
@@ -447,7 +406,6 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
         StreamUtils.ifAction(Permission.COMMAND_BACKUP.has(sender), () -> set.add("backup"));
         StreamUtils.ifAction(Permission.COMMAND_CHECKVER.has(sender), () -> set.add("checkver"));
         StreamUtils.ifAction(Permission.COMMAND_DATAMIGR.has(sender), () -> set.add("datamigr"));
-        StreamUtils.ifAction(Permission.COMMAND_EXPORT.has(sender), () -> set.add("export"));
         StreamUtils.ifAction(Permission.COMMAND_SELECTOR.has(sender), () -> set.add("selector"));
         StreamUtils.fForEach(ScriptKey.values(), s -> Permission.has(sender, s, true), s -> set.add(s.getName()));
         return set;
