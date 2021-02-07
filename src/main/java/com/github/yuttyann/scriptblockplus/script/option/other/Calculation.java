@@ -25,7 +25,6 @@ import com.github.yuttyann.scriptblockplus.script.option.OptionTag;
 import com.github.yuttyann.scriptblockplus.utils.StringUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Objective;
@@ -75,9 +74,9 @@ public class Calculation extends BaseOption {
             if (array.length < 1 || array.length > 2) {
                 return 0;
             }
-            Location location = BlockCoords.fromString(array.length == 1 ? array[0] : array[1]);
             ScriptKey scriptKey = array.length == 1 ? getScriptKey() : ScriptKey.valueOf(array[0]);
-            return new PlayerCountJson(getUniqueId()).load(location, scriptKey).getAmount();
+            BlockCoords blockCoords = BlockCoords.fromString(array.length == 1 ? array[0] : array[1]);
+            return PlayerCountJson.get(getUniqueId()).load(scriptKey, blockCoords).getAmount();
         }
         if (source.startsWith("%player_others_in_range_") && source.endsWith("%")) {
             source = source.substring("%player_others_in_range_".length(), source.length() - 1);
@@ -117,7 +116,7 @@ public class Calculation extends BaseOption {
             case "%server_offline%":
                 return Bukkit.getOfflinePlayers().length;
             case "%player_count%":
-                return new PlayerCountJson(getUniqueId()).load(getLocation(), getScriptKey()).getAmount();
+                return PlayerCountJson.get(getUniqueId()).load(getScriptKey(), getBlockCoords()).getAmount();
             case "%player_ping%":
                 if (!PackageType.HAS_NMS) {
                     return 0;

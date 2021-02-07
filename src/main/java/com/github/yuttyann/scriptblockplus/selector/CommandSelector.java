@@ -20,11 +20,11 @@ import com.github.yuttyann.scriptblockplus.hook.plugin.Placeholder;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
 import com.github.yuttyann.scriptblockplus.utils.NMSHelper;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
-import com.github.yuttyann.scriptblockplus.utils.StringUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
 import com.github.yuttyann.scriptblockplus.selector.entity.EntitySelector;
 import com.google.common.collect.Lists;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -39,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.IntStream;
 
 /**
  * ScriptBlockPlus CommandSelector クラス
@@ -49,11 +48,15 @@ public final class CommandSelector {
 
     private final static String SELECTOR_SUFFIX = "aeprs";
     private final static String[] SELECTOR_NAMES = { "@a", "@e", "@p", "@r", "@s" };
+    private final static String[] SELECTOR_ARGMENT_NAMES = { "@a[", "@e[", "@p[", "@r[", "@s[" };
+
+    private final static String[] SEARCH_XYZ = { "{x}", "{y}", "{z}" };
+    private final static String[] SEARCH_INDEX = { "{0}", "{1}", "{2}", "{3}", "{4}", "{5}", "{6}", "{7}", "{8}", "{9}", "{10}" };
 
     private static class Index {
 
         private final int start;
-        private int end;
+        private int end = 0;
 
         private Index(int start, int end) {
             this.start = start;
@@ -71,15 +74,15 @@ public final class CommandSelector {
     }
 
     @NotNull
-    public static List<String> build(@NotNull CommandSender sender, @Nullable Location location, @NotNull String command) {
+    public static List<String> build(@NotNull CommandSender sender, @Nullable Location start, @NotNull String command) {
         int modCount = 0;
-        List<Index> indexList = new ArrayList<Index>();
+        List<Index> indexList = new ArrayList<>();
         List<String> commandList = Lists.newArrayList(parse(command, sender, indexList));
-        for (int i = 0; i < indexList.size(); i++) {
+        for (int i = 0, l = indexList.size(); i < l; i++) {
             String selector = indexList.get(i).substring(command);
-            Entity[] entities = getTargets(sender, location, selector);
+            Entity[] entities = getTargets(sender, start, selector);
             if (entities == null || entities.length == 0) {
-                if (StreamUtils.anyMatch(SELECTOR_NAMES, s -> selector.startsWith(s + "["))) {
+                if (StreamUtils.anyMatch(SELECTOR_ARGMENT_NAMES, selector::startsWith)) {
                     continue;
                 } else if (selector.startsWith(SELECTOR_NAMES[2]) && sender instanceof Player) {
                     entities = new Entity[] { (Entity) sender };
@@ -88,26 +91,25 @@ public final class CommandSelector {
                 }
             }
             boolean works = true;
-            for (int j = 1; j < entities.length; j++) {
+            for (int j = 1, k = entities.length; j < k; j++) {
                 if (entities[j] == null) {
                     works = false;
                     break;
                 }
-                commandList.add(StringUtils.replace(commandList.get(0), "{" + i + "}", getEntityName(entities[j])));
+                commandList.add(StringUtils.replace(commandList.get(0), getReplaceIndex(i), getEntityName(entities[j])));
             }
             if (!works || entities.length == 0 || entities[0] == null) {
                 return Collections.emptyList();
             } else {
-                int index = i;
-                String name = getEntityName(entities[0]);
-                commandList.replaceAll(s -> StringUtils.replace(s, "{" + index + "}", name));
+                replaceAll(commandList, i, getEntityName(entities[0]));
             }
             modCount++;
         }
         if (modCount > 0 && modCount != indexList.size()) {
             String name = sender.getName();
-            IntStream stream = IntStream.of(indexList.size());
-            stream.forEach(i -> commandList.replaceAll(s -> StringUtils.replace(s, "{" + i + "}", name)));
+            for (int i = 0, l = indexList.size(); i < l; i++) {
+                replaceAll(commandList, i, name);
+            }
         }
         return modCount == 0 ? Collections.emptyList() : commandList;
     }
@@ -115,8 +117,9 @@ public final class CommandSelector {
     @NotNull
     private static String parse(@NotNull String source, @NotNull CommandSender sender, @NotNull List<Index> indexList) {
         char[] chars = source.toCharArray();
-        StringBuilder builder = new StringBuilder();
-        Location location = null;
+        StringBuilder builder = new StringBuilder(chars.length + 16);
+        StringBuilder tempBuilder = null;
+        Location tempLocation = null;
         for (int i = 0, j = 0, k = 0; i < chars.length; i++) {
             int one = i + 1, two = one + 1;
             if (chars[i] == '@' && one < chars.length && SELECTOR_SUFFIX.indexOf(chars[one]) > -1) {
@@ -125,12 +128,10 @@ public final class CommandSelector {
                     for (int l = two, m = 0; l < chars.length; l++) {
                         if (chars[l] == '[') {
                             m++;
-                        } else if (chars[l] == ']') {
-                            if (--m == 0) {
-                                index.end = l;
-                                i += Math.max(index.end - index.start, 0);
-                                break;
-                            }
+                        } else if (chars[l] == ']' && --m == 0) {
+                            index.end = l;
+                            i += Math.max(index.end - index.start, 0);
+                            break;
                         }
                     }
                 } else {
@@ -139,11 +140,16 @@ public final class CommandSelector {
                 indexList.add(index);
                 builder.append('{').append(j++).append('}');
             } else if ((chars[i] == '~' || chars[i] == '^') && (sender instanceof Entity || sender instanceof BlockCommandSender)) {
-                if (k >= 3) {
+                if (k > 2) {
                     builder.append(sender.getName());
                 } else {
+                    if (tempBuilder == null) {
+                        tempBuilder = new StringBuilder();
+                    } else {
+                        tempBuilder.setLength(0);
+                    }
+                    tempBuilder.append(chars[i]);
                     String axes = k == 0 ? "x" : k == 1 ? "y" : k == 2 ? "z" : "x";
-                    StringBuilder tempBuilder = new StringBuilder().append(chars[i]);
                     for (int l = one; l < chars.length; l++) {
                         if ("+-.0123456789".indexOf(chars[l]) > -1) {
                             tempBuilder.append(chars[l]);
@@ -152,10 +158,10 @@ public final class CommandSelector {
                             break;
                         }
                     }
-                    if (location == null) {
-                        location = EntitySelector.copy(sender, null);
+                    if (tempLocation == null) {
+                        tempLocation = EntitySelector.copy(sender, null);
                     }
-                    EntitySelector.setLocation(location, axes, tempBuilder.toString());
+                    EntitySelector.setLocation(tempLocation, axes, tempBuilder.toString());
                     builder.append('{').append(axes).append('}');
                     k++;
                 }
@@ -164,27 +170,27 @@ public final class CommandSelector {
             }
         }
         String result = builder.toString();
-        if (location != null) {
-            result = StringUtils.replace(result, "{x}", location.getX());
-            result = StringUtils.replace(result, "{y}", location.getY());
-            result = StringUtils.replace(result, "{z}", location.getZ());
+        if (tempLocation != null) {
+            double x = tempLocation.getX(), y = tempLocation.getY(), z = tempLocation.getZ();
+            String[] replace = new String[] { Double.toString(x), Double.toString(y), Double.toString(z) };
+            result = StringUtils.replaceEach(result, SEARCH_XYZ, replace);
         }
         return result;
     }
 
     @NotNull
-    public static Entity[] getTargets(@NotNull CommandSender sender, @Nullable Location location, @NotNull String selector) {
-        selector = Placeholder.INSTANCE.replace(getWorld(sender, location), selector);
+    public static Entity[] getTargets(@NotNull CommandSender sender, @Nullable Location start, @NotNull String selector) {
+        selector = Placeholder.INSTANCE.replace(getWorld(sender, start), selector);
         if (PackageType.HAS_NMS && Utils.isCBXXXorLater("1.13")) {
             try {
-                return NMSHelper.selectEntities(sender, location, selector);
+                return NMSHelper.selectEntities(sender, start, selector);
             } catch (ReflectiveOperationException e) {
                 e.printStackTrace();
             }
         } else if (Utils.isCBXXXorLater("1.13.2")) {
             return Bukkit.selectEntities(sender, selector).toArray(new Entity[0]);
         }
-        return EntitySelector.getEntities(sender, location, selector);
+        return EntitySelector.getEntities(sender, start, selector);
     }
 
     @NotNull
@@ -209,5 +215,19 @@ public final class CommandSelector {
     @NotNull
     private static String getEntityName(@NotNull Entity entity) {
         return entity instanceof Player ? entity.getName() : entity.getUniqueId().toString();
+    }
+
+    @NotNull
+    private static String getReplaceIndex(int index) {
+        if (index >= SEARCH_INDEX.length) {
+            return "{" + index + "}";
+        }
+        return SEARCH_INDEX[index];
+    }
+
+    private static void replaceAll(@NotNull List<String> commandList, int index, @NotNull String name) {
+        for (int i = 0, l = commandList.size(); i < l; i++) {
+            commandList.set(i, StringUtils.replace(commandList.get(i), getReplaceIndex(index), name));
+        }
     }
 }

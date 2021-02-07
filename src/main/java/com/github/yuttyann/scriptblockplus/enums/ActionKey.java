@@ -18,7 +18,7 @@ package com.github.yuttyann.scriptblockplus.enums;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * ScriptBlockPlus ActionType 列挙型
+ * ScriptBlockPlus ActionKey 列挙型
  * @author yuttyann44581
  */
 public enum ActionKey {

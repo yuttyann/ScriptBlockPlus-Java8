@@ -26,6 +26,7 @@ import com.github.yuttyann.scriptblockplus.enums.reflection.PackageType;
 import com.github.yuttyann.scriptblockplus.utils.NMSHelper;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
 
+
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -76,18 +77,18 @@ public final class RayTrace {
                 if (blocks.size() > 1) {
                     Block old = null, now = null;
                     Iterator<Block> iterator = blocks.iterator();
-                    BlockCoords blockCoords = new BlockCoords(player.getEyeLocation());
+                    Location location = player.getEyeLocation();
                     while (iterator.hasNext()) {
                         old = now;
                         now = iterator.next();
-                        if (blockCoords.equals(now.getLocation())) {
+                        if (BlockCoords.compare(location, now.getLocation())) {
                             continue;
                         }
                         if (old != null && now.getType().isOccluding()) {
                             BlockFace blockFace = now.getFace(old);
                             return new RayResult(now, blockFace);
                         }
-                    }
+                    }   
                 }
             }
             return null;
@@ -97,11 +98,15 @@ public final class RayTrace {
     @NotNull
     public static Set<Block> rayTraceBlocks(@NotNull Player player, final double distance, final double accuracy, final boolean square) {
         World world = player.getWorld();
-        Set<Block> blocks = new LinkedHashSet<>();
+        Set<Block> blocks = new LinkedHashSet<Block>();
         RayTrace rayTrace = new RayTrace(player);
-        for(Vector position : rayTrace.traverse(distance, accuracy)) {
+        List<Vector> positions = rayTrace.traverse(distance, accuracy);
+        SBBoundingBox boundingBox = new SBBoundingBox();
+        for (int i = 0, l = positions.size(); i < l; i++) {
+            Vector position = positions.get(i);
             Location location = position.toLocation(world);
-            if(rayTrace.intersects(new SBBoundingBox(location.getBlock(), square), distance, accuracy)){
+            boundingBox.setBlock(location.getBlock(), square);
+            if(rayTrace.intersects(boundingBox, distance, accuracy)){
                 blocks.add(location.getBlock());
             }
         }
@@ -125,7 +130,7 @@ public final class RayTrace {
 
     @NotNull
     public List<Vector> traverse(final double distance, final double accuracy) {
-        List<Vector> positions = new ArrayList<>();
+        List<Vector> positions = new ArrayList<Vector>();
         for (double d = 0.0D; d <= distance; d += accuracy) {
             positions.add(getPostion(d));
         }
@@ -134,29 +139,18 @@ public final class RayTrace {
 
     @Nullable
     public Vector positionOfIntersection(@NotNull Vector min, @NotNull Vector max, final double distance, final double accuracy) {
-        List<Vector> positions = traverse(distance, accuracy);
-        for (Vector position : positions) {
-            if (intersects(position, new SBBoundingBox(min, max))) {
-                return position;
-            }
-        }
-        return null;
+        return positionOfIntersection(new SBBoundingBox(min, max), distance, accuracy);
     }
 
     public boolean intersects(@NotNull Vector min, @NotNull Vector max, final double distance, final double accuracy) {
-        List<Vector> positions = traverse(distance, accuracy);
-        for (Vector position : positions) {
-            if (intersects(position, new SBBoundingBox(min, max))) {
-                return true;
-            }
-        }
-        return false;
+        return intersects(new SBBoundingBox(min, max), distance, accuracy);
     }
 
     @Nullable
     public Vector positionOfIntersection(@NotNull SBBoundingBox boundingBox, final double distance, final double accuracy) {
         List<Vector> positions = traverse(distance, accuracy);
-        for (Vector position : positions) {
+        for (int i = 0, l = positions.size(); i < l; i++) {
+            Vector position = positions.get(i);
             if (intersects(position, boundingBox)) {
                 return position;
             }
@@ -166,8 +160,8 @@ public final class RayTrace {
 
     public boolean intersects(@NotNull SBBoundingBox boundingBox, final double distance, final double accuracy) {
         List<Vector> positions = traverse(distance, accuracy);
-        for (Vector position : positions) {
-            if (intersects(position, boundingBox)) {
+        for (int i = 0, l = positions.size(); i < l; i++) {
+            if (intersects(positions.get(i), boundingBox)) {
                 return true;
             }
         }

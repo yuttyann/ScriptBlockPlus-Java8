@@ -15,6 +15,7 @@
  */
 package com.github.yuttyann.scriptblockplus.item.action;
 
+import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.enums.Permission;
 import com.github.yuttyann.scriptblockplus.file.config.SBConfig;
 import com.github.yuttyann.scriptblockplus.item.ChangeSlot;
@@ -27,8 +28,6 @@ import com.github.yuttyann.scriptblockplus.script.ScriptKey;
 import com.github.yuttyann.scriptblockplus.script.option.chat.ActionBar;
 import com.github.yuttyann.scriptblockplus.utils.ItemUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
-
-import org.bukkit.Location;
 import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,8 +46,33 @@ public class ScriptEditor extends ItemAction {
     }
 
     @Override
-    public boolean hasPermission(@NotNull Permissible permissible) {
-        return Permission.TOOL_SCRIPT_EDITOR.has(permissible);
+    public void run(@NotNull RunItem runItem) {
+        SBPlayer sbPlayer = SBPlayer.fromPlayer(runItem.getPlayer());
+        ScriptKey scriptKey = sbPlayer.getObjectMap().get(KEY, ScriptKey.INTERACT);
+        Optional<BlockCoords> blockCoords = Optional.ofNullable(runItem.getBlockCoords());
+        switch (runItem.getAction()) {
+            case LEFT_CLICK_AIR:
+            case LEFT_CLICK_BLOCK:
+                if (runItem.isSneaking() && !runItem.isAIR() && blockCoords.isPresent()) {
+                    new SBOperation(scriptKey).remove(sbPlayer.getPlayer(), blockCoords.get());
+                } else if (!runItem.isSneaking()) {
+                    sbPlayer.getObjectMap().put(KEY, scriptKey = getNextType(scriptKey));
+                    ActionBar.send(sbPlayer, "§6§lToolMode: §d§l" + scriptKey);
+                }
+                break;
+            case RIGHT_CLICK_AIR:
+            case RIGHT_CLICK_BLOCK:
+                if (runItem.isSneaking() && !runItem.isAIR()) {
+                    Optional<SBClipboard> sbClipboard = sbPlayer.getSBClipboard();
+                    if (!blockCoords.isPresent() || !sbClipboard.isPresent() || !sbClipboard.get().paste(blockCoords.get(), true)) {
+                        SBConfig.ERROR_SCRIPT_FILE_CHECK.send(sbPlayer);
+                    }
+                } else if (!runItem.isSneaking() && !runItem.isAIR() && blockCoords.isPresent()) {
+                    new SBOperation(scriptKey).clipboard(sbPlayer, blockCoords.get()).copy();
+                }
+                break;
+            default:
+        }
     }
 
     @Override
@@ -59,33 +83,8 @@ public class ScriptEditor extends ItemAction {
     }
 
     @Override
-    public void run(@NotNull RunItem runItem) {
-        SBPlayer sbPlayer = SBPlayer.fromPlayer(runItem.getPlayer());
-        Optional<Location> location = Optional.ofNullable(runItem.getLocation());
-        ScriptKey scriptKey = sbPlayer.getObjectMap().get(KEY, ScriptKey.INTERACT);
-        switch (runItem.getAction()) {
-            case LEFT_CLICK_AIR:
-            case LEFT_CLICK_BLOCK:
-                if (runItem.isSneaking() && !runItem.isAIR() && location.isPresent()) {
-                    new SBOperation(scriptKey).remove(sbPlayer.getPlayer(), location.get());
-                } else if (!runItem.isSneaking()) {
-                    sbPlayer.getObjectMap().put(KEY, scriptKey = getNextType(scriptKey));
-                    ActionBar.send(sbPlayer, "§6§lToolMode: §d§l" + scriptKey);
-                }
-                break;
-            case RIGHT_CLICK_AIR:
-            case RIGHT_CLICK_BLOCK:
-                if (runItem.isSneaking() && !runItem.isAIR()) {
-                    Optional<SBClipboard> sbClipboard = sbPlayer.getSBClipboard();
-                    if (!location.isPresent() || !sbClipboard.isPresent() || !sbClipboard.get().paste(location.get(), true)) {
-                        SBConfig.ERROR_SCRIPT_FILE_CHECK.send(sbPlayer);
-                    }
-                } else if (!runItem.isSneaking() && !runItem.isAIR() && location.isPresent()) {
-                    new SBOperation(scriptKey).clipboard(sbPlayer, location.get()).copy();
-                }
-                break;
-            default:
-        }
+    public boolean hasPermission(@NotNull Permissible permissible) {
+        return Permission.TOOL_SCRIPT_EDITOR.has(permissible);
     }
 
     @NotNull

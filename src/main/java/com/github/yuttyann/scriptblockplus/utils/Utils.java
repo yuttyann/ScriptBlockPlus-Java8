@@ -25,6 +25,7 @@ import com.google.common.base.Splitter;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
@@ -36,7 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
@@ -95,14 +95,14 @@ public final class Utils {
         return false;
     }
 
-    public static int getVersionInt(@NotNull String source) {
-        String[] version = split(source, '.');
-        if (version.length < 1) {
+    public static int getVersionInt(@NotNull String version) {
+        String[] array = split(version, '.');
+        if (array.length < 1) {
             return -1;
         }
-        int result = (Integer.parseInt(version[0]) * 100000) + (Integer.parseInt(version[1]) * 1000);
-        if (version.length == 3) {
-            result += Integer.parseInt(version[2]);
+        int result = (Integer.parseInt(array[0]) * 100000) + (Integer.parseInt(array[1]) * 1000);
+        if (array.length == 3) {
+            result += Integer.parseInt(array[2]);
         }
         return result;
     }
@@ -172,12 +172,19 @@ public final class Utils {
 
     @Nullable
     public static String getName(@NotNull UUID uuid) {
-        try {
-            OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
-            return !player.hasPlayedBefore() ? NameFetcher.getName(uuid) : player.getName();
-        } catch (IOException e) {
-            e.printStackTrace();
+        OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
+        return !player.hasPlayedBefore() ? "null" : player.getName();
+    }
+
+    public static boolean isAIR(@NotNull Material material) {
+        if (!material.isBlock()) {
+            return false;
         }
-        return null;
+        if (isCBXXXorLater("1.14.4")) {
+            return material.isAir();
+        } else if (!isCBXXXorLater("1.13")) {
+            return material == Material.AIR;
+        }
+        return material.name().endsWith("AIR");
     }
 }

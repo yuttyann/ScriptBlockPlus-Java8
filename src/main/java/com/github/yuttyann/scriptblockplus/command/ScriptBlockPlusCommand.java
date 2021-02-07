@@ -20,7 +20,6 @@ import com.github.yuttyann.scriptblockplus.ScriptBlock;
 import com.github.yuttyann.scriptblockplus.enums.ActionKey;
 import com.github.yuttyann.scriptblockplus.enums.Permission;
 import com.github.yuttyann.scriptblockplus.enums.Filter;
-import com.github.yuttyann.scriptblockplus.enums.reflection.ClassType;
 import com.github.yuttyann.scriptblockplus.enums.reflection.PackageType;
 import com.github.yuttyann.scriptblockplus.file.SBFile;
 import com.github.yuttyann.scriptblockplus.file.SBFiles;
@@ -75,7 +74,8 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
     @Override
     public CommandData[] getUsages() {
         String[] typeNodes = Permission.getTypeNodes(true);
-        return new CommandData[] { new CommandData(SBConfig.TOOL_COMMAND.getValue(), Permission.COMMAND_TOOL.getNode()),
+        return new CommandData[] {
+                new CommandData(SBConfig.TOOL_COMMAND.getValue(), Permission.COMMAND_TOOL.getNode()),
                 new CommandData(SBConfig.RELOAD_COMMAND.getValue(), Permission.COMMAND_RELOAD.getNode()),
                 new CommandData(SBConfig.BACKUP_COMMAND.getValue(), Permission.COMMAND_BACKUP.getNode()),
                 new CommandData(SBConfig.CHECKVER_COMMAND.getValue(), Permission.COMMAND_CHECKVER.getNode()),
@@ -87,7 +87,8 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
                 new CommandData(SBConfig.RUN_COMMAND.getValue(), typeNodes),
                 new CommandData(SBConfig.REDSTONE_COMMAND.getValue(), typeNodes),
                 new CommandData(SBConfig.SELECTOR_PASTE_COMMAND.getValue(), Permission.COMMAND_SELECTOR.getNode()),
-                new CommandData(SBConfig.SELECTOR_REMOVE_COMMAND.getValue(), Permission.COMMAND_SELECTOR.getNode()) };
+                new CommandData(SBConfig.SELECTOR_REMOVE_COMMAND.getValue(), Permission.COMMAND_SELECTOR.getNode())
+        };
     }
 
     @Override
@@ -155,9 +156,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
         }
         SBFiles.reload();
         BaseJson.clear();
-        ClassType.clear();
         PackageType.clear();
-        NameFetcher.clear();
         setUsage(getUsages());
         SBConfig.ALL_FILE_RELOAD.send(sender);
         return true;
@@ -234,7 +233,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
             return;
         }
         YamlConfig scriptFile = YamlConfig.load(getPlugin(), file, false);
-        BlockScriptJson scriptJson = new BlockScriptJson(scriptKey);
+        BlockScriptJson scriptJson = BlockScriptJson.get(scriptKey);
         BlockScript blockScript = scriptJson.load();
         for (String name : scriptFile.getKeys()) {
             World world = Utils.getWorld(name);
@@ -314,10 +313,10 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
             boolean overwrite = args.length > 3 && Boolean.parseBoolean(args[3]);
             try {
                 SBClipboard sbClipboard = sbPlayer.getSBClipboard().get();
-                CuboidRegionPaste regionPaste = new CuboidRegionPaste(sbClipboard, region).paste(pasteonair, overwrite);
+                CuboidRegionPaste regionPaste = new CuboidRegionPaste(region, sbClipboard).paste(pasteonair, overwrite);
                 String scriptKeyName = regionPaste.getScriptKey().getName();
-                SBConfig.SELECTOR_PASTE.replace(scriptKeyName, regionPaste.getRegionBlocks().getCount()).send(sbPlayer);
-                SBConfig.CONSOLE_SELECTOR_PASTE.replace(scriptKeyName, regionPaste.getRegionBlocks()).console();
+                SBConfig.SELECTOR_PASTE.replace(scriptKeyName, regionPaste.result().getVolume()).send(sbPlayer);
+                SBConfig.CONSOLE_SELECTOR_PASTE.replace(scriptKeyName, regionPaste.result()).console();
             } finally {
                 sbPlayer.setSBClipboard(null);
             }
@@ -328,8 +327,8 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
                 SBConfig.ERROR_SCRIPT_FILE_CHECK.send(sender);
             } else {
                 String types = scriptKeys.stream().map(ScriptKey::getName).collect(Collectors.joining(", "));
-                SBConfig.SELECTOR_REMOVE.replace(types, regionRemove.getRegionBlocks().getCount()).send(player);
-                SBConfig.CONSOLE_SELECTOR_REMOVE.replace(types, regionRemove.getRegionBlocks()).console();
+                SBConfig.SELECTOR_REMOVE.replace(types, regionRemove.result().getVolume()).send(player);
+                SBConfig.CONSOLE_SELECTOR_REMOVE.replace(types, regionRemove.result()).console();
             }
         }
         return true;
@@ -340,7 +339,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
         if (args.length == 1) {
             String prefix = args[0].toLowerCase(Locale.ROOT);
             Set<String> set = setCommandPermissions(sender, new LinkedHashSet<String>());
-            StreamUtils.fForEach(set, s -> StringUtils.startsWith(s, prefix), empty::add);
+            StreamUtils.fForEach(set, s -> StringUtils.isNotEmpty(s) && s.startsWith(prefix), empty::add);
         } else if (args.length == 2) {
             if (equals(args[0], "selector")) {
                 if (Permission.COMMAND_SELECTOR.has(sender)) {

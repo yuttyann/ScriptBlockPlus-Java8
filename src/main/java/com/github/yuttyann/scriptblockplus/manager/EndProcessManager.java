@@ -18,6 +18,7 @@ package com.github.yuttyann.scriptblockplus.manager;
 import com.github.yuttyann.scriptblockplus.script.endprocess.EndInventory;
 import com.github.yuttyann.scriptblockplus.script.endprocess.EndMoneyCost;
 import com.github.yuttyann.scriptblockplus.script.endprocess.EndProcess;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -56,7 +57,8 @@ public final class EndProcessManager {
 
     @NotNull
     public static EndProcess newInstance(@NotNull Class<? extends EndProcess> endProcess) {
-        for (SBInstance<EndProcess> sbInstance : ENDPROCESS_LIST) {
+        for (int i = 0, l = ENDPROCESS_LIST.size(); i < l; i++) {
+            SBInstance<EndProcess> sbInstance = ENDPROCESS_LIST.get(i);
             if (sbInstance.getDeclaringClass().equals(endProcess)) {
                 return sbInstance.newInstance();
             }

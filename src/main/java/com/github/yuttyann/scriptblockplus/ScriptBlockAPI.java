@@ -20,6 +20,7 @@ import com.github.yuttyann.scriptblockplus.script.endprocess.EndProcess;
 import com.github.yuttyann.scriptblockplus.script.option.BaseOption;
 import com.github.yuttyann.scriptblockplus.script.option.Option;
 import com.github.yuttyann.scriptblockplus.script.option.OptionIndex;
+
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +43,7 @@ public interface ScriptBlockAPI {
      * @param location - スクリプトの座標
      * @param scriptKey - スクリプトキー
      * @param index - 開始位置
-     * @return {@link Boolean} - 正常に終了した場合はtrue
+     * @return {@link Boolean} - 正常に終了した場合は{@code true}
      */
     boolean read(@NotNull Player player, @NotNull Location location, @NotNull ScriptKey scriptKey, int index);
 
@@ -73,6 +74,10 @@ public interface ScriptBlockAPI {
     @NotNull
     SBEdit getSBEdit(@NotNull ScriptKey scriptKey);
 
+    /**
+     * ScriptBlockPlus SBEdit インターフェース
+     * @author yuttyann44581
+     */
     interface SBEdit {
 
         /**
@@ -124,8 +129,12 @@ public interface ScriptBlockAPI {
      * @param scriptKey - スクリプトキー
      * @return {@link SBFile}
      */
-    SBFile getSBFile(@NotNull Location location, @NotNull ScriptKey scriptKey);
+    SBFile getSBFile(@NotNull ScriptKey scriptKey, @NotNull Location location);
 
+    /**
+     * ScriptBlockPlus SBFile インターフェース
+     * @author yuttyann44581
+     */
     interface SBFile {
 
         /**
@@ -134,17 +143,15 @@ public interface ScriptBlockAPI {
         void save();
 
         /**
-         * スクリプトが存在するのか確認します。
-         * @return {@link Boolean} - スクリプトが存在する場合はtrue
+         * 再読み込みを行います。
          */
-        boolean has();
+        void reload();
 
         /**
-         * スクリプトの座標を取得します。
-         * @return {@link Location} - スクリプトの座標
+         * スクリプトが存在するのか確認します。
+         * @return {@link Boolean} - スクリプトが存在する場合は{@code true}
          */
-        @Nullable
-        Location getLocation();
+        boolean has();
 
         /**
          * スクリプトキーを取得します。
@@ -154,6 +161,19 @@ public interface ScriptBlockAPI {
         ScriptKey getScriptKey();
 
         /**
+         * スクリプトの座標を取得します。
+         * @return {@link Location} - スクリプトの座標
+         */
+        @Nullable
+        Location getLocation();
+
+        /**
+         * スクリプトの作者を設定します。
+         * @param author - 作者の一覧
+         */
+        void setAuthor(@NotNull Set<UUID> author);
+
+        /**
          * スクリプトの作者の一覧を取得します。
          * @return {@link Set}&lt;{@link UUID}&gt; - スクリプトの作者の一覧
          */
@@ -161,10 +181,10 @@ public interface ScriptBlockAPI {
         Set<UUID> getAuthor();
 
         /**
-         * スクリプトの作者を設定します。
-         * @param author - 作者の一覧
+         * スクリプトを設定します。
+         * @param script - スクリプトの一覧
          */
-        void setAuthor(@NotNull Set<UUID> author);
+        void setScript(@NotNull List<String> script);
 
         /**
          * スクリプトの一覧を取得します。
@@ -174,10 +194,9 @@ public interface ScriptBlockAPI {
         List<String> getScript();
 
         /**
-         * スクリプトを設定します。
-         * @param script - スクリプトの一覧
+         * スクリプトの編集時刻を現在の時刻に設定します。
          */
-        void setScript(@NotNull List<String> script);
+        void setLastEdit();
 
         /**
          * スクリプトの編集時刻を取得します。
@@ -187,15 +206,16 @@ public interface ScriptBlockAPI {
         String getLastEdit();
 
         /**
-         * スクリプトの編集時刻を現在の時刻に設定します。
+         * セレクターを設定します。
+         * @param selector - セレクター
          */
-        void setLastEdit();
+        void setSelector(@Nullable String selector);
 
         /**
-         * スクリプトの実行可能な回数を取得します。
-         * @return {@link Integer} - 実行可能な回数
+         * セレクターを取得します。
+         * @return {@link String} - セレクター
          */
-        int getAmount();
+        String getSelector();
 
         /**
          * スクリプトの実行可能な回数を設定します。
@@ -214,6 +234,12 @@ public interface ScriptBlockAPI {
          * @param amount - 減らす回数
          */
         void subtractAmount(int amount);
+
+        /**
+         * スクリプトの実行可能な回数を取得します。
+         * @return {@link Integer} - 実行可能な回数
+         */
+        int getAmount();
 
         /**
          * 全ての設定を削除します。

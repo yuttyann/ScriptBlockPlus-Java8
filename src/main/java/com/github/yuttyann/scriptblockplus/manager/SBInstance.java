@@ -15,9 +15,9 @@
  */
 package com.github.yuttyann.scriptblockplus.manager;
 
-import java.util.function.Supplier;
-
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Supplier;
 
 /**
  * ScriptBlockPlus SBInstance クラス

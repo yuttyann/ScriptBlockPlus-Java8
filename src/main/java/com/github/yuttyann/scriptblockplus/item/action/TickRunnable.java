@@ -16,9 +16,12 @@
 package com.github.yuttyann.scriptblockplus.item.action;
 
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.enums.TeamColor;
 import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
 import com.github.yuttyann.scriptblockplus.file.json.element.BlockScript;
@@ -28,16 +31,17 @@ import com.github.yuttyann.scriptblockplus.hook.protocol.GlowEntityPacket;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
 import com.github.yuttyann.scriptblockplus.raytrace.RayResult;
 import com.github.yuttyann.scriptblockplus.raytrace.RayTrace;
-import com.github.yuttyann.scriptblockplus.region.CuboidRegionBlocks;
+import com.github.yuttyann.scriptblockplus.region.CuboidRegionIterator;
 import com.github.yuttyann.scriptblockplus.region.PlayerRegion;
+import com.github.yuttyann.scriptblockplus.region.Region;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
-import com.google.common.collect.Multimap;
+import com.github.yuttyann.scriptblockplus.utils.StreamUtils.ThrowableConsumer;
+import com.google.common.collect.ArrayListMultimap;
 
 import org.bukkit.Color;
 import org.bukkit.GameMode;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Particle.DustOptions;
@@ -64,8 +68,12 @@ public class TickRunnable extends BukkitRunnable {
     public final void run() {
         try {
             for (SBPlayer sbPlayer : ScriptViewer.PLAYERS) {
-                tick(sbPlayer, tick);
+                if (sbPlayer.isOnline()) {
+                    tick(sbPlayer, tick);
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             if (++tick > 20) {
                 this.tick = 0;
@@ -73,10 +81,7 @@ public class TickRunnable extends BukkitRunnable {
         }
     }
 
-    private void tick(@NotNull SBPlayer sbPlayer, int tick) {
-        if (!sbPlayer.isOnline()) {
-            return;
-        }
+    private void tick(@NotNull SBPlayer sbPlayer, int tick) throws Exception {
         if (HAS_PROTOCOLLIB) {
             lookBlocks(sbPlayer);
             if (tick % 5 == 0) {
@@ -92,108 +97,138 @@ public class TickRunnable extends BukkitRunnable {
         }
     }
 
-    private void lookBlocks(@NotNull SBPlayer sbPlayer) {
+    private void lookBlocks(@NotNull SBPlayer sbPlayer) throws Exception {
         Player player = sbPlayer.getPlayer();
         RayResult rayResult = RayTrace.rayTraceBlocks(player, getDistance(player));
-        StreamUtils.filterNot(getLocations(sbPlayer, KEY), Set::isEmpty, Set::clear);
-        StreamUtils.filterNot(getLocations(sbPlayer, KEY_TEMP), Set::isEmpty, Set::clear);
+        StreamUtils.filterNot(getBlockCoords(sbPlayer, KEY), Set::isEmpty, Set::clear);
+        StreamUtils.filterNot(getBlockCoords(sbPlayer, KEY_TEMP), Set::isEmpty, Set::clear);
         if (rayResult == null) {
             return;
         }
-        Set<Location> locations = getLocations(sbPlayer, KEY);
-        Set<Location> tempLocations = getLocations(sbPlayer, KEY_TEMP);
-        destroyEntity(sbPlayer, rayResult.getHitBlock().getLocation(), locations);
-        destroyEntity(sbPlayer, rayResult.getRelative().getLocation(), locations);
-        if (locations.size() > 0) {
-            tempLocations.addAll(locations);
+        Set<BlockCoords> blocks = getBlockCoords(sbPlayer, KEY);
+        Set<BlockCoords> tempBlocks = getBlockCoords(sbPlayer, KEY_TEMP);
+        destroyEntity(sbPlayer, BlockCoords.of(rayResult.getHitBlock()), blocks);
+        destroyEntity(sbPlayer, BlockCoords.of(rayResult.getRelative()), blocks);
+        if (blocks.size() > 0) {
+            tempBlocks.addAll(blocks);
             for (Block block : RayTrace.rayTraceBlocks(player, getDistance(player), 0.01D, true)) {
-                Location blockLocation = block.getLocation();
-                if (tempLocations.contains(blockLocation)) {
+                BlockCoords blockCoords = BlockCoords.of(block);
+                if (tempBlocks.contains(blockCoords)) {
                     break;
                 }
-                if (!locations.contains(blockLocation)) {
-                    destroyEntity(sbPlayer, blockLocation, locations);
+                if (!blocks.contains(blockCoords)) {
+                    destroyEntity(sbPlayer, blockCoords, blocks);
                 }
             }
         }
     }
 
-    private void spawnGlowEntity(@NotNull SBPlayer sbPlayer) {
-        PlayerRegion region = new PlayerRegion(sbPlayer.getPlayer(), 20);
-        Set<Block> blocks = getBlocks(new CuboidRegionBlocks(region));
-        Set<Location> locations = getLocations(sbPlayer, KEY);
-        for (Block block : blocks) {
-            if (locations.size() > 0 && StreamUtils.anyMatch(locations, l -> block.getLocation().equals(l))) {
-                continue;
+    private void spawnGlowEntity(@NotNull SBPlayer sbPlayer) throws Exception {
+        PlayerRegion region = new PlayerRegion(sbPlayer.getPlayer(), 15);
+        Set<BlockCoords> lookBlocks = getBlockCoords(sbPlayer, KEY);
+        forEach(region, b -> {
+            if (lookBlocks.size() > 0 && StreamUtils.anyMatch(lookBlocks, l -> l.equals(b))) {
+                return;
             }
-            Location location = block.getLocation();
-            if (!GLOW_ENTITY_PACKET.has(sbPlayer, location)) {
-                TeamColor color = GLOW_ENTITY_PACKET.getTeamColor(block);
-                GLOW_ENTITY_PACKET.spawnGlowEntity(sbPlayer, location, color);
-            }
+            GLOW_ENTITY_PACKET.spawnGlowEntity(sbPlayer, b, getTeamColor(b.getBlock()));
+        });
+        ArrayListMultimap<UUID, GlowEntity> entities = GLOW_ENTITY_PACKET.getEntities();
+        if (entities.isEmpty()) {
+            return;
         }
-        Multimap<UUID, GlowEntity> glowEntities = GLOW_ENTITY_PACKET.getEntities();
-        for (GlowEntity glowEntity : glowEntities.get(sbPlayer.getUniqueId())
-                .toArray(new GlowEntity[glowEntities.size()])) {
-            if (!StreamUtils.anyMatch(blocks, b -> glowEntity.equals(b.getX(), b.getY(), b.getZ()))) {
+        List<GlowEntity> glowEntities = entities.get(sbPlayer.getUniqueId());
+        if (glowEntities.isEmpty()) {
+            return;
+        }
+        BlockCoords min = region.getMinimumPoint();
+        BlockCoords max = region.getMaximumPoint();
+        Iterator<GlowEntity> iterator = glowEntities.iterator();
+        while (iterator.hasNext()) {
+            GlowEntity glowEntity = iterator.next();
+            if (!inRange(glowEntity, min, max)) {
+                iterator.remove();
                 GLOW_ENTITY_PACKET.destroyGlowEntity(glowEntity);
             }
         }
     }
 
-    private void sendParticles(@NotNull SBPlayer sbPlayer, final boolean hasProtocolLib) {
+    private void sendParticles(@NotNull SBPlayer sbPlayer, final boolean hasProtocolLib) throws Exception {
         if (hasProtocolLib) {
-            for (Location location : getLocations(sbPlayer, KEY_TEMP)) {
-                Block block = location.getBlock();
-                boolean isAIR = block.getType() == Material.AIR;
-                spawnParticlesOnBlock(sbPlayer.getPlayer(), block, isAIR ? Color.BLUE : Color.GREEN);
+            for (BlockCoords blockCoords : getBlockCoords(sbPlayer, KEY_TEMP)) {
+                Block block = blockCoords.getBlock();
+                spawnParticlesOnBlock(sbPlayer.getPlayer(), block, Utils.isAIR(block.getType()) ? Color.BLUE : Color.GREEN);
             }
         } else {
-            int count = 0;
-            PlayerRegion region = new PlayerRegion(sbPlayer.getPlayer(), 10);
-            for (Block block : getBlocks(new CuboidRegionBlocks(region))) {
-                if (count++ < 800) {
-                    spawnParticlesOnBlock(sbPlayer.getPlayer(), block, null);
+            int[] count = new int[] { 0 };
+            forEach(new PlayerRegion(sbPlayer.getPlayer(), 10), b -> {
+                if (count[0]++ < 800) {
+                    spawnParticlesOnBlock(sbPlayer.getPlayer(), b.getBlock(), null);
                 }
-            }
+            });
         }
     }
 
     @NotNull
-    private Set<Block> getBlocks(@NotNull CuboidRegionBlocks regionBlocks) {
-        Set<Block> blocks = regionBlocks.getBlocks();
-        Set<Block> result = new HashSet<Block>(blocks.size());
-        for (ScriptKey scriptKey : ScriptKey.values()) {
-            BlockScript blockScript = new BlockScriptJson(scriptKey).load();
-            for (Block block : blocks) {
-                if (blockScript.has(block.getLocation())) {
-                    result.add(block);
-                }
-            }
+    private Set<BlockCoords> getBlockCoords(@NotNull SBPlayer sbPlayer, @NotNull String key) {
+        Set<BlockCoords> blockCoords = sbPlayer.getObjectMap().get(key);
+        if (blockCoords == null) {
+            sbPlayer.getObjectMap().put(key, blockCoords = new HashSet<BlockCoords>());
         }
-        return result;
+        return blockCoords;
     }
 
     @NotNull
-    private Set<Location> getLocations(@NotNull SBPlayer sbPlayer, @NotNull String key) {
-        Set<Location> locations = sbPlayer.getObjectMap().get(key);
-        if (locations == null) {
-            sbPlayer.getObjectMap().put(key, locations = new HashSet<Location>());
+    private TeamColor getTeamColor(@NotNull Block block) {
+        return Utils.isAIR(block.getType()) ? TeamColor.BLUE : TeamColor.GREEN;
+    }
+
+    private boolean inRange(@NotNull GlowEntity glowEntity, @NotNull BlockCoords min, @NotNull BlockCoords max) {
+        if (glowEntity.getX() < min.getX() || glowEntity.getX() > max.getX()) {
+            return false;
         }
-        return locations;
+        if (glowEntity.getY() < min.getY() || glowEntity.getY() > max.getY()) {
+            return false;
+        }
+        if (glowEntity.getZ() < min.getZ() || glowEntity.getZ() > max.getZ()) {
+            return false;
+        }
+        return true;
+    }
+
+    @NotNull
+    private void forEach(@NotNull Region region, @NotNull ThrowableConsumer<BlockCoords> action) throws Exception {
+        try {
+            CuboidRegionIterator iterator = new CuboidRegionIterator(region);
+            for (ScriptKey scriptKey : ScriptKey.iterable()) {
+                BlockScriptJson scriptJson = BlockScriptJson.get(scriptKey);
+                if (!scriptJson.has()) {
+                    continue;
+                }
+                BlockScript blockScript = scriptJson.load();
+                while (iterator.hasNext()) {
+                    BlockCoords blockCoords = iterator.next();
+                    if (blockScript.has(blockCoords)) {
+                        action.accept(blockCoords);
+                    }
+                }
+                iterator.reset();
+            }
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    private boolean destroyEntity(@NotNull SBPlayer sbPlayer, @NotNull BlockCoords blockCoords, @NotNull Set<BlockCoords> blocks) throws Exception {
+        if (!BlockScriptJson.has(blockCoords)) {
+            return false;
+        }
+        GLOW_ENTITY_PACKET.destroyGlowEntity(sbPlayer, blockCoords);
+        blocks.add(blockCoords);
+        return true;
     }
 
     private double getDistance(@NotNull Player player) {
         return player.getGameMode() == GameMode.CREATIVE ? 5.0D : 4.5D;
-    }
-
-    private boolean destroyEntity(@NotNull SBPlayer sbPlayer, @NotNull Location location, @NotNull Set<Location> locations) {
-        if (!BlockScriptJson.has(location)) {
-            return false;
-        }
-        GLOW_ENTITY_PACKET.destroyGlowEntity(sbPlayer, location);
-        locations.add(location);
-        return true;
     }
 
     private void spawnParticlesOnBlock(@NotNull Player player, @NotNull Block block, @Nullable Color color) {

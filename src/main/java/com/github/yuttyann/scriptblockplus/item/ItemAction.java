@@ -15,6 +15,7 @@
  */
 package com.github.yuttyann.scriptblockplus.item;
 
+import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.event.RunItemEvent;
 import com.github.yuttyann.scriptblockplus.utils.ItemUtils;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
@@ -47,8 +48,17 @@ public abstract class ItemAction implements Cloneable {
         this.item = new UnmodifiableItemStack(item);
     }
 
-    public static <T extends ItemAction> void register(@NotNull T itemAction) {
-        ITEMS.add(itemAction);
+    protected abstract void run(@NotNull RunItem runItem);
+
+    protected abstract void slot(@NotNull ChangeSlot changeSlot);
+
+    public boolean hasPermission(@NotNull Permissible permissible) {
+        return true;
+    }
+
+    @NotNull
+    public ItemStack getItem() {
+        return item;
     }
 
     @NotNull
@@ -56,9 +66,32 @@ public abstract class ItemAction implements Cloneable {
         return ITEMS;
     }
 
-    @NotNull
-    public ItemStack getItem() {
-        return item;
+    public static <T extends ItemAction> void register(@NotNull T itemAction) {
+        ITEMS.add(itemAction);
+    }
+
+    public static boolean has(@NotNull Permissible permissible, @Nullable ItemStack item, boolean permission) {
+        Optional<ItemAction> itemAction = StreamUtils.filterFirst(ITEMS, i -> i.compare(item));
+        return itemAction.filter(i -> !permission || i.hasPermission(permissible)).isPresent();
+    }
+
+    public static boolean callRun(@NotNull Player player, @Nullable ItemStack item, @Nullable Location location, @NotNull Action action) {
+        Optional<ItemAction> itemAction = ITEMS.stream().filter(i -> i.compare(item)).filter(i -> i.hasPermission(player)).findFirst();
+        if (itemAction.isPresent()) {
+            RunItem runItem = new RunItem(item, player, action, location == null ? null : BlockCoords.of(location));
+            RunItemEvent runItemEvent = new RunItemEvent(runItem);
+            Bukkit.getPluginManager().callEvent(runItemEvent);
+            if (!runItemEvent.isCancelled()) {
+                itemAction.get().clone().run(runItem);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public static void callSlot(@NotNull Player player, @Nullable ItemStack item, int newSlot, int oldSlot) {
+        Stream<ItemAction> itemAction = ITEMS.stream().filter(i -> i.compare(item)).filter(i -> i.hasPermission(player));
+        itemAction.findFirst().ifPresent(i -> i.clone().slot(new ChangeSlot(player, newSlot, oldSlot)));
     }
 
     @Override
@@ -71,52 +104,20 @@ public abstract class ItemAction implements Cloneable {
         }
     }
 
+    public boolean compare(@Nullable ItemStack item) {
+        return item != null && ItemUtils.compare(this.item, item.getType(), ItemUtils.getName(item));
+    }
+
     @Override
     public boolean equals(@Nullable Object obj) {
         if (!(obj instanceof ItemAction)) {
             return false;
         }
-        return equals(((ItemAction) obj).item);
-    }
-
-    public boolean equals(@Nullable ItemStack item) {
-        return item != null && ItemUtils.isItem(this.item, item.getType(), ItemUtils.getName(item));
+        return compare(((ItemAction) obj).item);
     }
 
     @Override
     public int hashCode() {
         return item.hashCode();
-    }
-
-    public boolean hasPermission(@NotNull Permissible permissible) {
-        return true;
-    }
-
-    public static boolean has(@NotNull Permissible permissible, @Nullable ItemStack item, boolean permission) {
-        Optional<ItemAction> itemAction = StreamUtils.filterFirst(ITEMS, i -> i.equals(item));
-        return itemAction.filter(i -> !permission || i.hasPermission(permissible)).isPresent();
-    }
-
-    public abstract void slot(@NotNull ChangeSlot changeSlot);
-
-    public abstract void run(@NotNull RunItem runItem);
-
-    public static void callSlot(@NotNull Player player, @Nullable ItemStack item, int newSlot, int oldSlot) {
-        Stream<ItemAction> itemAction = ITEMS.stream().filter(i -> i.equals(item)).filter(i -> i.hasPermission(player));
-        itemAction.findFirst().ifPresent(i ->  i.clone().slot(new ChangeSlot(player, newSlot, oldSlot)));
-    }
-
-    public static boolean callRun(@NotNull Player player, @Nullable ItemStack item, @Nullable Location location, @NotNull Action action) {
-        Optional<ItemAction> itemAction = ITEMS.stream().filter(i -> i.equals(item)).filter(i -> i.hasPermission(player)).findFirst();
-        if (itemAction.isPresent()) {
-            RunItem runItem = new RunItem(player, item, location, action);
-            RunItemEvent runItemEvent = new RunItemEvent(runItem);
-            Bukkit.getPluginManager().callEvent(runItemEvent);
-            if (!runItemEvent.isCancelled()) {
-                itemAction.get().clone().run(runItem);
-            }
-            return true;
-        }
-        return false;
     }
 }

@@ -15,14 +15,21 @@
  */
 package com.github.yuttyann.scriptblockplus.script.option.other;
 
-import com.github.yuttyann.scriptblockplus.ScriptBlock;
-import com.github.yuttyann.scriptblockplus.ScriptBlockAPI;
+import com.github.yuttyann.scriptblockplus.BlockCoords;
+import com.github.yuttyann.scriptblockplus.file.config.SBConfig;
+import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerCountJson;
+import com.github.yuttyann.scriptblockplus.hook.plugin.Placeholder;
+import com.github.yuttyann.scriptblockplus.manager.EndProcessManager;
+import com.github.yuttyann.scriptblockplus.manager.OptionManager;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
+import com.github.yuttyann.scriptblockplus.script.ScriptRead;
 import com.github.yuttyann.scriptblockplus.script.option.BaseOption;
+import com.github.yuttyann.scriptblockplus.script.option.Option;
 import com.github.yuttyann.scriptblockplus.script.option.OptionTag;
 import com.github.yuttyann.scriptblockplus.utils.StringUtils;
-import com.github.yuttyann.scriptblockplus.utils.Utils;
-import org.bukkit.Location;
+
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * ScriptBlockPlus Execute オプションクラス
@@ -31,14 +38,33 @@ import org.bukkit.Location;
 @OptionTag(name = "execute", syntax = "@execute:")
 public class Execute extends BaseOption {
 
-    private static final ScriptBlockAPI API = ScriptBlock.getInstance().getAPI();
-
     @Override
     protected boolean isValid() throws Exception {
         String[] array = StringUtils.split(getOptionValue(), '/');
-        String[] wxyz = StringUtils.split(array[1], ',');
         ScriptKey scriptKey = ScriptKey.valueOf(array[0]);
-        int x = Integer.parseInt(wxyz[1]), y = Integer.parseInt(wxyz[2]), z = Integer.parseInt(wxyz[3]);
-        return API.read(getPlayer(), new Location(Utils.getWorld(wxyz[0]), x, y, z), scriptKey, 0);
+        return new TempScriptRead(getPlayer(), BlockCoords.fromString(array[1]), scriptKey).read(0);
+    }
+
+    private class TempScriptRead extends ScriptRead {
+
+        private TempScriptRead(@NotNull Player player, @NotNull BlockCoords blockCoords, @NotNull ScriptKey scriptKey) {
+            super(player, blockCoords, scriptKey);
+        }
+
+        @Override
+        protected boolean perform(final int index) {
+            for (this.index = index; this.index < scripts.size(); this.index++) {
+                String script = scripts.get(this.index);
+                Option option = OptionManager.newInstance(script);
+                this.value = Placeholder.INSTANCE.replace(getPlayer(), option.getValue(script));
+                if (!option.callOption(this) && isFailedIgnore(option)) {
+                    return false;
+                }
+            }
+            EndProcessManager.forEach(e -> e.success(this));
+            PlayerCountJson.get(sbPlayer).load(scriptKey, blockCoords).add();
+            SBConfig.CONSOLE_SUCCESS_SCRIPT_EXECUTE.replace(scriptKey, blockCoords).console();
+            return true;
+        }
     }
 }

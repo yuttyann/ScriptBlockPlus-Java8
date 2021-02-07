@@ -17,6 +17,8 @@ package com.github.yuttyann.scriptblockplus.enums.reflection;
 
 import com.github.yuttyann.scriptblockplus.utils.StringUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
+import com.github.yuttyann.scriptblockplus.utils.collection.IntHashMap;
+import com.github.yuttyann.scriptblockplus.utils.collection.IntMap;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
@@ -25,8 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -87,7 +87,7 @@ public enum PackageType {
         HAS_NMS = hasNMS;
     }
 
-    private static final Map<Integer, Object> REFLECTION_CACHE = new HashMap<>();
+    private static final IntMap<Object> REFLECTION_CACHE = IntHashMap.create();
 
     private final String path;
 
@@ -287,20 +287,20 @@ public enum PackageType {
     }
 
     @NotNull
-    private int createHash(@NotNull HashType returnType, @NotNull String className, @Nullable String name, @Nullable Class<?>[] objects) {
+    private int createHash(@NotNull HashType hashType, @NotNull String className, @Nullable String name, @Nullable Class<?>[] objects) {
         if (!HAS_NMS || StringUtils.isEmpty(className)) {
-            return 0;
+            throw new IllegalArgumentException();
         }
-        int baseHash = returnType.toString().hashCode() + toString().hashCode() + className.hashCode();
+        int baseHash = hashType.toString().hashCode() + toString().hashCode() + className.hashCode();
         if (objects == null) {
-            return name == null ? 11 * baseHash : 21 * (baseHash + name.hashCode());
+            return name == null ? 11 * baseHash : 23 * (baseHash + name.hashCode());
         }
         int hash = 1;
         int prime = 31;
         hash = prime * hash + baseHash;
         hash = prime * hash + (name == null ? "null" : name).hashCode();
         hash = prime * hash + Boolean.hashCode(StringUtils.isNotEmpty(name));
-        for (Object object : objects) {
+        for (Class<?> object : objects) {
             hash += Objects.hashCode(object);
         }
         return hash;

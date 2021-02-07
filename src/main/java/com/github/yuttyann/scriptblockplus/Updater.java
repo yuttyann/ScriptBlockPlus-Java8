@@ -15,6 +15,7 @@
  */
 package com.github.yuttyann.scriptblockplus;
 
+import com.github.yuttyann.scriptblockplus.file.SBFile;
 import com.github.yuttyann.scriptblockplus.file.config.SBConfig;
 import com.github.yuttyann.scriptblockplus.utils.FileUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
@@ -48,11 +49,12 @@ public final class Updater {
     private final String pluginName;
     private final String pluginVersion;
 
-    private String latestVersion;
+    private String latest;
     private String downloadURL;
     private String changeLogURL;
+
+    private boolean update;
     private List<String> details;
-    private boolean isUpperVersion;
 
     public Updater(@NotNull Plugin plugin) {
         this.plugin = plugin;
@@ -67,69 +69,64 @@ public final class Updater {
 
     @NotNull
     public String getJarName() {
-        return pluginName + " v" + latestVersion + ".jar";
-    }
-
-    public void init() {
-        latestVersion = null;
-        downloadURL = null;
-        changeLogURL = null;
-        details = null;
-        isUpperVersion = false;
+        return pluginName + " v" + latest + ".jar";
     }
 
     public void load() throws Exception {
-        if (!SBConfig.UPDATE_CHECKER.getValue()) {
-            isUpperVersion = false;
+        if(!SBConfig.UPDATE_CHECKER.getValue()){
+            update = false;
             return;
         }
+        update = false;
+        details = null;
+        latest = downloadURL = changeLogURL = null;
         NodeList rootChildren = getDocument(pluginName).getDocumentElement().getChildNodes();
         for (int i = 0; i < rootChildren.getLength(); i++) {
-            Node uNode = rootChildren.item(i);
-            if (uNode.getNodeType() != Node.ELEMENT_NODE) {
+            Node updateNode = rootChildren.item(i);
+            if (updateNode.getNodeType() != Node.ELEMENT_NODE) {
                 continue;
             }
-            if (uNode.getNodeName().equals("update")) {
-                latestVersion = ((Element) uNode).getAttribute("version");
+            if (updateNode.getNodeName().equals("update")) {
+                this.latest = ((Element) updateNode).getAttribute("version");
             }
-            NodeList updateChildren = uNode.getChildNodes();
+            NodeList updateChildren = updateNode.getChildNodes();
             for (int j = 0; j < updateChildren.getLength(); j++) {
-                Node cNode = updateChildren.item(j);
-                if (cNode.getNodeType() != Node.ELEMENT_NODE) {
+                Node node = updateChildren.item(j);
+                if (node.getNodeType() != Node.ELEMENT_NODE) {
                     continue;
                 }
-                switch (cNode.getNodeName()) {
-                    case "download":
-                        downloadURL = ((Element) cNode).getAttribute("url");
-                        break;
-                    case "changelog":
-                        changeLogURL = ((Element) cNode).getAttribute("url");
-                        break;
-                    case "details":
-                        NodeList detailsChildren = cNode.getChildNodes();
-                        details = new ArrayList<>(detailsChildren.getLength());
-                        for (int k = 0; k < detailsChildren.getLength(); k++) {
-                            Node dNode = detailsChildren.item(k);
-                            if (dNode.getNodeType() == Node.ELEMENT_NODE) {
-                                details.add(((Element) dNode).getAttribute("info"));
-                            }
+                switch (node.getNodeName()) {
+                case "download":
+                    this.downloadURL = ((Element) node).getAttribute("url");
+                    break;
+                case "changelog":
+                    this.changeLogURL = ((Element) node).getAttribute("url");
+                    break;
+                case "details":
+                    NodeList detailsChildren = node.getChildNodes();
+                    this.details = new ArrayList<>(detailsChildren.getLength());
+                    for (int k = 0; k < detailsChildren.getLength(); k++) {
+                        Node detailsNode = detailsChildren.item(k);
+                        if (detailsNode.getNodeType() == Node.ELEMENT_NODE) {
+                            details.add(((Element) detailsNode).getAttribute("info"));
                         }
+                    }
                 }
             }
         }
-        isUpperVersion = Utils.getVersionInt(latestVersion) > Utils.getVersionInt(pluginVersion);
+        this.update = Utils.getVersionInt(latest) > Utils.getVersionInt(pluginVersion);
     }
 
     public boolean run(@NotNull CommandSender sender) {
-        if (!SBConfig.UPDATE_CHECKER.getValue() || !isUpperVersion) {
+        if (!SBConfig.UPDATE_CHECKER.getValue() || !update) {
             return false;
         }
         File data = plugin.getDataFolder();
-        File logFile = new File(data, "update/ChangeLog.txt");
+        File logFile = new SBFile(data, "update/ChangeLog.txt");
         boolean sameLogs = !logFile.exists() || !logEquals(changeLogURL, logFile), failure = false;
-        SBConfig.UPDATE_CHECK.replace(pluginName, latestVersion, details).send(sender);
+        SBConfig.UPDATE_CHECK.replace(pluginName, latest, details).send(sender);
         if (SBConfig.AUTO_DOWNLOAD.getValue()) {
-            File jarFile = new File(data, "update/jar/" + getJarName());
+            File jarFile = new SBFile(data, "update/jar/" + getJarName());
             try {
                 SBConfig.UPDATE_DOWNLOAD_START.send(sender);
                 FileUtils.downloadFile(changeLogURL, logFile);
@@ -170,8 +167,10 @@ public final class Updater {
         if (!file.exists()) {
             return false;
         }
-        try (BufferedReader reader1 = new BufferedReader(new FileReader(file));
-                BufferedReader reader2 = new BufferedReader(new InputStreamReader(new URL(url).openStream()))) {
+        try (
+                BufferedReader reader1 = new BufferedReader(new FileReader(file)); 
+                BufferedReader reader2 = new BufferedReader(new InputStreamReader(new URL(url).openStream()))
+            ) {
             while (reader1.ready() && reader2.ready()) {
                 if (!reader1.readLine().equals(reader2.readLine())) {
                     return false;

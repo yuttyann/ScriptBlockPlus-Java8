@@ -52,7 +52,7 @@ public class ItemHand extends BaseOption {
 
         Player player = getPlayer();
         Stream<ItemStack> handItems = getHandItems(player);
-        if (handItems.noneMatch(i -> i.getAmount() > amount && ItemUtils.getDamage(i) == damage && ItemUtils.isItem(i, material, name))) {
+        if (handItems.noneMatch(i -> i.getAmount() > amount && ItemUtils.getDamage(i) == damage && ItemUtils.compare(i, material, name))) {
             SBConfig.ERROR_HAND.replace(material, amount, damage, name).send(player);
             return false;
         }

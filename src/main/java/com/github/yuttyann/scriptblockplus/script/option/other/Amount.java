@@ -15,12 +15,13 @@
  */
 package com.github.yuttyann.scriptblockplus.script.option.other;
 
+import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
 import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerCountJson;
+import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerTempJson;
 import com.github.yuttyann.scriptblockplus.file.json.element.ScriptParam;
 import com.github.yuttyann.scriptblockplus.script.option.BaseOption;
 import com.github.yuttyann.scriptblockplus.script.option.OptionTag;
-import com.github.yuttyann.scriptblockplus.script.option.time.TimerOption;
 
 /**
  * ScriptBlockPlus Amount オプションクラス
@@ -31,16 +32,17 @@ public class Amount extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {
-        BlockScriptJson scriptJson = new BlockScriptJson(getScriptKey());
-        ScriptParam scriptParam = scriptJson.load().get(getLocation());
+        BlockScriptJson scriptJson = BlockScriptJson.get(getScriptKey());
+        BlockCoords blockCoords = getBlockCoords();
+        ScriptParam scriptParam = scriptJson.load().get(blockCoords);
         if (scriptParam.getAmount() == -1) {
             scriptParam.setAmount(Integer.parseInt(getOptionValue()));
         }
         scriptParam.subtractAmount(1);
         if (scriptParam.getAmount() <= 0) {
-            scriptJson.load().remove(getLocation());
-            TimerOption.removeAll(getLocation(), getScriptKey());
-            PlayerCountJson.clear(getLocation(), getScriptKey());
+            PlayerTempJson.removeAll(getScriptKey(), blockCoords);
+            PlayerCountJson.removeAll(getScriptKey(), blockCoords);
+            scriptJson.load().remove(blockCoords);
         }
         scriptJson.saveFile();
         return true;

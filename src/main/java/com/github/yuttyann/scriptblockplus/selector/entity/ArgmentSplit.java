@@ -23,7 +23,7 @@ import com.github.yuttyann.scriptblockplus.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * ScriptBlockPlus ArgmentSplit クラス
+ * ScriptBlockPlus Selector クラス
  * @author yuttyann44581
  */
 public final class ArgmentSplit {
@@ -49,7 +49,7 @@ public final class ArgmentSplit {
     }
 
     @NotNull
-    public ArgmentValue[] getArgments() {
+    public ArgmentValue[] getArgmentValues() {
         if (StringUtils.isEmpty(argments)) {
             return EMPTY_ARGMENTS_ARRAY;
         }

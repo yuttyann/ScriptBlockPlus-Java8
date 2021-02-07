@@ -16,11 +16,11 @@
 package com.github.yuttyann.scriptblockplus.script.option.time;
 
 import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerTempJson;
+import com.github.yuttyann.scriptblockplus.file.json.element.TimerTemp;
 import com.github.yuttyann.scriptblockplus.script.option.OptionTag;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * ScriptBlockPlus Cooldown オプションクラス
@@ -37,8 +37,8 @@ public class Cooldown extends TimerOption {
         long[] params = new long[] { System.currentTimeMillis(), Integer.parseInt(getOptionValue()) * 1000L, 0L };
         params[2] = params[0] + params[1];
 
-        PlayerTempJson tempJson = new PlayerTempJson(getFileUniqueId());
-        tempJson.load().getTimerTemp().add(new TimerTemp(getFileUniqueId(), getLocation(), getScriptKey()).set(params));
+        PlayerTempJson tempJson = PlayerTempJson.get(getFileUniqueId());
+        tempJson.load().getTimerTemp().add(new TimerTemp(getFileUniqueId(), getScriptKey(), getBlockCoords()).setParams(params));
         tempJson.saveFile();
         return true;
     }
@@ -46,7 +46,6 @@ public class Cooldown extends TimerOption {
     @Override
     @NotNull
     protected Optional<TimerTemp> getTimerTemp() {
-        Set<TimerTemp> timers = new PlayerTempJson(getFileUniqueId()).load().getTimerTemp();
-        return get(timers, new TimerTemp(getFileUniqueId(), getLocation(), getScriptKey()));
+        return getTimerTemp(new TimerTemp(getFileUniqueId(), getScriptKey(), getBlockCoords()));
     }
 }

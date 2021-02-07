@@ -17,14 +17,14 @@ package com.github.yuttyann.scriptblockplus.hook.protocol;
 
 import java.util.UUID;
 
+import com.github.yuttyann.scriptblockplus.BlockCoords;
+import com.github.yuttyann.scriptblockplus.enums.TeamColor;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
 
-import org.bukkit.scoreboard.Team;
-import org.bukkit.util.Vector;
+import org.apache.commons.lang.ArrayUtils;
+import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static org.bukkit.util.NumberConversions.floor;
 
 /**
  * ScriptBlockPlus GlowEntity クラス
@@ -33,17 +33,33 @@ import static org.bukkit.util.NumberConversions.floor;
 public final class GlowEntity {
         
     private final int id;
+    private final int x, y, z;
+    
     private final UUID uuid;
-    private final Team team;
-    private final Vector vector;
     private final SBPlayer sbPlayer;
+    private final TeamColor teamColor;
 
-    GlowEntity(int id, @NotNull UUID uuid, @NotNull Team team, @NotNull Vector vector, @NotNull SBPlayer sbPlayer) {
+    private boolean dead;
+    private boolean[] flag = ArrayUtils.EMPTY_BOOLEAN_ARRAY;
+
+    private GlowEntity(final int id, @NotNull UUID uuid, @NotNull SBPlayer sbPlayer, @NotNull TeamColor teamColor, @NotNull BlockCoords blockCoords, final int flagSize) {
         this.id = id;
+        this.x = blockCoords.getX();
+        this.y = blockCoords.getY();
+        this.z = blockCoords.getZ();
         this.uuid = uuid;
-        this.team = team;
-        this.vector = vector;
         this.sbPlayer = sbPlayer;
+        this.teamColor = teamColor;
+        if (flagSize > 0) {
+            this.flag = new boolean[flagSize];
+        }
+    }
+
+    @NotNull
+    static GlowEntity create(@NotNull SBPlayer sbPlayer, @NotNull TeamColor teamColor, @NotNull BlockCoords blockCoords, final int flagSize) {
+        GlowEntity glowEntity = new GlowEntity(EntityCount.next(), UUID.randomUUID(), sbPlayer, teamColor, blockCoords, flagSize);
+        teamColor.getTeam().addEntry(glowEntity.uuid.toString());
+        return glowEntity;
     }
 
     public int getId() {
@@ -51,53 +67,66 @@ public final class GlowEntity {
     }
 
     public int getX() {
-        return (int) vector.getX();
+        return x;
     }
 
     public int getY() {
-        return (int) vector.getY();
+        return y;
     }
 
     public int getZ() {
-        return (int) vector.getZ();
+        return z;
     }
 
     @NotNull
     public UUID getUniqueId() {
         return uuid;
     }
-
-    @NotNull
-    public Team getTeam() {
-        return team;
-    }
     
     @NotNull
-    public SBPlayer getSender() {
+    public SBPlayer getSBPlayer() {
         return sbPlayer;
     }
 
-    public boolean equals(final double x, final double y, final double z) {
-        return getX() == floor(x) && getY() == floor(y) && getZ() == floor(z);
+    @NotNull
+    public TeamColor getTeamColor() {
+        return teamColor;
+    }
+
+    public boolean removeEntry() {
+        return teamColor.getTeam().removeEntry(uuid.toString());
+    }
+
+    public boolean[] getFlag() {
+        return flag;
+    }
+
+    void setDead(boolean dead) {
+        this.dead = dead;
+    }
+
+    public boolean isDead() {
+        return dead;
+    }
+
+    public boolean compare(@NotNull Block block) {
+        return getX() == block.getX() && getY() == block.getY() && getZ() == block.getZ();
+    }
+
+    public boolean compare(@NotNull BlockCoords blockCoords) {
+        return blockCoords.compare(getX(), getY(), getZ());
     }
 
     @Override
     public boolean equals(@Nullable Object obj) {
-        if (!(obj instanceof GlowEntity)) {
-            return false;
+        if (obj == this) {
+            return true;
         }
-        GlowEntity glow = (GlowEntity) obj;
-        return glow.id == id && glow.uuid.equals(uuid) && glow.vector.equals(vector) && glow.sbPlayer.equals(sbPlayer);
+        return obj instanceof GlowEntity ? ((GlowEntity) obj).id == id : false;
     }
-    
+
     @Override
     public int hashCode() {
-        int hash = 1;
-        int prime = 31;
-        hash = prime * hash + id;
-        hash = prime * hash + uuid.hashCode();
-        hash = prime * hash + vector.hashCode();
-        hash = prime * hash + sbPlayer.getUniqueId().hashCode();
-        return hash;
+        return id;
     }
 }

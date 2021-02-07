@@ -15,8 +15,6 @@
  */
 package com.github.yuttyann.scriptblockplus.selector.filter;
 
-import java.util.Locale;
-
 import com.github.yuttyann.scriptblockplus.enums.Filter;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.StringUtils;
@@ -47,7 +45,7 @@ public final class FilterSplit {
 
     @NotNull
     public String getSelector() {
-        return selector.toLowerCase(Locale.ROOT);
+        return selector;
     }
 
     @NotNull

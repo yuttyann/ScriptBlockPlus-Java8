@@ -32,8 +32,23 @@ import java.util.function.Predicate;
  */
 public final class StreamUtils {
 
+    /**
+     * ScriptBlockPlus ThrowableConsumer インターフェース
+     * <p>
+     * {@link Consumer}で例外処理を出来るようにしたインターフェースです。
+     * @author yuttyann44581
+     */
+    @FunctionalInterface
+    public interface ThrowableConsumer<T> {
+
+        void accept(T t) throws Exception;
+    }
+
     @NotNull
     public static <T, R> R[] toArray(@NotNull T[] array, @NotNull Function<T, R> mapper, @NotNull R[] newArray) {
+        if (array.length == 0) {
+            return newArray;
+        }
         for (int i = 0; i < array.length; i++) {
             newArray[i] = mapper.apply(array[i]);
         }
@@ -42,6 +57,9 @@ public final class StreamUtils {
 
     @NotNull
     public static <T, R> R[] toArray(@NotNull Collection<T> collection, @NotNull Function<T, R> mapper, @NotNull R[] newArray) {
+        if (collection.isEmpty()) {
+            return newArray;
+        }
         Iterator<T> iterator = collection.iterator();
         for (int i = 0; iterator.hasNext(); i++) {
             newArray[i] = mapper.apply(iterator.next());
@@ -51,6 +69,9 @@ public final class StreamUtils {
 
     @NotNull
     public static <T> Optional<T> filterFirst(@NotNull T[] array, @NotNull Predicate<T> filter) {
+        if (array.length == 0) {
+            return Optional.empty();
+        }
         for (T t : array) {
             if (filter.test(t)) {
                 return t == null ? Optional.empty() : Optional.of(t);
@@ -61,6 +82,9 @@ public final class StreamUtils {
 
     @NotNull
     public static <T> Optional<T> filterFirst(@NotNull Collection<T> collection, @NotNull Predicate<T> filter) {
+        if (collection.isEmpty()) {
+            return Optional.empty();
+        }
         for (T t : collection) {
             if (filter.test(t)) {
                 return t == null ? Optional.empty() : Optional.of(t);
@@ -74,16 +98,25 @@ public final class StreamUtils {
     }
 
     public static <T> void fForEach(@NotNull Collection<T> collection, @NotNull Predicate<T> filter, @NotNull Consumer<T> action) {
+        if (collection.isEmpty()) {
+            return;
+        }
         collection.forEach(t -> filter(t, filter, action));
     }
 
     public static <T> void forEach(@NotNull T[] array, @NotNull Consumer<T> action) {
+        if (array.length == 0) {
+            return;
+        }
         for (T t : array) {
             action.accept(t);
         }
     }
 
     public static <T> boolean anyMatch(@NotNull T[] array, Predicate<T> filter) {
+        if (array.length == 0) {
+            return false;
+        }
         for (T t : array) {
             if (filter.test(t)) {
                 return true;
@@ -93,6 +126,9 @@ public final class StreamUtils {
     }
 
     public static <T> boolean anyMatch(@NotNull Collection<T> collection, Predicate<T> filter) {
+        if (collection.isEmpty()) {
+            return false;
+        }
         for (T t : collection) {
             if (filter.test(t)) {
                 return true;
@@ -102,6 +138,9 @@ public final class StreamUtils {
     }
 
     public static <T> boolean allMatch(@NotNull T[] array, Predicate<T> filter) {
+        if (array.length == 0) {
+            return false;
+        }
         for (T t : array) {
             if (!filter.test(t)) {
                 return false;
@@ -111,6 +150,9 @@ public final class StreamUtils {
     }
 
     public static <T> boolean allMatch(@NotNull Collection<T> collection, Predicate<T> filter) {
+        if (collection.isEmpty()) {
+            return false;
+        }
         for (T t : collection) {
             if (!filter.test(t)) {
                 return false;

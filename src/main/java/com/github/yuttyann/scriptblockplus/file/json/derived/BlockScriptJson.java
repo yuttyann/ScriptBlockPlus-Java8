@@ -15,13 +15,15 @@
  */
 package com.github.yuttyann.scriptblockplus.file.json.derived;
 
+import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.file.SBLoader;
+import com.github.yuttyann.scriptblockplus.file.json.CacheJson;
 import com.github.yuttyann.scriptblockplus.file.json.SingleJson;
 import com.github.yuttyann.scriptblockplus.file.json.annotation.JsonTag;
 import com.github.yuttyann.scriptblockplus.file.json.element.BlockScript;
 import com.github.yuttyann.scriptblockplus.file.json.element.ScriptParam;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
-import org.bukkit.Location;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -36,8 +38,20 @@ import java.util.UUID;
 @JsonTag(path = "json/blockscript")
 public class BlockScriptJson extends SingleJson<BlockScript> {
 
-    public BlockScriptJson(@NotNull ScriptKey scriptKey) {
+    private static final CacheJson<ScriptKey> CACHE_JSON = new CacheJson<>(BlockScriptJson.class, BlockScriptJson::new);
+    
+    protected BlockScriptJson(@NotNull ScriptKey scriptKey) {
         super(scriptKey.getName());
+    }
+
+    @Override
+    protected boolean isTemporary() {
+        return false;
+    }
+
+    @Override
+    protected boolean isCacheFileExists() {
+        return false;
     }
 
     @NotNull
@@ -51,21 +65,27 @@ public class BlockScriptJson extends SingleJson<BlockScript> {
         return new BlockScript(getScriptKey());
     }
 
-    public static boolean has(@NotNull Location location) {
-        for (ScriptKey scriptKey : ScriptKey.values()) {
-            if (has(location, new BlockScriptJson(scriptKey))) {
+    @NotNull
+    public static BlockScriptJson get(@NotNull ScriptKey scriptKey) {
+        return newJson(scriptKey, CACHE_JSON);
+    }
+
+    public static boolean has(@NotNull BlockCoords blockCoords) {
+        for (ScriptKey scriptKey : ScriptKey.iterable()) {
+            BlockScriptJson scriptJson = get(scriptKey);
+            if (scriptJson.has() && scriptJson.load().has(blockCoords)) {
                 return true;
             }
         }
         return false;
     }
 
-    public static boolean has(@NotNull Location location, @NotNull ScriptKey scriptKey) {
-        return has(location, new BlockScriptJson(scriptKey));
+    public static boolean has(@NotNull ScriptKey scriptKey, @NotNull BlockCoords blockCoords) {
+        return has(blockCoords, get(scriptKey));
     }
 
-    public static boolean has(@NotNull Location location, @NotNull BlockScriptJson scriptJson) {
-        return scriptJson.exists() && scriptJson.load().has(location);
+    public static boolean has(@NotNull BlockCoords blockCoords, @NotNull BlockScriptJson scriptJson) {
+        return scriptJson.has() && scriptJson.load().has(blockCoords);
     }
 
     public static void convart(@NotNull ScriptKey scriptKey) {
@@ -75,7 +95,7 @@ public class BlockScriptJson extends SingleJson<BlockScript> {
             return;
         }
         // JSONを作成
-        BlockScriptJson scriptJson = new BlockScriptJson(scriptKey);
+        BlockScriptJson scriptJson = get(scriptKey);
         BlockScript blockScript = scriptJson.load();
         scriptLoader.forEach(s -> {
             // 移行の為、パラメータを設定する
@@ -83,7 +103,7 @@ public class BlockScriptJson extends SingleJson<BlockScript> {
             if (author.size() == 0) {
                 return;
             }
-            ScriptParam scriptParam = blockScript.get(s.getLocation());
+            ScriptParam scriptParam = blockScript.get(s.getBlockCoords());
             scriptParam.setAuthor(new LinkedHashSet<>(author));
             scriptParam.setScript(s.getScripts());
             scriptParam.setLastEdit(s.getLastEdit());

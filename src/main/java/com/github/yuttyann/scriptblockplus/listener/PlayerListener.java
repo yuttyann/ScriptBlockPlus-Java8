@@ -31,10 +31,7 @@ import com.github.yuttyann.scriptblockplus.item.action.ScriptViewer;
 import com.github.yuttyann.scriptblockplus.player.BaseSBPlayer;
 import com.github.yuttyann.scriptblockplus.player.ObjectMap;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
-import com.github.yuttyann.scriptblockplus.region.CuboidRegion;
-import com.github.yuttyann.scriptblockplus.script.endprocess.EndInventory;
 import com.github.yuttyann.scriptblockplus.script.option.chat.ActionBar;
-import com.github.yuttyann.scriptblockplus.script.option.other.ItemCost;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
 
@@ -61,21 +58,12 @@ public class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerJoin(PlayerJoinEvent event) {
         SBPlayer sbPlayer = SBPlayer.fromPlayer(event.getPlayer());
-        ((BaseSBPlayer) sbPlayer).setOnline(true);
-        if (!sbPlayer.getOldBlockCoords().isPresent()) {
-            sbPlayer.setOldBlockCoords(new BlockCoords(sbPlayer.getLocation()).subtract(0, 1, 0));
-        }
-        if (sbPlayer.isOp()) {
-            ScriptBlock.getInstance().checkUpdate(sbPlayer, false);
-        }
-        ObjectMap objectMap = sbPlayer.getObjectMap();
-        ItemStack[] items = objectMap.get(ItemCost.KEY_PLAYER, EndInventory.EMPTY_ARRAY);
-        if (items.length > 0) {
-            try {
-                sbPlayer.getInventory().setContents(items);
-            } finally {
-                objectMap.remove(ItemCost.KEY_PLAYER);
-                Utils.updateInventory(sbPlayer.getPlayer());
+        try {
+            ((BaseSBPlayer) sbPlayer).setOnline(true);
+        } finally {
+            sbPlayer.setOldBlockCoords(BlockCoords.of(sbPlayer.getLocation()).subtract(0, 1, 0));
+            if (sbPlayer.isOp()) {
+                ScriptBlock.getInstance().checkUpdate(sbPlayer, false);
             }
         }
     }
@@ -84,15 +72,10 @@ public class PlayerListener implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         SBPlayer sbPlayer = SBPlayer.fromPlayer(event.getPlayer());
         try {
-            CuboidRegion cuboidRegion = (CuboidRegion) sbPlayer.getRegion();
-            sbPlayer.setScriptEdit(null);
-            sbPlayer.setSBClipboard(null);
-            cuboidRegion.setWorld(null);
-            cuboidRegion.setVector1(null);
-            cuboidRegion.setVector2(null);
             ScriptViewer.PLAYERS.remove(sbPlayer);
             StreamUtils.ifAction(ProtocolLib.INSTANCE.has(), () -> ProtocolLib.GLOW_ENTITY.destroyAll(sbPlayer));
         } finally {
+            ((BaseSBPlayer) sbPlayer).init();
             ((BaseSBPlayer) sbPlayer).setOnline(false);
         }
     }
@@ -123,7 +106,7 @@ public class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onScriptReadStart(ScriptReadStartEvent event) {
         ObjectMap objectMap = event.getSBRead().getSBPlayer().getObjectMap();
-        Set<UUID> uuids = objectMap.get(KEY_INVENTORY, new HashSet<UUID>());
+        Set<UUID> uuids = objectMap.get(KEY_INVENTORY, new HashSet<>());
         uuids.add(event.getUniqueId());
         objectMap.put(KEY_INVENTORY, uuids);
     }

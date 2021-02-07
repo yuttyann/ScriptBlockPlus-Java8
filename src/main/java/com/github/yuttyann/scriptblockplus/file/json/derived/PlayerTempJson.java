@@ -15,11 +15,19 @@
  */
 package com.github.yuttyann.scriptblockplus.file.json.derived;
 
+import com.github.yuttyann.scriptblockplus.BlockCoords;
+import com.github.yuttyann.scriptblockplus.file.json.CacheJson;
 import com.github.yuttyann.scriptblockplus.file.json.SingleJson;
 import com.github.yuttyann.scriptblockplus.file.json.annotation.JsonTag;
 import com.github.yuttyann.scriptblockplus.file.json.element.PlayerTemp;
+import com.github.yuttyann.scriptblockplus.file.json.element.TimerTemp;
+import com.github.yuttyann.scriptblockplus.script.ScriptKey;
+import com.github.yuttyann.scriptblockplus.utils.collection.ReuseIterator;
+
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -29,13 +37,61 @@ import java.util.UUID;
 @JsonTag(path = "json/playertemp")
 public class PlayerTempJson extends SingleJson<PlayerTemp> {
 
-    public PlayerTempJson(@NotNull UUID uuid) {
-        super(uuid);
+    private static final CacheJson<UUID> CACHE_JSON = new CacheJson<>(PlayerTempJson.class, PlayerTempJson::new);
+    
+    private PlayerTempJson(@NotNull File json) {
+        super(json);
+    }
+
+    protected PlayerTempJson(@NotNull UUID uuid) {
+        super(uuid.toString());
+    }
+
+    @Override
+    protected boolean isTemporary() {
+        return false;
     }
 
     @Override
     @NotNull
     protected PlayerTemp newInstance() {
         return new PlayerTemp();
+    }
+
+    @NotNull
+    public static PlayerTempJson get(@NotNull UUID uuid) {
+        return newJson(uuid, CACHE_JSON);
+    }
+
+    public static void removeAll(@NotNull ScriptKey scriptKey, @NotNull BlockCoords blockCoords) {
+        removeAll(scriptKey, new ReuseIterator<>(new BlockCoords[] { blockCoords }));
+    }
+
+    public static synchronized void removeAll(@NotNull ScriptKey scriptKey, @NotNull ReuseIterator<BlockCoords> reuseIterator) {
+        TimerTemp timerTemp = TimerTemp.empty();
+        for (File json : getFiles(PlayerTempJson.class)) {
+            PlayerTempJson tempJson = new PlayerTempJson(json);
+            if (!tempJson.has()) {
+                continue;
+            }
+            Set<TimerTemp> timer = tempJson.load().getTimerTemp();
+            if (timer.isEmpty()) {
+                continue;
+            }
+            boolean removed = false;
+            reuseIterator.reset();
+            while (reuseIterator.hasNext()) {
+                BlockCoords blockCoords = reuseIterator.next();
+                if (timer.remove(timerTemp.setUniqueId(null).setScriptKey(scriptKey).setBlockCoords(blockCoords))) {
+                    removed = true;
+                }
+                if (timer.remove(timerTemp.setUniqueId(UUID.fromString(tempJson.getName())))) {
+                    removed = true;
+                }
+            }
+            if (removed) {
+                tempJson.saveFile();
+            }
+        }
     }
 }

@@ -138,7 +138,6 @@ public class ScriptBlock extends JavaPlugin {
         }
         Thread thread = new Thread(() -> {
             try {
-                updater.init();
                 updater.load();
                 if (!updater.run(sender) && latestMessage) {
                     SBConfig.NOT_LATEST_PLUGIN.send(sender);

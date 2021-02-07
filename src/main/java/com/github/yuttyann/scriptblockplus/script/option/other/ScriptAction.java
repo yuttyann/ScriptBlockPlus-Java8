@@ -40,7 +40,7 @@ public class ScriptAction extends BaseOption {
             return false;
         }
         String[] array = StringUtils.split(getOptionValue(), ',');
-        Action action = getTempMap().get(KEY);
+        Action action = (Action) getTempMap().get(KEY);
         return StreamUtils.allMatch(array, s -> equals(action, s));
     }
 

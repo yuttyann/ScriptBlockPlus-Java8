@@ -23,8 +23,8 @@ import com.github.yuttyann.scriptblockplus.utils.StringUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -51,14 +51,14 @@ public class ItemCost extends BaseOption {
         String name = StringUtils.isEmpty(create) ? material.name() : StringUtils.setColor(create);
 
         Player player = getPlayer();
-        PlayerInventory inventory = player.getInventory();
+        Inventory inventory = player.getInventory();
         ItemStack[] inventoryItems = inventory.getContents();
         if (!getTempMap().has(KEY_OPTION)) {
             getTempMap().put(KEY_OPTION, copyItems(inventoryItems));
         }
         int result = amount;
         for (ItemStack item : inventoryItems) {
-            if (item != null && ItemUtils.getDamage(item) == damage && ItemUtils.isItem(item, material, name)) {
+            if (item != null && ItemUtils.getDamage(item) == damage && ItemUtils.compare(item, material, name)) {
                 result -= result > 0 ? setAmount(item, item.getAmount() - result) : 0;
             }
         }

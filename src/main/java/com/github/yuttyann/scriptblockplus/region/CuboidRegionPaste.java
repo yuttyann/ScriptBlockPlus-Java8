@@ -18,17 +18,19 @@ package com.github.yuttyann.scriptblockplus.region;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
 import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerCountJson;
+import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerTempJson;
 import com.github.yuttyann.scriptblockplus.file.json.element.ScriptParam;
 import com.github.yuttyann.scriptblockplus.script.SBClipboard;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
+import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
+import com.github.yuttyann.scriptblockplus.utils.collection.ReuseIterator;
 
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * ScriptBlockPlus CuboidRegionPaste クラス
@@ -36,14 +38,16 @@ import org.jetbrains.annotations.NotNull;
  */
 public class CuboidRegionPaste {
 
+    private final Region region;
     private final ScriptKey scriptKey;
     private final SBClipboard sbClipboard;
-    private final CuboidRegionBlocks regionBlocks;
 
-    public CuboidRegionPaste(@NotNull SBClipboard sbClipboard, @NotNull Region region) {
+    private CuboidRegionIterator iterator;
+
+    public CuboidRegionPaste(@NotNull Region region, @NotNull SBClipboard sbClipboard) {
+        this.region = region;
         this.scriptKey = sbClipboard.getBlockScriptJson().getScriptKey();
         this.sbClipboard = sbClipboard;
-        this.regionBlocks = new CuboidRegionBlocks(region);
     }
 
     @NotNull
@@ -51,38 +55,42 @@ public class CuboidRegionPaste {
         return scriptKey;
     }
 
-    @NotNull
-    public CuboidRegionBlocks getRegionBlocks() {
-        return regionBlocks;
+    @Nullable
+    public CuboidRegionIterator result() {
+        return iterator;
     }
 
     @NotNull
     public CuboidRegionPaste paste(boolean pasteonair, boolean overwrite) {
-        Set<Location> locations = new HashSet<>();
-        for (Block block : regionBlocks.getBlocks()) {
-            if (!pasteonair && (block == null || block.getType() == Material.AIR)) {
+        Set<BlockCoords> blocks = new HashSet<>();
+        CuboidRegionIterator iterator = new CuboidRegionIterator(region);
+        while (iterator.hasNext()) {
+            BlockCoords blockCoords = iterator.next();
+            if (!pasteonair && Utils.isAIR(blockCoords.getBlock().getType())) {
                 continue;
             }
-            lightPaste(locations, block.getLocation(), overwrite);
+            BlockScriptJson scriptJson = sbClipboard.getBlockScriptJson();
+            if (!overwrite && scriptJson.has() && scriptJson.load().has(blockCoords)) {
+                continue;
+            }
+            blocks.add(blockCoords = BlockCoords.copy(blockCoords));
+            lightPaste(blockCoords, scriptJson);
         }
-        PlayerCountJson.clear(locations, scriptKey);
-        sbClipboard.save();
+        ReuseIterator<BlockCoords> reuseIterator = new ReuseIterator<>(blocks);
+        PlayerTempJson.removeAll(scriptKey, reuseIterator);
+        PlayerCountJson.removeAll(scriptKey, reuseIterator);
+        StreamUtils.ifAction(blocks.size() > 0, sbClipboard::save);
+        this.iterator = iterator;
         return this;
     }
 
-    private boolean lightPaste(@NotNull Set<Location> locations, @NotNull Location location, boolean overwrite) {
-        BlockScriptJson scriptJson = sbClipboard.getBlockScriptJson();
-        if (BlockScriptJson.has(location, scriptJson) && !overwrite) {
-            return false;
-        }
-        ScriptParam scriptParam = scriptJson.load().get(location);
+    private void lightPaste(@NotNull BlockCoords blockCoords, @NotNull BlockScriptJson scriptJson) {
+        ScriptParam scriptParam = scriptJson.load().get(blockCoords);
         scriptParam.setAuthor(sbClipboard.getAuthor());
         scriptParam.getAuthor().add(sbClipboard.getSBPlayer().getUniqueId());
         scriptParam.setScript(sbClipboard.getScript());
         scriptParam.setLastEdit(Utils.getFormatTime(Utils.DATE_PATTERN));
         scriptParam.setSelector(sbClipboard.getSelector());
         scriptParam.setAmount(sbClipboard.getAmount());
-        locations.add(location);
-        return true;
     }
 }

@@ -13,25 +13,27 @@
  * You should have received a copy of the GNU General Public License along with this program.
  * If not, see <https://www.gnu.org/licenses/>.
  */
-package com.github.yuttyann.scriptblockplus.file.json.annotation;
+package com.github.yuttyann.scriptblockplus.file.json.builder;
 
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
+import java.lang.reflect.Type;
+
+import com.github.yuttyann.scriptblockplus.BlockCoords;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
- * ScriptBlockPlus FieldExclusion クラス
+ * ScriptBlockPlus BlockCoordsDeserializer クラス
  * @author yuttyann44581
  */
-public class FieldExclusion implements ExclusionStrategy {
+public class BlockCoordsDeserializer implements JsonDeserializer<BlockCoords> {
 
     @Override
-    public boolean shouldSkipField(@NotNull FieldAttributes field) {
-        return field.getAnnotation(Exclude.class) != null;
-    }
-
-    @Override
-    public boolean shouldSkipClass(@NotNull Class<?> clazz) {
-        return false;
+    @NotNull
+    public BlockCoords deserialize(@NotNull JsonElement json, @NotNull Type typeOfT, @NotNull JsonDeserializationContext context) throws JsonParseException {
+        return BlockCoords.fromString(json.getAsString());
     }
 }

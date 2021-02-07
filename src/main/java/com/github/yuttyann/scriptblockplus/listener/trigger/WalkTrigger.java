@@ -15,9 +15,12 @@
  */
 package com.github.yuttyann.scriptblockplus.listener.trigger;
 
+import java.util.Objects;
+
 import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.ScriptBlock;
 import com.github.yuttyann.scriptblockplus.listener.TriggerListener;
+import com.github.yuttyann.scriptblockplus.player.BaseSBPlayer;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
 
@@ -41,13 +44,28 @@ public class WalkTrigger extends TriggerListener<PlayerMoveEvent> {
     @Nullable
     public Trigger create(@NotNull PlayerMoveEvent event) {
         SBPlayer sbPlayer = SBPlayer.fromPlayer(event.getPlayer());
-        BlockCoords blockCoords = new BlockCoords(sbPlayer.getLocation()).subtract(0, 1, 0);
-        if (blockCoords.equals(sbPlayer.getOldBlockCoords().orElse(null))) {
+        BlockCoords blockCoords = ((BaseSBPlayer) sbPlayer).getDirectOldBlockCoords();
+        if (compare(sbPlayer, sbPlayer.getLocation(), blockCoords)) {
             return null;
-        } else {
-            sbPlayer.setOldBlockCoords(blockCoords);
         }
-        Location location = blockCoords.toLocation();
-        return new Trigger(sbPlayer.getPlayer(), location.getBlock(), event);
+        return new Trigger(event, sbPlayer.getPlayer(), blockCoords);
+    }
+
+    private boolean compare(@NotNull SBPlayer sbPlayer, @NotNull Location location, @Nullable BlockCoords blockCoords) {
+        if (blockCoords == null) {
+            sbPlayer.setOldBlockCoords(BlockCoords.of(location).subtract(0, 1, 0));
+            return false;
+        }
+        int oldX = blockCoords.getX();
+        int oldY = blockCoords.getY();
+        int oldZ = blockCoords.getZ();
+        if (Objects.equals(location.getWorld(), blockCoords.getWorld())) {
+            blockCoords.setX(location.getBlockX());
+            blockCoords.setY(location.getBlockY() - 1);
+            blockCoords.setZ(location.getBlockZ());
+        } else {
+            sbPlayer.setOldBlockCoords(blockCoords = BlockCoords.of(location).subtract(0, 1, 0));
+        }
+        return blockCoords.compare(oldX, oldY, oldZ);
     }
 }

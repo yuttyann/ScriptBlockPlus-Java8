@@ -34,11 +34,11 @@ public final class StringUtils {
     @NotNull
     public static List<String> getScripts(@NotNull String script) throws IllegalArgumentException {
         int length = script.length();
-        char[] chars = script.toCharArray();
-        if (chars[0] != '[' || chars[length - 1] != ']') {
+        if (script.charAt(0) != '[' || script.charAt(length - 1) != ']') {
             return Collections.singletonList(script);
         }
         List<String> result = new ArrayList<>();
+        char[] chars = script.toCharArray();
         int start = 0, end = 0;
         for (int i = 0, j = 0, k = 0; i < length; i++) {
             if (chars[i] == '[') {
@@ -66,8 +66,8 @@ public final class StringUtils {
         }
         List<String> list = new ArrayList<>();
         char[] chars = source.toCharArray();
-        int start = 0;
         boolean match = false;
+        int start = 0;
         for (int i = 0; i < chars.length; i++) {
             if (chars[i] == delimiter) {
                 if (!match) {
@@ -130,11 +130,17 @@ public final class StringUtils {
 
     @NotNull
     public static String removeStart(@NotNull String source, @NotNull String prefix) {
-        return isNotEmpty(prefix) ? (startsWith(source, prefix) ? source.substring(prefix.length()) : source) : source;
+        if (isNotEmpty(source) && isNotEmpty(prefix) & source.startsWith(prefix)) {
+            return source.substring(prefix.length());
+        }
+        return source;
     }
 
-    public static boolean startsWith(@Nullable String source, @NotNull String prefix) {
-        return isNotEmpty(source) && source.startsWith(prefix);
+    public static String removeEnd(@NotNull String source, @NotNull String suffix) {
+        if (isNotEmpty(source) && isNotEmpty(suffix) && source.endsWith(suffix)) {
+            return source.substring(0, source.length() - suffix.length());
+        }
+        return source;
     }
 
     public static boolean isNotEmpty(@Nullable String source) {

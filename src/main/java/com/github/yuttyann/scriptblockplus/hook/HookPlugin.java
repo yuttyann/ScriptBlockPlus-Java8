@@ -33,7 +33,7 @@ public abstract class HookPlugin {
 
     /**
      * プラグインが有効なのか確認します。
-     * @return プラグインが有効な場合はtrue
+     * @return プラグインが有効な場合は{@code true}
      */
     public final boolean has() {
         return Bukkit.getPluginManager().isPluginEnabled(getPluginName());

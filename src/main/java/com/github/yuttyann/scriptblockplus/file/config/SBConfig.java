@@ -16,7 +16,7 @@
 package com.github.yuttyann.scriptblockplus.file.config;
 
 import com.github.yuttyann.scriptblockplus.BlockCoords;
-import com.github.yuttyann.scriptblockplus.region.CuboidRegionBlocks;
+import com.github.yuttyann.scriptblockplus.region.CuboidRegionIterator;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
 import com.github.yuttyann.scriptblockplus.script.option.Option;
 import org.bukkit.Location;
@@ -96,12 +96,12 @@ public final class SBConfig {
         s = replace(s, "%version%", r.getArgment(1, String.class));
         if (s.contains("%details%")) {
             @SuppressWarnings("unchecked")
-            List<String> l = (List<String>) r.getArgment(2, List.class);
+            List<String> l = r.getArgment(2, List.class);
             StringBuilder b = new StringBuilder(l.size());
             for (int i = 0; i < l.size(); i++) {
                 String info = removeStart(l.get(i), "$");
-                boolean isTree = l.get(i).startsWith("$");
-                b.append(isTree ? "  - " : "・").append(info).append(i == (l.size() - 1) ? "" : "|~");
+                boolean tree = l.get(i).startsWith("$");
+                b.append(tree ? "  - " : "・").append(info).append(i == (l.size() - 1) ? "" : "|~");
             }
             s = replace(s, "%details%", b.toString());
         }
@@ -133,20 +133,20 @@ public final class SBConfig {
 
     private static Function<ReplaceKey, String> FUNCTION_CONSOLE_SCRIPT = r -> {
         String s = r.getValue();
-        s = replace(s, "%scriptkey%", r.getArgment(1, ScriptKey.class).getName());
-        s = replace(s, "%world%", r.getArgment(0, Location.class).getWorld().getName());
-        s = replace(s, "%coords%", BlockCoords.getCoords(r.getArgment(0, Location.class)));
+        s = replace(s, "%scriptkey%", r.getArgment(0, ScriptKey.class).getName());
+        s = replace(s, "%world%", r.getArgment(1, BlockCoords.class).getWorld().getName());
+        s = replace(s, "%coords%", r.getArgment(1, BlockCoords.class).getCoords());
         return s;
     };
 
     private static Function<ReplaceKey, String> FUNCTION_CONSOLE_SELECTOR = r -> {
-        CuboidRegionBlocks c = r.getArgment(1, CuboidRegionBlocks.class);
+        CuboidRegionIterator c = r.getArgment(1, CuboidRegionIterator.class);
         String s = r.getValue();
         s = replace(s, "%scriptkey%", r.getArgment(0, String.class));
-        s = replace(s, "%blockcount%", c.getCount());
+        s = replace(s, "%blockcount%", c.getVolume());
         s = replace(s, "%world%", c.getWorld().getName());
-        s = replace(s, "%mincoords%", BlockCoords.getCoords(c.getMinimumPoint()));
-        s = replace(s, "%maxcoords%", BlockCoords.getCoords(c.getMinimumPoint()));
+        s = replace(s, "%mincoords%", c.getMinimumPoint().getCoords());
+        s = replace(s, "%maxcoords%", c.getMinimumPoint().getCoords());
         return s;
     };
 
@@ -258,32 +258,32 @@ public final class SBConfig {
     public static final ReplaceKey ERROR_COST = replaceKey("ErrorCostMessage", "", "%cost%", "%result%");
 
     /**
-     * Parameter: {@link Location} location, {@link ScriptKey} scriptKey
+     * Parameter: {@link ScriptKey} scriptKey, {@link Location} location
      */
     public static final ReplaceKey CONSOLE_SCRIPT_EDIT = replaceKey("ConsoleScriptEditMessage", "", FUNCTION_CONSOLE_SCRIPT);
 
     /**
-     * Parameter: {@link Location} location, {@link ScriptKey} scriptKey
+     * Parameter: {@link ScriptKey} scriptKey, {@link Location} location
      */
     public static final ReplaceKey CONSOLE_SCRIPT_VIEW = replaceKey("ConsoleScriptViewMessage", "", FUNCTION_CONSOLE_SCRIPT);
 
     /**
-     * Parameter: {@link Location} location, {@link ScriptKey} scriptKey
+     * Parameter: {@link ScriptKey} scriptKey, {@link Location} location
      */
     public static final ReplaceKey CONSOLE_SUCCESS_SCRIPT_EXECUTE = replaceKey("ConsoleSuccScriptExecMessage", "", FUNCTION_CONSOLE_SCRIPT);
 
     /**
-     * Parameter: {@link Location} location, {@link ScriptKey} scriptKey
+     * Parameter: {@link ScriptKey} scriptKey, {@link Location} location
      */
     public static final ReplaceKey CONSOLE_ERROR_SCRIPT_EXECUTE = replaceKey("ConsoleErrorScriptExecMessage", "", FUNCTION_CONSOLE_SCRIPT);
 
     /**
-     * Parameter: {@link ScriptKey} scriptKey, {@link CuboidRegionBlocks} regionBlocks
+     * Parameter: {@link ScriptKey} scriptKey, {@link CuboidRegionIterator} iterator
      */
     public static final ReplaceKey CONSOLE_SELECTOR_PASTE = replaceKey("ConsoleSelectorPasteMessage", "", FUNCTION_CONSOLE_SELECTOR);
 
     /**
-     * Parameter: {@link ScriptKey} scriptKey, {@link CuboidRegionBlocks} regionBlocks
+     * Parameter: {@link ScriptKey} scriptKey, {@link CuboidRegionIterator} iterator
      */
     public static final ReplaceKey CONSOLE_SELECTOR_REMOVE = replaceKey("ConsoleSelectorRemoveMessage", "", FUNCTION_CONSOLE_SELECTOR);
 }

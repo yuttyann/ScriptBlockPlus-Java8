@@ -15,14 +15,16 @@
  */
 package com.github.yuttyann.scriptblockplus.region;
 
+import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
 import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerCountJson;
+import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerTempJson;
+import com.github.yuttyann.scriptblockplus.hook.plugin.ProtocolLib;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
-import com.github.yuttyann.scriptblockplus.script.option.time.TimerOption;
+import com.github.yuttyann.scriptblockplus.utils.collection.ReuseIterator;
 
-import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -34,12 +36,14 @@ import java.util.Set;
  */
 public class CuboidRegionRemove {
 
+    private final Region region;
     private final Set<ScriptKey> scriptKeys;
-    private final CuboidRegionBlocks regionBlocks;
+
+    private CuboidRegionIterator iterator;
 
     public CuboidRegionRemove(@NotNull Region region) {
+        this.region = region;
         this.scriptKeys = new LinkedHashSet<>();
-        this.regionBlocks = new CuboidRegionBlocks(region);
     }
 
     @NotNull
@@ -47,41 +51,52 @@ public class CuboidRegionRemove {
         return scriptKeys;
     }
 
-    @NotNull
-    public CuboidRegionBlocks getRegionBlocks() {
-        return regionBlocks;
+    @Nullable
+    public CuboidRegionIterator result() {
+        return iterator;
     }
 
     @NotNull
     public CuboidRegionRemove remove() {
         scriptKeys.clear();
-        Set<Block> blocks = regionBlocks.getBlocks();
-        Set<Location> locations = new HashSet<>();
-        for (ScriptKey scriptKey : ScriptKey.values()) {
-            BlockScriptJson scriptJson = new BlockScriptJson(scriptKey);
-            if (!scriptJson.exists()) {
+        Set<BlockCoords> blocks = new HashSet<BlockCoords>();
+        CuboidRegionIterator iterator = new CuboidRegionIterator(region);
+        for (ScriptKey scriptKey : ScriptKey.iterable()) {
+            BlockScriptJson scriptJson = BlockScriptJson.get(scriptKey);
+            if (!scriptJson.has()) {
                 continue;
             }
-            for (Block block : blocks) {
-                if (lightRemove(locations, block.getLocation(), scriptJson)) {
-                    scriptKeys.add(scriptKey);
+            iterator.reset();
+            boolean removed = false;
+            while (iterator.hasNext()) {
+                BlockCoords blockCoords = iterator.next();
+                if (lightRemove(blockCoords, scriptJson)) {
+                    removed = true;
+                    if (!blocks.contains(blockCoords)) {
+                        blocks.add(BlockCoords.copy(blockCoords));
+                        ProtocolLib.GLOW_ENTITY.broadcastDestroyGlowEntity(blockCoords);
+                    }
                 }
             }
-            scriptJson.saveFile();
+            if (removed) {
+                scriptKeys.add(scriptKey);
+                scriptJson.saveFile();
+            }
         }
+        ReuseIterator<BlockCoords> reuseIterator = new ReuseIterator<>(blocks);
         for (ScriptKey scriptKey : scriptKeys) {
-            TimerOption.removeAll(locations, scriptKey);
-            PlayerCountJson.clear(locations, scriptKey);
+            PlayerTempJson.removeAll(scriptKey, reuseIterator);
+            PlayerCountJson.removeAll(scriptKey, reuseIterator);
         }
+        this.iterator = iterator;
         return this;
     }
     
-    private boolean lightRemove(@NotNull Set<Location> locations, @NotNull Location location, @NotNull BlockScriptJson scriptJson) {
-        if (!BlockScriptJson.has(location, scriptJson)) {
+    private boolean lightRemove(@NotNull BlockCoords blockCoords, @NotNull BlockScriptJson scriptJson) {
+        if (!scriptJson.has() || !scriptJson.load().has(blockCoords)) {
             return false;
         }
-        scriptJson.load().remove(location);
-        locations.add(location);
+        scriptJson.load().remove(blockCoords);
         return true;
     }
 }
