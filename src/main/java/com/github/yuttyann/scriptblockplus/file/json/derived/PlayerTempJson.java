@@ -71,7 +71,7 @@ public class PlayerTempJson extends SingleJson<PlayerTemp> {
         TimerTemp timerTemp = TimerTemp.empty();
         for (File json : getFiles(PlayerTempJson.class)) {
             PlayerTempJson tempJson = new PlayerTempJson(json);
-            if (!tempJson.has()) {
+            if (tempJson.isEmpty()) {
                 continue;
             }
             Set<TimerTemp> timer = tempJson.load().getTimerTemp();

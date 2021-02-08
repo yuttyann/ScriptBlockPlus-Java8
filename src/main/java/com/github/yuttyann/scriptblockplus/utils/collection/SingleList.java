@@ -42,6 +42,9 @@ public final class SingleList<E> extends AbstractList<E> implements RandomAccess
 
     private static final long serialVersionUID = -850266659953923568L;
 
+    private static final int ADD_SIZE = 1;
+    private static final int REMOVE_SIZE = 0;
+
     private int size;
     private E element;
 
@@ -50,7 +53,7 @@ public final class SingleList<E> extends AbstractList<E> implements RandomAccess
         return size;
     }
 
-    @NotNull
+    @Nullable
     public E get(int index) {
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("Index " + index + " out of bounds for length " + size);
@@ -65,12 +68,12 @@ public final class SingleList<E> extends AbstractList<E> implements RandomAccess
 
     @Override
     public boolean add(@Nullable E element) {
-        setElement(1, element);
+        setElement(ADD_SIZE, element);
         return true;
     }
 
     @Override
-    public void add(int index, E element) {
+    public void add(int index, @Nullable E element) {
         add(element);
     }
 
@@ -80,9 +83,9 @@ public final class SingleList<E> extends AbstractList<E> implements RandomAccess
             return false;
         }
         if (collection instanceof List) {
-            setElement(1, ((List<? extends E>) collection).get(0));
+            setElement(ADD_SIZE, ((List<? extends E>) collection).get(0));
         } else {
-            setElement(1, collection.iterator().next());
+            setElement(ADD_SIZE, collection.iterator().next());
         }
         return true;
     }
@@ -98,17 +101,22 @@ public final class SingleList<E> extends AbstractList<E> implements RandomAccess
             throw new IndexOutOfBoundsException("Index " + index + " out of bounds for length " + size);
         }
         E old = element;
-        setElement(0, null);
+        setElement(REMOVE_SIZE, null);
         return old;
     }
 
     @Override
     public boolean remove(@Nullable Object obj) {
         if (Objects.equals(obj, element)) {
-            setElement(0, null);
+            setElement(REMOVE_SIZE, null);
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void clear() {
+        setElement(REMOVE_SIZE, null);
     }
 
     @Override
@@ -119,7 +127,7 @@ public final class SingleList<E> extends AbstractList<E> implements RandomAccess
     @Override
     public boolean removeIf(@NotNull Predicate<? super E> filter) {
         if (filter.test(element)) {
-            setElement(0, null);
+            setElement(REMOVE_SIZE, null);
             return true;
         }
         return false;
@@ -127,7 +135,7 @@ public final class SingleList<E> extends AbstractList<E> implements RandomAccess
 
     @Override
     public void replaceAll(@NotNull UnaryOperator<E> operator) {
-        setElement(1, operator.apply(element));
+        setElement(ADD_SIZE, operator.apply(element));
     }
 
     @Override
@@ -162,6 +170,11 @@ public final class SingleList<E> extends AbstractList<E> implements RandomAccess
                 }
                 throw new NoSuchElementException();
             }
+
+            @Override
+            public void remove() {
+                setElement(REMOVE_SIZE, null);
+            }
         };
     }
 
@@ -172,13 +185,13 @@ public final class SingleList<E> extends AbstractList<E> implements RandomAccess
             long estimate = 1;
 
             @Override
+            @Nullable
             public Spliterator<E> trySplit() {
                 return null;
             }
 
             @Override
-            public boolean tryAdvance(Consumer<? super E> consumer) {
-                Objects.requireNonNull(consumer);
+            public boolean tryAdvance(@NotNull Consumer<? super E> consumer) {
                 if (estimate > 0) {
                     estimate--;
                     consumer.accept(element);
@@ -188,7 +201,7 @@ public final class SingleList<E> extends AbstractList<E> implements RandomAccess
             }
 
             @Override
-            public void forEachRemaining(Consumer<? super E> consumer) {
+            public void forEachRemaining(@NotNull Consumer<? super E> consumer) {
                 tryAdvance(consumer);
             }
 

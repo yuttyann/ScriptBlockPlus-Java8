@@ -80,15 +80,13 @@ public class PlayerCountJson extends TwoJson<ScriptKey, BlockCoords, PlayerCount
     public static synchronized void removeAll(@NotNull ScriptKey scriptKey, @NotNull ReuseIterator<BlockCoords> reuseIterator) {
         for (File json : getFiles(PlayerCountJson.class)) {
             PlayerCountJson countJson = new PlayerCountJson(json);
+            if (countJson.isEmpty()) {
+                continue;
+            }
             boolean removed = false;
             reuseIterator.reset();
             while (reuseIterator.hasNext()) {
-                BlockCoords blockCoords = reuseIterator.next();
-                PlayerCount playerCount = countJson.fastLoad(scriptKey, blockCoords);
-                if (playerCount == null) {
-                    continue;
-                }
-                if (countJson.remove(scriptKey, blockCoords)) {
+                if (countJson.remove(scriptKey, reuseIterator.next())) {
                     removed = true;
                 }
             }
