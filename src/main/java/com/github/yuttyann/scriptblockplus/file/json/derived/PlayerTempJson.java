@@ -48,11 +48,6 @@ public class PlayerTempJson extends SingleJson<PlayerTemp> {
     }
 
     @Override
-    protected boolean isTemporary() {
-        return false;
-    }
-
-    @Override
     @NotNull
     protected PlayerTemp newInstance() {
         return new PlayerTemp();

@@ -45,11 +45,6 @@ public class BlockScriptJson extends SingleJson<BlockScript> {
     }
 
     @Override
-    protected boolean isTemporary() {
-        return false;
-    }
-
-    @Override
     protected boolean isCacheFileExists() {
         return false;
     }
@@ -62,7 +57,7 @@ public class BlockScriptJson extends SingleJson<BlockScript> {
     @Override
     @NotNull
     protected BlockScript newInstance() {
-        return new BlockScript(getScriptKey());
+        return new BlockScript();
     }
 
     @NotNull
