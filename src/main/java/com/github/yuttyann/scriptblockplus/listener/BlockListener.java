@@ -30,6 +30,7 @@ import com.github.yuttyann.scriptblockplus.selector.filter.FilterSplit;
 import com.github.yuttyann.scriptblockplus.selector.filter.FilterValue;
 
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -47,8 +48,9 @@ public class BlockListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onBlockPhysics(BlockPhysicsEvent event) {
-        BlockCoords blockCoords = BlockCoords.of(event.getBlock());
-        if (!event.getBlock().isBlockIndirectlyPowered()) {
+        Block block = event.getBlock();
+        BlockCoords blockCoords = BlockCoords.of(block);
+        if (!block.isBlockIndirectlyPowered()) {
             REDSTONE_FLAG.remove(blockCoords);
             return;
         }
