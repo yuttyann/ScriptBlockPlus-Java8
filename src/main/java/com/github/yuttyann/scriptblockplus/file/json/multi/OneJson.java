@@ -16,7 +16,6 @@
 package com.github.yuttyann.scriptblockplus.file.json.multi;
 
 import java.io.File;
-import java.util.Iterator;
 import java.util.function.Consumer;
 
 import com.github.yuttyann.scriptblockplus.file.json.BaseElement;
@@ -121,10 +120,10 @@ public abstract class OneJson<A, E extends OneJson.OneElement<A>> extends BaseJs
      * @return {@link boolean} - 削除に成功した場合は{@code true}
      */
     public final boolean remove(@NotNull A a) {
-        Iterator<E> iterator = list.iterator();
-        while (iterator.hasNext()) {
-            if (iterator.next().isElement(a)) {
-                iterator.remove();
+        for (int i = 0, l = list.size(); i < l; i++) {
+            E element = list.get(i);
+            if (element.isElement(a)) {
+                list.remove(i);
                 return true;
             }
         }

@@ -16,7 +16,6 @@
 package com.github.yuttyann.scriptblockplus.file.json.multi;
 
 import java.io.File;
-import java.util.Iterator;
 import java.util.function.Consumer;
 
 import com.github.yuttyann.scriptblockplus.file.json.BaseElement;
@@ -129,10 +128,10 @@ public abstract class TwoJson<A, B, E extends TwoJson.TwoElement<A, B>> extends 
      * @return {@link boolean} - 削除に成功した場合は{@code true}
      */
     public final boolean remove(@NotNull A a, @NotNull B b) {
-        Iterator<E> iterator = list.iterator();
-        while (iterator.hasNext()) {
-            if (iterator.next().isElement(a, b)) {
-                iterator.remove();
+        for (int i = 0, l = list.size(); i < l; i++) {
+            E element = list.get(i);
+            if (element.isElement(a, b)) {
+                list.remove(i);
                 return true;
             }
         }
