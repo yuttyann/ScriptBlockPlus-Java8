@@ -37,7 +37,7 @@ import java.util.Optional;
  * ScriptBlockPlus ScriptEditor クラス
  * @author yuttyann44581
  */
-public class ScriptEditor extends ItemAction {
+public final class ScriptEditor extends ItemAction {
 
     private static final String KEY = Utils.randomUUID();
 

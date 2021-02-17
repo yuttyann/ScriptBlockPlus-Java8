@@ -88,8 +88,7 @@ public class ItemUtils {
 
     @NotNull
     public static Material getMaterial(@NotNull String name) {
-        name = StringUtils.removeStart(name, Utils.MINECRAFT);
-        name = name.replaceAll("\\s+", "_").replaceAll("\\W", "");
+        name = StringUtils.removeStart(name.replace(' ', '_'), Utils.MINECRAFT);
         if (KEY_MATERIALS != null) {
             String key = name.toLowerCase(Locale.ROOT);
             if (KEY_MATERIALS.containsKey(key)) {

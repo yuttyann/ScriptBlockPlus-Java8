@@ -36,7 +36,6 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
@@ -148,6 +147,9 @@ public final class Utils {
         CommandSender commandSender = sender instanceof SBPlayer ? ((SBPlayer) sender).getPlayer() : sender;
         if (CommandSelector.has(command)) {
             List<String> commands = CommandSelector.build(commandSender, location, command);
+            if (commands.isEmpty()) {
+                return false;
+            }
             return StreamUtils.allMatch(commands, s -> Bukkit.dispatchCommand(commandSender, s));
         }
         return Bukkit.dispatchCommand(commandSender, command);
@@ -157,12 +159,14 @@ public final class Utils {
     public static World getWorld(@NotNull String name) {
         World world = Bukkit.getWorld(name);
         if (world == null) {
-            File file = new SBFile(Bukkit.getWorldContainer(), name + "/level.dat");
+            SBFile file = new SBFile(Bukkit.getWorldContainer(), name + "/level.dat");
             if (file.exists()) {
                 world = Bukkit.createWorld(WorldCreator.name(name));
+            } else {
+                throw new NullPointerException(name + " does not exist");
             }
         }
-        return Objects.requireNonNull(world, name + "does not exist");
+        return world;
     }
 
     @SuppressWarnings("deprecation")

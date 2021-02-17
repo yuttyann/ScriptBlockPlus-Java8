@@ -122,11 +122,11 @@ public final class Updater {
             return false;
         }
         File data = plugin.getDataFolder();
-        File logFile = new SBFile(data, "update/ChangeLog.txt");
+        SBFile logFile = new SBFile(data, "update/ChangeLog.txt");
         boolean sameLogs = !logFile.exists() || !logEquals(changeLogURL, logFile), failure = false;
         SBConfig.UPDATE_CHECK.replace(pluginName, latest, details).send(sender);
         if (SBConfig.AUTO_DOWNLOAD.getValue()) {
-            File jarFile = new SBFile(data, "update/jar/" + getJarName());
+            SBFile jarFile = new SBFile(data, "update/jar/" + getJarName());
             try {
                 SBConfig.UPDATE_DOWNLOAD_START.send(sender);
                 FileUtils.downloadFile(changeLogURL, logFile);
@@ -167,10 +167,7 @@ public final class Updater {
         if (!file.exists()) {
             return false;
         }
-        try (
-                BufferedReader reader1 = new BufferedReader(new FileReader(file)); 
-                BufferedReader reader2 = new BufferedReader(new InputStreamReader(new URL(url).openStream()))
-            ) {
+        try (BufferedReader reader1 = FileUtils.newBufferedReader(file); BufferedReader reader2 = FileUtils.newBufferedReader(new URL(url).openStream())) {
             while (reader1.ready() && reader2.ready()) {
                 if (!reader1.readLine().equals(reader2.readLine())) {
                     return false;

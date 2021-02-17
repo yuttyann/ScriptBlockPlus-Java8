@@ -15,16 +15,15 @@
  */
 package com.github.yuttyann.scriptblockplus.item.action;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.enums.TeamColor;
 import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
-import com.github.yuttyann.scriptblockplus.file.json.element.BlockScript;
 import com.github.yuttyann.scriptblockplus.hook.plugin.ProtocolLib;
 import com.github.yuttyann.scriptblockplus.hook.protocol.GlowEntity;
 import com.github.yuttyann.scriptblockplus.hook.protocol.GlowEntityPacket;
@@ -38,7 +37,7 @@ import com.github.yuttyann.scriptblockplus.script.ScriptKey;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils.ThrowableConsumer;
-import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 
 import org.bukkit.Color;
 import org.bukkit.GameMode;
@@ -47,7 +46,6 @@ import org.bukkit.Particle;
 import org.bukkit.Particle.DustOptions;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +53,10 @@ import org.jetbrains.annotations.Nullable;
  * ScriptBlockPlus TickRunnable クラス
  * @author yuttyann44581
  */
-public class TickRunnable extends BukkitRunnable {
+public final class TickRunnable implements Runnable {
+
+    private static final int PLAYER_RANGE = 15;
+    private static final int PARTICLE_RANGE = 10;
 
     private static final String KEY = Utils.randomUUID();
     private static final String KEY_TEMP = Utils.randomUUID();
@@ -63,6 +64,8 @@ public class TickRunnable extends BukkitRunnable {
     private static final GlowEntityPacket GLOW_ENTITY_PACKET = ProtocolLib.GLOW_ENTITY;
 
     private int tick = 0;
+
+    TickRunnable() { }
 
     @Override
     public final void run() {
@@ -124,7 +127,7 @@ public class TickRunnable extends BukkitRunnable {
     }
 
     private void spawnGlowEntity(@NotNull SBPlayer sbPlayer) throws Exception {
-        PlayerRegion region = new PlayerRegion(sbPlayer.getPlayer(), 15);
+        PlayerRegion region = new PlayerRegion(sbPlayer.getPlayer(), PLAYER_RANGE);
         Set<BlockCoords> lookBlocks = getBlockCoords(sbPlayer, KEY);
         forEach(region, b -> {
             if (lookBlocks.size() > 0 && StreamUtils.anyMatch(lookBlocks, l -> l.equals(b))) {
@@ -132,11 +135,11 @@ public class TickRunnable extends BukkitRunnable {
             }
             GLOW_ENTITY_PACKET.spawnGlowEntity(sbPlayer, b, getTeamColor(b.getBlock()));
         });
-        ArrayListMultimap<UUID, GlowEntity> entities = GLOW_ENTITY_PACKET.getEntities();
+        Multimap<UUID, GlowEntity> entities = GLOW_ENTITY_PACKET.getEntities();
         if (entities.isEmpty()) {
             return;
         }
-        List<GlowEntity> glowEntities = entities.get(sbPlayer.getUniqueId());
+        Collection<GlowEntity> glowEntities = entities.get(sbPlayer.getUniqueId());
         if (glowEntities.isEmpty()) {
             return;
         }
@@ -160,9 +163,10 @@ public class TickRunnable extends BukkitRunnable {
             }
         } else {
             int[] count = new int[] { 0 };
-            forEach(new PlayerRegion(sbPlayer.getPlayer(), 10), b -> {
+            Player player = sbPlayer.getPlayer();
+            forEach(new PlayerRegion(player, PARTICLE_RANGE), b -> {
                 if (count[0]++ < 800) {
-                    spawnParticlesOnBlock(sbPlayer.getPlayer(), b.getBlock(), null);
+                    spawnParticlesOnBlock(player, b.getBlock(), null);
                 }
             });
         }
@@ -201,13 +205,12 @@ public class TickRunnable extends BukkitRunnable {
             CuboidRegionIterator iterator = new CuboidRegionIterator(region);
             for (ScriptKey scriptKey : ScriptKey.iterable()) {
                 BlockScriptJson scriptJson = BlockScriptJson.get(scriptKey);
-                if (!scriptJson.has()) {
+                if (scriptJson.isEmpty()) {
                     continue;
                 }
-                BlockScript blockScript = scriptJson.load();
                 while (iterator.hasNext()) {
                     BlockCoords blockCoords = iterator.next();
-                    if (blockScript.has(blockCoords)) {
+                    if (scriptJson.has(blockCoords)) {
                         action.accept(blockCoords);
                     }
                 }
@@ -219,7 +222,7 @@ public class TickRunnable extends BukkitRunnable {
     }
 
     private boolean destroyEntity(@NotNull SBPlayer sbPlayer, @NotNull BlockCoords blockCoords, @NotNull Set<BlockCoords> blocks) throws Exception {
-        if (!BlockScriptJson.has(blockCoords)) {
+        if (!BlockScriptJson.contains(blockCoords)) {
             return false;
         }
         GLOW_ENTITY_PACKET.destroyGlowEntity(sbPlayer, blockCoords);

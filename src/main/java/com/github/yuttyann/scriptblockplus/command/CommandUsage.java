@@ -46,7 +46,7 @@ public abstract class CommandUsage {
         if (usages.isEmpty()) {
             return;
         }
-        List<CommandData> list = new ArrayList<>(usages.size());
+        List<CommandData> list = new ArrayList<CommandData>(usages.size());
         StreamUtils.fForEach(usages, c -> c.hasPermission(sender), list::add);
         if (list.isEmpty()) {
             SBConfig.NOT_PERMISSION.send(sender);
@@ -57,7 +57,7 @@ public abstract class CommandUsage {
             name = command.getAliases().get(0).toLowerCase(Locale.ROOT);
         }
         String prefix = "§b/" + name + " ";
-        sender.sendMessage("§d========== " + command.getName() + " Commands ==========");
+        sender.sendMessage("§d========== " + command.getName().toUpperCase(Locale.ROOT) + " Commands ==========");
         StreamUtils.fForEach(list, CommandData::hasMessage, c -> sender.sendMessage(text(c, prefix)));
     }
 

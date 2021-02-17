@@ -22,7 +22,7 @@ import com.github.yuttyann.scriptblockplus.script.option.Option;
 import org.bukkit.Location;
 import org.bukkit.Material;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -36,21 +36,23 @@ import static com.github.yuttyann.scriptblockplus.utils.StringUtils.*;
 public final class SBConfig {
 
     // List Keys
-    public static final ConfigKey<List<String>> BLOCK_SELECTOR = stringListKey("BlockSelector", new ArrayList<>());
-    public static final ConfigKey<List<String>> SCRIPT_EDITOR = stringListKey("ScriptEditor", new ArrayList<>());
-    public static final ConfigKey<List<String>> SCRIPT_VIEWER = stringListKey("ScriptViewer", new ArrayList<>());
+    public static final ConfigKey<List<String>> BLOCK_SELECTOR = stringListKey("BlockSelector", Collections.emptyList());
+    public static final ConfigKey<List<String>> SCRIPT_EDITOR = stringListKey("ScriptEditor", Collections.emptyList());
+    public static final ConfigKey<List<String>> SCRIPT_VIEWER = stringListKey("ScriptViewer", Collections.emptyList());
 
+    // Integer Keys
+    public static final ConfigKey<Integer> FORMAT_LIMIT = integerKey("FormatLimit", 100000);
 
     // Boolean Keys
     public static final ConfigKey<Boolean> UPDATE_CHECKER = booleanKey("UpdateChecker", true);
     public static final ConfigKey<Boolean> AUTO_DOWNLOAD = booleanKey("AutoDownload", true);
     public static final ConfigKey<Boolean> OPEN_CHANGE_LOG = booleanKey("OpenChangeLog", true);
+    public static final ConfigKey<Boolean> CACHE_ALL_JSON = booleanKey("CacheAllJson", false);
     public static final ConfigKey<Boolean> CONSOLE_LOG = booleanKey("ConsoleLog", false);
     public static final ConfigKey<Boolean> SORT_SCRIPTS = booleanKey("SortScripts", true);
     public static final ConfigKey<Boolean> OPTION_PERMISSION = booleanKey("OptionPermission", false);
     public static final ConfigKey<Boolean> ACTIONS_INTERACT_LEFT = booleanKey("Actions.InteractLeft", true);
     public static final ConfigKey<Boolean> ACTIONS_INTERACT_RIGHT = booleanKey("Actions.InteractRight", true);
-
 
     // String Keys
     public static final ConfigKey<String> LANGUAGE = stringKey("Language", "en");
@@ -91,21 +93,21 @@ public final class SBConfig {
 
     // Functions (Private)
     private static Function<ReplaceKey, String> FUNCTION_UPDATE_CHECK = r -> {
-        String s = r.getValue();
-        s = replace(s, "%name%", r.getArgment(0, String.class));
-        s = replace(s, "%version%", r.getArgment(1, String.class));
-        if (s.contains("%details%")) {
+        String value = r.getValue();
+        value = replace(value, "%name%", r.getArgment(0, String.class));
+        value = replace(value, "%version%", r.getArgment(1, String.class));
+        if (value.contains("%details%")) {
             @SuppressWarnings("unchecked")
-            List<String> l = r.getArgment(2, List.class);
-            StringBuilder b = new StringBuilder(l.size());
-            for (int i = 0; i < l.size(); i++) {
-                String info = removeStart(l.get(i), "$");
-                boolean tree = l.get(i).startsWith("$");
-                b.append(tree ? "  - " : "・").append(info).append(i == (l.size() - 1) ? "" : "|~");
+            List<String> list = (List<String>) r.getArgment(2, List.class);
+            StringBuilder builder = new StringBuilder(list.size());
+            for (int i = 0; i < list.size(); i++) {
+                String info = removeStart(list.get(i), "$");
+                boolean tree = list.get(i).startsWith("$");
+                builder.append(tree ? "  - " : "・").append(info).append(i == (list.size() - 1) ? "" : "|~");
             }
-            s = replace(s, "%details%", b.toString());
+            value = replace(value, "%details%", builder.toString());
         }
-        return s;
+        return value;
     };
 
     private static Function<ReplaceKey, String> FUNCTION_SCRIPT_TYPE = r -> {
@@ -113,22 +115,22 @@ public final class SBConfig {
     };
 
     private static Function<ReplaceKey, String> FUNCTION_OPTION_FAILED = r -> {
-        Throwable t = r.getArgment(1, Throwable.class);
-        String s = r.getValue();
-        s = replace(s, "%option%", r.getArgment(0, Option.class).getName());
-        s = replace(s, "%cause%", t.getClass().getSimpleName() + (t.getMessage() == null ? "" : " \"" + t.getMessage() + "\""));
-        return s;
+        Throwable throwable = r.getArgment(1, Throwable.class);
+        String value = r.getValue();
+        value = replace(value, "%option%", r.getArgment(0, Option.class).getName());
+        value = replace(value, "%cause%", throwable.getClass().getSimpleName() + (throwable.getMessage() == null ? "" : " \"" + throwable.getMessage() + "\""));
+        return value;
     };
 
     private static Function<ReplaceKey, String> FUNCTION_ITEM = r -> {
-        Material m = r.getArgment(0, Material.class);
-        String n = r.getArgment(3, String.class);
-        String s = r.getValue();
-        s = replace(s, "%material%", String.valueOf(m));
-        s = replace(s, "%amount%", r.getArgment(1, Integer.class));
-        s = replace(s, "%damage%", r.getArgment(2, Integer.class));
-        s = replace(s, "%name%", isEmpty(n) ? String.valueOf(m) : n);
-        return s;
+        Material material = r.getArgment(0, Material.class);
+        String name = r.getArgment(3, String.class);
+        String value = r.getValue();
+        value = replace(value, "%material%", String.valueOf(material));
+        value = replace(value, "%amount%", r.getArgment(1, Integer.class));
+        value = replace(value, "%damage%", r.getArgment(2, Integer.class));
+        value = replace(value, "%name%", name);
+        return value;
     };
 
     private static Function<ReplaceKey, String> FUNCTION_CONSOLE_SCRIPT = r -> {
@@ -140,14 +142,14 @@ public final class SBConfig {
     };
 
     private static Function<ReplaceKey, String> FUNCTION_CONSOLE_SELECTOR = r -> {
-        CuboidRegionIterator c = r.getArgment(1, CuboidRegionIterator.class);
-        String s = r.getValue();
-        s = replace(s, "%scriptkey%", r.getArgment(0, String.class));
-        s = replace(s, "%blockcount%", c.getVolume());
-        s = replace(s, "%world%", c.getWorld().getName());
-        s = replace(s, "%mincoords%", c.getMinimumPoint().getCoords());
-        s = replace(s, "%maxcoords%", c.getMinimumPoint().getCoords());
-        return s;
+        CuboidRegionIterator iterator = r.getArgment(1, CuboidRegionIterator.class);
+        String value = r.getValue();
+        value = replace(value, "%scriptkey%", r.getArgment(0, String.class));
+        value = replace(value, "%blockcount%", iterator.getVolume());
+        value = replace(value, "%world%", iterator.getWorld().getName());
+        value = replace(value, "%mincoords%", iterator.getMinimumPoint().getCoords());
+        value = replace(value, "%maxcoords%", iterator.getMinimumPoint().getCoords());
+        return value;
     };
 
 

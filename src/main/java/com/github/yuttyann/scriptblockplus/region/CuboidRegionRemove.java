@@ -18,7 +18,7 @@ package com.github.yuttyann.scriptblockplus.region;
 import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
 import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerCountJson;
-import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerTempJson;
+import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerTimerJson;
 import com.github.yuttyann.scriptblockplus.hook.plugin.ProtocolLib;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
 import com.github.yuttyann.scriptblockplus.utils.collection.ReuseIterator;
@@ -59,11 +59,11 @@ public class CuboidRegionRemove {
     @NotNull
     public CuboidRegionRemove remove() {
         scriptKeys.clear();
-        Set<BlockCoords> blocks = new HashSet<BlockCoords>();
+        Set<BlockCoords> blocks = new HashSet<>();
         CuboidRegionIterator iterator = new CuboidRegionIterator(region);
         for (ScriptKey scriptKey : ScriptKey.iterable()) {
             BlockScriptJson scriptJson = BlockScriptJson.get(scriptKey);
-            if (!scriptJson.has()) {
+            if (scriptJson.isEmpty()) {
                 continue;
             }
             iterator.reset();
@@ -80,12 +80,12 @@ public class CuboidRegionRemove {
             }
             if (removed) {
                 scriptKeys.add(scriptKey);
-                scriptJson.saveFile();
+                scriptJson.saveJson();
             }
         }
         ReuseIterator<BlockCoords> reuseIterator = new ReuseIterator<>(blocks);
         for (ScriptKey scriptKey : scriptKeys) {
-            PlayerTempJson.removeAll(scriptKey, reuseIterator);
+            PlayerTimerJson.removeAll(scriptKey, reuseIterator);
             PlayerCountJson.removeAll(scriptKey, reuseIterator);
         }
         this.iterator = iterator;
@@ -93,10 +93,6 @@ public class CuboidRegionRemove {
     }
     
     private boolean lightRemove(@NotNull BlockCoords blockCoords, @NotNull BlockScriptJson scriptJson) {
-        if (!scriptJson.has() || !scriptJson.load().has(blockCoords)) {
-            return false;
-        }
-        scriptJson.load().remove(blockCoords);
-        return true;
+        return scriptJson.has(blockCoords) ? scriptJson.remove(blockCoords) : false;
     }
 }

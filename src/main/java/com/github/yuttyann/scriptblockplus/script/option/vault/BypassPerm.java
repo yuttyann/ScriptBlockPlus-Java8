@@ -29,7 +29,7 @@ import org.bukkit.entity.Player;
  * @author yuttyann44581
  */
 @OptionTag(name = "bypass_perm", syntax = "@bypassPERM:")
-public class BypassPerm extends BaseOption {
+public final class BypassPerm extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {

@@ -59,14 +59,14 @@ public class BlockListener implements Listener {
         }
         for (ScriptKey scriptKey : ScriptKey.iterable()) {
             BlockScriptJson scriptJson = BlockScriptJson.get(scriptKey);
-            if (!scriptJson.exists()) {
+            if (scriptJson.isEmpty()) {
                 continue;
             }
-            BlockScript blockScript = scriptJson.load();
-            if (!blockScript.has(blockCoords)) {
+            BlockScript blockScript = scriptJson.fastLoad(blockCoords);
+            if (blockScript == null) {
                 continue;
             }
-            String selector = blockScript.get(blockCoords).getSelector();
+            String selector = blockScript.getSelector();
             if (StringUtils.isEmpty(selector) || !CommandSelector.has(selector)) {
                 continue;
             }

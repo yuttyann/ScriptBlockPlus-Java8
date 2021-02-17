@@ -21,7 +21,6 @@ import com.github.yuttyann.scriptblockplus.event.ScriptReadStartEvent;
 import com.github.yuttyann.scriptblockplus.file.config.SBConfig;
 import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
 import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerCountJson;
-import com.github.yuttyann.scriptblockplus.file.json.element.BlockScript;
 import com.github.yuttyann.scriptblockplus.file.json.element.PlayerCount;
 import com.github.yuttyann.scriptblockplus.hook.plugin.Placeholder;
 import com.github.yuttyann.scriptblockplus.manager.EndProcessManager;
@@ -54,7 +53,7 @@ public class ScriptRead extends ScriptMap implements SBRead {
     protected final SBPlayer sbPlayer;
     protected final ScriptKey scriptKey;
     protected final BlockCoords blockCoords;
-    protected final BlockScript blockScript;
+    protected final BlockScriptJson scriptJson;
 
     // ScriptRead#read(int) から
     protected int index;
@@ -66,7 +65,7 @@ public class ScriptRead extends ScriptMap implements SBRead {
         this.sbPlayer = SBPlayer.fromPlayer(player);
         this.scriptKey = scriptKey;
         this.blockCoords = new UnmodifiableBlockCoords(blockCoords);
-        this.blockScript = BlockScriptJson.get(scriptKey).load();
+        this.scriptJson = BlockScriptJson.get(scriptKey);
     }
     
     public final void setInitialize(boolean initialize) {
@@ -120,11 +119,14 @@ public class ScriptRead extends ScriptMap implements SBRead {
 
     @Override
     public boolean read(final int index) {
-        if (!blockScript.has(blockCoords)) {
+        if (!sbPlayer.isOnline()) {
+            return false;
+        }
+        if (!scriptJson.has(blockCoords)) {
             SBConfig.ERROR_SCRIPT_FILE_CHECK.send(sbPlayer);
             return false;
         }
-        if (!sortScripts(blockScript.get(blockCoords).getScript())) {
+        if (!sortScripts(scriptJson.load(blockCoords).getScripts())) {
             SBConfig.ERROR_SCRIPT_EXECUTE.replace(scriptKey).send(sbPlayer);
             SBConfig.CONSOLE_ERROR_SCRIPT_EXECUTE.replace(scriptKey, blockCoords).console();
             return false;
@@ -139,10 +141,6 @@ public class ScriptRead extends ScriptMap implements SBRead {
     }
 
     protected boolean perform(final int index) {
-        if (!sbPlayer.isOnline()) {
-            EndProcessManager.forEach(e -> e.failed(this));
-            return false;
-        }
         for (this.index = index; this.index < scripts.size(); this.index++) {
             String script = scripts.get(this.index);
             Option option = OptionManager.newInstance(script);
@@ -156,7 +154,7 @@ public class ScriptRead extends ScriptMap implements SBRead {
         SBConfig.CONSOLE_SUCCESS_SCRIPT_EXECUTE.replace(scriptKey, blockCoords).console();
         return true;
     }
-    
+
     protected boolean isFailedIgnore(@NotNull Option option) {
         StreamUtils.ifAction(!option.isFailedIgnore(), () -> EndProcessManager.forEach(e -> e.failed(this)));
         return true;
@@ -164,9 +162,9 @@ public class ScriptRead extends ScriptMap implements SBRead {
 
     protected boolean sortScripts(@NotNull List<String> scripts) {
         try {
-            List<String> parse = new ArrayList<>();
+            List<String> parse = new ArrayList<String>();
             for (int i = 0, l = scripts.size(); i < l; i++) {
-                parse.addAll(StringUtils.getScripts(scripts.get(i)));
+                parse.addAll(StringUtils.parseScript(scripts.get(i)));
             }
             SBConfig.SORT_SCRIPTS.ifPresentAndTrue(s -> OptionManager.sort(parse));
             this.scripts = Collections.unmodifiableList(parse);

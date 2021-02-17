@@ -32,14 +32,14 @@ public final class StringUtils {
     private static final Random RANDOM = new Random();
 
     @NotNull
-    public static List<String> getScripts(@NotNull String script) throws IllegalArgumentException {
-        int length = script.length();
-        if (script.charAt(0) != '[' || script.charAt(length - 1) != ']') {
-            return Collections.singletonList(script);
+    public static List<String> parseScript(@NotNull String source) throws IllegalArgumentException {
+        int length = source.length();
+        if (source.charAt(0) != '[' || source.charAt(length - 1) != ']') {
+            return Collections.singletonList(source);
         }
-        List<String> result = new ArrayList<>();
-        char[] chars = script.toCharArray();
         int start = 0, end = 0;
+        char[] chars = source.toCharArray();
+        List<String> parse = new ArrayList<String>(4);
         for (int i = 0, j = 0, k = 0; i < length; i++) {
             if (chars[i] == '[') {
                 start++;
@@ -49,14 +49,14 @@ public final class StringUtils {
             } else if (chars[i] == ']') {
                 end++;
                 if (--j == 0) {
-                    result.add(script.substring(k + 1, i));
+                    parse.add(source.substring(k + 1, i));
                 }
             }
         }
         if (start != end) {
             throw new IllegalArgumentException("Failed to load the script");
         }
-        return result;
+        return parse;
     }
 
     @NotNull
@@ -64,7 +64,7 @@ public final class StringUtils {
         if (isEmpty(source)) {
             return ArrayUtils.EMPTY_STRING_ARRAY;   
         }
-        List<String> list = new ArrayList<>();
+        List<String> list = new ArrayList<String>();
         char[] chars = source.toCharArray();
         boolean match = false;
         int start = 0;
@@ -85,12 +85,12 @@ public final class StringUtils {
             }
             list.add(source.substring(start, chars.length));
         }
-        return list.toArray(new String[0]);
+        return list.toArray(new String[list.size()]);
     }
 
     @NotNull
     public static String replace(@Nullable String source, @NotNull String search, @Nullable Object replace) {
-        return isEmpty(source) ? "" : source.replace(search, replace == null ? "" : replace.toString());
+        return isEmpty(source) ? "" : org.apache.commons.lang.StringUtils.replace(source, search, replace == null ? "" : replace.toString());
     }
 
     @NotNull

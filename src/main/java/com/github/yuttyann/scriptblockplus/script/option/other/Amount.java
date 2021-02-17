@@ -18,8 +18,8 @@ package com.github.yuttyann.scriptblockplus.script.option.other;
 import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
 import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerCountJson;
-import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerTempJson;
-import com.github.yuttyann.scriptblockplus.file.json.element.ScriptParam;
+import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerTimerJson;
+import com.github.yuttyann.scriptblockplus.file.json.element.BlockScript;
 import com.github.yuttyann.scriptblockplus.script.option.BaseOption;
 import com.github.yuttyann.scriptblockplus.script.option.OptionTag;
 
@@ -28,23 +28,23 @@ import com.github.yuttyann.scriptblockplus.script.option.OptionTag;
  * @author yuttyann44581
  */
 @OptionTag(name = "amount", syntax = "@amount:")
-public class Amount extends BaseOption {
+public final class Amount extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {
         BlockScriptJson scriptJson = BlockScriptJson.get(getScriptKey());
         BlockCoords blockCoords = getBlockCoords();
-        ScriptParam scriptParam = scriptJson.load().get(blockCoords);
-        if (scriptParam.getAmount() == -1) {
-            scriptParam.setAmount(Integer.parseInt(getOptionValue()));
+        BlockScript blockScript = scriptJson.load(blockCoords);
+        if (blockScript.getAmount() == -1) {
+            blockScript.setAmount(Integer.parseInt(getOptionValue()));
         }
-        scriptParam.subtractAmount(1);
-        if (scriptParam.getAmount() <= 0) {
-            PlayerTempJson.removeAll(getScriptKey(), blockCoords);
+        blockScript.subtractAmount(1);
+        if (blockScript.getAmount() <= 0) {
+            PlayerTimerJson.removeAll(getScriptKey(), blockCoords);
             PlayerCountJson.removeAll(getScriptKey(), blockCoords);
-            scriptJson.load().remove(blockCoords);
+            scriptJson.remove(blockCoords);
         }
-        scriptJson.saveFile();
+        scriptJson.saveJson();
         return true;
     }
 }

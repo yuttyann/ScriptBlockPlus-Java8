@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  * @author yuttyann44581
  */
 @OptionTag(name = "scriptaction", syntax = "@scriptaction:")
-public class ScriptAction extends BaseOption {
+public final class ScriptAction extends BaseOption {
 
     public static final String KEY = Utils.randomUUID();
 
@@ -39,9 +39,8 @@ public class ScriptAction extends BaseOption {
         if (!getTempMap().has(KEY)) {
             return false;
         }
-        String[] array = StringUtils.split(getOptionValue(), ',');
         Action action = (Action) getTempMap().get(KEY);
-        return StreamUtils.allMatch(array, s -> equals(action, s));
+        return StreamUtils.allMatch(StringUtils.split(getOptionValue(), ','), s -> equals(action, s));
     }
 
     private boolean equals(@Nullable Action action, @NotNull String type) {

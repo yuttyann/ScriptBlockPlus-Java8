@@ -148,7 +148,11 @@ public abstract class BaseOption extends Option {
     @Override
     @Deprecated
     public final boolean callOption(@NotNull SBRead sbRead) {
-        Player player = sbRead.getPlayer();
+        SBPlayer sbPlayer = sbRead.getSBPlayer();
+        if (!sbPlayer.isOnline()) {
+            return false;
+        }
+        Player player = sbPlayer.getPlayer();
         if (SBConfig.OPTION_PERMISSION.getValue() && !Permission.has(player, PERMISSION_ALL, getPermissionNode())) {
             SBConfig.NOT_PERMISSION.send(player);
             return false;

@@ -28,7 +28,7 @@ import org.bukkit.entity.Player;
  * @author yuttyann44581
  */
 @OptionTag(name = "permission", syntax = "@perm:")
-public class Perm extends BaseOption {
+public final class Perm extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {

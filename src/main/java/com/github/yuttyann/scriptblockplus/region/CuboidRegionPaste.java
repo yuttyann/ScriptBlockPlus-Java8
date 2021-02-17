@@ -21,8 +21,8 @@ import java.util.Set;
 import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
 import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerCountJson;
-import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerTempJson;
-import com.github.yuttyann.scriptblockplus.file.json.element.ScriptParam;
+import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerTimerJson;
+import com.github.yuttyann.scriptblockplus.file.json.element.BlockScript;
 import com.github.yuttyann.scriptblockplus.script.SBClipboard;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
@@ -70,14 +70,14 @@ public class CuboidRegionPaste {
                 continue;
             }
             BlockScriptJson scriptJson = sbClipboard.getBlockScriptJson();
-            if (!overwrite && scriptJson.has() && scriptJson.load().has(blockCoords)) {
+            if (!overwrite && scriptJson.has(blockCoords)) {
                 continue;
             }
             blocks.add(blockCoords = BlockCoords.copy(blockCoords));
             lightPaste(blockCoords, scriptJson);
         }
         ReuseIterator<BlockCoords> reuseIterator = new ReuseIterator<>(blocks);
-        PlayerTempJson.removeAll(scriptKey, reuseIterator);
+        PlayerTimerJson.removeAll(scriptKey, reuseIterator);
         PlayerCountJson.removeAll(scriptKey, reuseIterator);
         StreamUtils.ifAction(blocks.size() > 0, sbClipboard::save);
         this.iterator = iterator;
@@ -85,12 +85,12 @@ public class CuboidRegionPaste {
     }
 
     private void lightPaste(@NotNull BlockCoords blockCoords, @NotNull BlockScriptJson scriptJson) {
-        ScriptParam scriptParam = scriptJson.load().get(blockCoords);
-        scriptParam.setAuthor(sbClipboard.getAuthor());
-        scriptParam.getAuthor().add(sbClipboard.getSBPlayer().getUniqueId());
-        scriptParam.setScript(sbClipboard.getScript());
-        scriptParam.setLastEdit(Utils.getFormatTime(Utils.DATE_PATTERN));
-        scriptParam.setSelector(sbClipboard.getSelector());
-        scriptParam.setAmount(sbClipboard.getAmount());
+        BlockScript blockScript = scriptJson.load(blockCoords);
+        blockScript.setAuthors(sbClipboard.getAuthor());
+        blockScript.getAuthors().add(sbClipboard.getSBPlayer().getUniqueId());
+        blockScript.setScripts(sbClipboard.getScript());
+        blockScript.setLastEdit(Utils.getFormatTime(Utils.DATE_PATTERN));
+        blockScript.setSelector(sbClipboard.getSelector());
+        blockScript.setAmount(sbClipboard.getAmount());
     }
 }

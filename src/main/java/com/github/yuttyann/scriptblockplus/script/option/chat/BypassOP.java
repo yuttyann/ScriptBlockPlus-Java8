@@ -28,7 +28,7 @@ import org.bukkit.entity.Player;
  * @author yuttyann44581
  */
 @OptionTag(name = "bypass_op", syntax = "@bypass ")
-public class BypassOP extends BaseOption {
+public final class BypassOP extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {

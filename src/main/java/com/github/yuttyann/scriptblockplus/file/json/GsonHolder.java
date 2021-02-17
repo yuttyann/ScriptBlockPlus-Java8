@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.github.yuttyann.scriptblockplus.file.json.annotation.Alternate;
-import com.github.yuttyann.scriptblockplus.file.json.builder.LegacyEnumFactory;
-import com.github.yuttyann.scriptblockplus.file.json.builder.LegacyReflectiveFactory;
+import com.github.yuttyann.scriptblockplus.file.json.legacy.LegacyEnumFactory;
+import com.github.yuttyann.scriptblockplus.file.json.legacy.LegacyReflectiveFactory;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.google.gson.FieldNamingStrategy;
 import com.google.gson.Gson;
@@ -41,20 +41,7 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  * {@link SerializedName#alternate()}が存在しない古いバージョンの場合は、
  * <p>
- * {@link Alternate#value()}を使用することで、同じ動作をさせることができます。
- * @apiNote
- * <pre>
- * SerializedNameとAlternateの実装方法
- * // 利用する場合は必ず@SerializedNameと@Alternateを同時に実装してください。
- * 
- * // 正しい実装方法(古いバージョン、新しいバージョン共に動作します。)
- * &#064;Alternate("firstName1")
- * &#064;SerializedName(value = "firstName", alternate = { "firstName1" })
- * 
- * // 謝った実装方法(古いバージョンでしか動作しません。)
- * &#064;Alternate("firstName1")
- * &#064;SerializedName(value = "firstName") 
- * </pre>
+ * {@link Alternate#value()}を併用することで、同じ動作をさせることができます。
  * @author yuttyann44581
  */
 public final class GsonHolder {
@@ -79,6 +66,28 @@ public final class GsonHolder {
     }
 
     /**
+     * {@link Gson}を取得します。
+     * @return {@link Gson}
+     */
+    @NotNull
+    public Gson getGson() {
+        if (gson == null) {
+            update();
+        }
+        return gson;
+    }
+
+    /**
+     * 設定を更新します。
+     */
+    public synchronized void update() {
+        this.gson = gsonBuilder.create();
+        if (LEGACY_GSON) {
+            legacy();
+        }
+    }
+
+    /**
      * 処理の後に設定を更新します。
      * @param action - 処理
      */
@@ -88,28 +97,6 @@ public final class GsonHolder {
         } finally {
             update();
         }
-    }
-
-    /**
-     * 設定を更新します。
-     */
-    public void update() {
-        this.gson = gsonBuilder.create();
-        if (LEGACY_GSON) {
-            legacy();
-        }
-    }
-
-    /**
-     * {@link Gson}を取得します。
-     * @return {@link Gson}
-     */
-    @NotNull
-    Gson getGson() {
-        if (gson == null) {
-            update();
-        }
-        return gson;
     }
 
     /**
@@ -124,34 +111,27 @@ public final class GsonHolder {
         try {
             Field factories = Gson.class.getDeclaredField("factories");
             factories.setAccessible(true);
-            Object unmodifiableList = factories.get(gson);
-            Field innerList = unmodifiableList.getClass().getSuperclass().getDeclaredField("list");
+            Object unmodifiable = factories.get(gson);
+            Field innerList = unmodifiable.getClass().getSuperclass().getDeclaredField("list");
             innerList.setAccessible(true);
-            List<TypeAdapterFactory> typeFactoryList = (List<TypeAdapterFactory>) innerList.get(unmodifiableList);
+            List<TypeAdapterFactory> typeFactoryList = (List<TypeAdapterFactory>) innerList.get(unmodifiable);
             typeFactoryList.removeIf(t -> {
                 Class<? extends TypeAdapterFactory> factory = t.getClass();
                 return factory.equals(ReflectiveTypeAdapterFactory.class) || factory.equals(TypeAdapters.ENUM_FACTORY.getClass());
             });
-
-            Field constructorConstructor = Gson.class.getDeclaredField("constructorConstructor");
-            constructorConstructor.setAccessible(true);
-            Field fieldNamingPolicy = GsonBuilder.class.getDeclaredField("fieldNamingPolicy");
-            fieldNamingPolicy.setAccessible(true);
+            Field constructor = Gson.class.getDeclaredField("constructorConstructor");
+            constructor.setAccessible(true);
+            Field fieldNaming = GsonBuilder.class.getDeclaredField("fieldNamingPolicy");
+            fieldNaming.setAccessible(true);
             Field excluder = GsonBuilder.class.getDeclaredField("excluder");
             excluder.setAccessible(true);
+            ConstructorConstructor argment1 = (ConstructorConstructor) constructor.get(gson);
+            FieldNamingStrategy argment2 = (FieldNamingStrategy) fieldNaming.get(gsonBuilder);
+            Excluder argment3 = (Excluder) excluder.get(gsonBuilder);
             typeFactoryList.add(LegacyEnumFactory.INSTANCE);
-            typeFactoryList.add(newLegacyReflectiveFactory(constructorConstructor.get(gson), fieldNamingPolicy.get(gsonBuilder), excluder.get(gsonBuilder)));
+            typeFactoryList.add(new LegacyReflectiveFactory(argment1, argment2, argment3));
         } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * {@link LegacyReflectiveFactory}を生成します。
-     * @return {@link LegacyReflectiveFactory}
-     */
-    @NotNull
-    private LegacyReflectiveFactory newLegacyReflectiveFactory(@NotNull Object constructorConstructor, @NotNull Object fieldNamingPolicy, @NotNull Object excluder) {
-        return new LegacyReflectiveFactory((ConstructorConstructor) constructorConstructor, (FieldNamingStrategy) fieldNamingPolicy, (Excluder) excluder);
     }
 }

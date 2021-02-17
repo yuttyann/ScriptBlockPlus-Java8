@@ -28,7 +28,7 @@ import org.bukkit.entity.Player;
  * @author yuttyann44581
  */
 @OptionTag(name = "group", syntax = "@group:")
-public class Group extends BaseOption {
+public final class Group extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {

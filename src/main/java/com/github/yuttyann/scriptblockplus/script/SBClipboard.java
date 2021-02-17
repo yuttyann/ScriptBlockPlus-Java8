@@ -19,8 +19,8 @@ import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.file.config.SBConfig;
 import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
 import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerCountJson;
-import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerTempJson;
-import com.github.yuttyann.scriptblockplus.file.json.element.ScriptParam;
+import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerTimerJson;
+import com.github.yuttyann.scriptblockplus.file.json.element.BlockScript;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
 import com.github.yuttyann.scriptblockplus.utils.unmodifiable.UnmodifiableBlockCoords;
@@ -56,11 +56,11 @@ public class SBClipboard {
         this.blockCoords = new UnmodifiableBlockCoords(blockCoords);
         this.scriptJson = scriptJson;
 
-        ScriptParam scriptParam = scriptJson.load().get(blockCoords);
-        this.author = Sets.newLinkedHashSet(scriptParam.getAuthor());
-        this.script = Lists.newArrayList(scriptParam.getScript());
-        this.selector = scriptParam.getSelector();
-        this.amount = scriptParam.getAmount();
+        BlockScript blockScript = scriptJson.load(blockCoords);
+        this.author = Sets.newLinkedHashSet(blockScript.getAuthors());
+        this.script = Lists.newArrayList(blockScript.getScripts());
+        this.selector = blockScript.getSelector();
+        this.amount = blockScript.getAmount();
     }
 
     @NotNull
@@ -98,11 +98,11 @@ public class SBClipboard {
     }
 
     public void save() {
-        scriptJson.saveFile();
+        scriptJson.saveJson();
     }
 
     public boolean copy() {
-        if (!BlockScriptJson.has(blockCoords, scriptJson)) {
+        if (!BlockScriptJson.contains(blockCoords, scriptJson)) {
             SBConfig.ERROR_SCRIPT_FILE_CHECK.send(sbPlayer);
             return false;
         }
@@ -117,19 +117,19 @@ public class SBClipboard {
     }
 
     public boolean paste(@NotNull BlockCoords blockCoords, boolean overwrite) {
-        if (BlockScriptJson.has(blockCoords, scriptJson) && !overwrite) {
+        if (BlockScriptJson.contains(blockCoords, scriptJson) && !overwrite) {
             return false;
         }
         try {
-            ScriptParam scriptParam = scriptJson.load().get(blockCoords);
-            scriptParam.setAuthor(author);
-            scriptParam.getAuthor().add(sbPlayer.getUniqueId());
-            scriptParam.setScript(script);
+            BlockScript scriptParam = scriptJson.load(blockCoords);
+            scriptParam.setAuthors(author);
+            scriptParam.getAuthors().add(sbPlayer.getUniqueId());
+            scriptParam.setScripts(script);
             scriptParam.setLastEdit(Utils.getFormatTime(Utils.DATE_PATTERN));
             scriptParam.setSelector(selector);
             scriptParam.setAmount(amount);
-            scriptJson.saveFile();
-            PlayerTempJson.removeAll(scriptKey, blockCoords);
+            scriptJson.saveJson();
+            PlayerTimerJson.removeAll(scriptKey, blockCoords);
             PlayerCountJson.removeAll(scriptKey, blockCoords);
             SBConfig.SCRIPT_PASTE.replace(scriptKey).send(sbPlayer);
             SBConfig.CONSOLE_SCRIPT_EDIT.replace(scriptKey, blockCoords).console();

@@ -16,26 +16,28 @@
 package com.github.yuttyann.scriptblockplus.file.json;
 
 import com.github.yuttyann.scriptblockplus.BlockCoords;
+import com.github.yuttyann.scriptblockplus.ScriptBlock;
 import com.github.yuttyann.scriptblockplus.file.SBFile;
-import com.github.yuttyann.scriptblockplus.file.json.annotation.Exclude;
+import com.github.yuttyann.scriptblockplus.file.config.SBConfig;
 import com.github.yuttyann.scriptblockplus.file.json.annotation.JsonTag;
-import com.github.yuttyann.scriptblockplus.file.json.annotation.Alternate;
-import com.github.yuttyann.scriptblockplus.file.json.builder.BlockCoordsDeserializer;
-import com.github.yuttyann.scriptblockplus.file.json.builder.BlockCoordsSerializer;
+import com.github.yuttyann.scriptblockplus.file.json.builder.BlockCoordsAdapter;
+import com.github.yuttyann.scriptblockplus.file.json.builder.CollectionType;
 import com.github.yuttyann.scriptblockplus.file.json.builder.FieldExclusion;
-import com.github.yuttyann.scriptblockplus.file.json.builder.ScriptKeyDeserializer;
-import com.github.yuttyann.scriptblockplus.file.json.builder.ScriptKeySerializer;
+import com.github.yuttyann.scriptblockplus.file.json.builder.NumberAdapter;
+import com.github.yuttyann.scriptblockplus.file.json.builder.ScriptKeyAdapter;
+import com.github.yuttyann.scriptblockplus.file.json.element.BlockScript;
+import com.github.yuttyann.scriptblockplus.file.json.element.PlayerCount;
+import com.github.yuttyann.scriptblockplus.file.json.element.PlayerTimer;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
 import com.github.yuttyann.scriptblockplus.utils.collection.IntMap;
+import com.github.yuttyann.scriptblockplus.utils.FileUtils;
+import com.github.yuttyann.scriptblockplus.utils.StringUtils;
 import com.github.yuttyann.scriptblockplus.utils.collection.IntHashMap;
-import com.github.yuttyann.scriptblockplus.utils.unmodifiable.UnmodifiableBlockCoords;
-import com.google.common.base.Charsets;
 import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.InstanceCreator;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * ScriptBlockPlus BaseJson クラス
@@ -50,7 +53,7 @@ import java.util.*;
  * @author yuttyann44581
  */
 @SuppressWarnings("unchecked")
-public abstract class BaseJson<E extends BaseElement> {
+public abstract class BaseJson<E extends BaseElement> extends SubElementMap<E> {
 
     /**
      * ScriptBlockPlus Status 列挙型
@@ -59,7 +62,7 @@ public abstract class BaseJson<E extends BaseElement> {
      * @author yuttyann44581
      */
     public enum Status {
-        
+
         /**
          * キャッシュが生成されていない状態
          * <p>
@@ -70,7 +73,7 @@ public abstract class BaseJson<E extends BaseElement> {
         /**
          * キャッシュを保持している状態
          * <p>
-         * 生成方法は{@link BaseJson#newJson(Object, CacheJson)}を参照してください。
+         * 生成方法は{@link BaseJson#newJson(String, CacheJson)}を参照してください。
         */
         KEEP_CACHE,
 
@@ -82,74 +85,35 @@ public abstract class BaseJson<E extends BaseElement> {
         CLEAR_CACHE,
     }
 
-    @Exclude
+    public static final String INDENT = "  ";
+    public static final GsonHolder GSON_HOLDER = new GsonHolder(new GsonBuilder());
+
     private static final IntMap<BaseJson<?>> JSON_CACHE = IntHashMap.create();
 
-    @Exclude
-    private static final GsonHolder GSON_HOLDER = new GsonHolder(new GsonBuilder());
+    private final File file;
+    private final String name;
+    private final JsonTag jsonTag;
 
-    @Exclude
-    private static final String INDENT = "  ";
-
-    @Exclude
-    private final JsonTag JSON_TAG = getClass().getAnnotation(JsonTag.class);
-
-    @Exclude
-    private File file;
-
-    @Exclude
+    private int id;
     private File parent;
-
-    @Exclude
-    private int cacheId;
-
-    @Exclude
     private Status status;
+    private CollectionType collectionType;
 
-    @Alternate("id")
-    @SerializedName(value = "name", alternate = { "id" })
-    protected String name;
+    private IntMap<E> elementMap;
 
-    @Alternate("infos")
-    @SerializedName(value = "elements", alternate = { "infos" })
-    protected List<E> list = Collections.emptyList();
-
+    // GsonBuilderにアダプター等の追加を行う。
     static {
         GSON_HOLDER.builder(b -> {
-            b.serializeNulls();
-            b.setPrettyPrinting();
             b.setExclusionStrategies(new FieldExclusion());
-            b.registerTypeAdapter(ScriptKey.class, new ScriptKeySerializer());
-            b.registerTypeAdapter(ScriptKey.class, new ScriptKeyDeserializer());
-            b.registerTypeAdapter(BlockCoords.class, new BlockCoordsSerializer());
-            b.registerTypeAdapter(BlockCoords.class, new BlockCoordsDeserializer());
-            b.registerTypeAdapter(UnmodifiableBlockCoords.class, new BlockCoordsSerializer());
-            b.registerTypeAdapter(UnmodifiableBlockCoords.class, new BlockCoordsDeserializer());
+            b.registerTypeAdapter(Map.class, new NumberAdapter());
+            b.registerTypeAdapter(List.class, new NumberAdapter());
+            b.registerTypeAdapter(ScriptKey.class, new ScriptKeyAdapter());
+            b.registerTypeHierarchyAdapter(BlockCoords.class, new BlockCoordsAdapter());
+            b.registerTypeAdapter(HashSet.class, newInstace(HashSet::new));
+            b.registerTypeAdapter(BlockScript.class, newInstace(() -> new BlockScript(BlockCoords.ZERO)));
+            b.registerTypeAdapter(PlayerCount.class, newInstace(() -> new PlayerCount(ScriptKey.INTERACT, BlockCoords.ZERO)));
+            b.registerTypeAdapter(PlayerTimer.class, newInstace(() -> new PlayerTimer(null, ScriptKey.INTERACT, BlockCoords.ZERO))); 
         });
-    }
-
-    /**
-     * コンストラクタ
-     * <p>
-     * 必ずシリアライズ、デシリアライズ化が可能なファイルを指定してください。
-     * @param json - JSONのファイル
-     */
-    protected BaseJson(@NotNull File json) {
-        if (JSON_TAG == null) {
-            throw new NullPointerException("Annotation not found @JsonTag()");
-        }
-        String path = json.getPath();
-        if (path.lastIndexOf(SBFile.setSeparator(JSON_TAG.path())) == -1) {
-            throw new IllegalArgumentException("File: " + json.getPath() + ", JsonTag: " + JSON_TAG.path());
-        }
-        this.name = path.substring(path.lastIndexOf(File.separatorChar) + 1, path.lastIndexOf('.'));
-        this.file = json;
-        try {
-            setList(createList(), loadFile());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        noCache();
     }
 
     /**
@@ -157,53 +121,17 @@ public abstract class BaseJson<E extends BaseElement> {
      * @param name - ファイルの名前
      */
     protected BaseJson(@NotNull String name) {
-        if (JSON_TAG == null) {
+        if ((this.jsonTag = getClass().getAnnotation(JsonTag.class)) == null) {
             throw new NullPointerException("Annotation not found @JsonTag()");
         }
+        this.file = getJsonFile(name);
         this.name = name;
-        this.file = getJsonFile(JSON_TAG);
         try {
-            setList(createList(), loadFile());
-        } catch (IOException e) {
+            setMap(loadJson());
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
         noCache();
-    }
-
-    /**
-     * 新しいリストに要素を追加します。
-     */
-    private void setList(@NotNull List<E> newList, @NotNull BaseJson<E> baseJson) {
-        if (baseJson != null) {
-            List<E> jsonList = baseJson.list;
-            if (newList instanceof ArrayList) {
-                newList = jsonList;
-            } else {
-                newList.addAll(jsonList);
-            }
-        }
-        this.list = newList;
-    }
-
-    /**
-     * {@link ArrayList}&lt;{@link E}&gt;を生成します。
-     * @return {@link ArrayList}&lt;{@link E}&gt; - リスト
-     */
-    @NotNull
-    protected List<E> createList() {
-        return new ArrayList<>();
-    }
-
-    /**
-     * 要素の再読み込みを行います。
-     */
-    public final void reload() {
-        Objects.requireNonNull(file, "Please load the file");
-        try {
-            setList(createList(), loadFile());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -212,35 +140,47 @@ public abstract class BaseJson<E extends BaseElement> {
      * このメソッドは、キャッシュの保存を行います。
      * <p>
      * キャッシュが見つからない場合は、インスタンスの生成を行います。
-     * @param <T> - 引数の型
-     * @param <R> - JSONの型
-     * @param argment - 引数
+     * <p>
+     * また、キャッシュを利用する場合は基本的に"private"なコンストラクタの実装を推奨します。
+     * @param <T> - JSONの型
+     * @param name - ファイルの名前
      * @param cacheJson - キャッシュ
-     * @return {@link BaseJson}
+     * @return {@link BaseJson} - インスタンス
      */
     @NotNull
-    protected static <T, R extends BaseJson<?>> R newJson(@NotNull T argment, @NotNull CacheJson<T> cacheJson) {
-        int hash = hash(argment, cacheJson.getJsonClass());
+    public static <T extends BaseJson<?>> T newJson(@NotNull String name, @NotNull CacheJson cacheJson) {
+        int hash = hash(name, cacheJson.getJsonClass());
         BaseJson<?> baseJson = JSON_CACHE.get(hash);
         if (baseJson == null) {
-            baseJson = cacheJson.newInstance(argment);
+            baseJson = cacheJson.newInstance(name);
             if (baseJson.isCacheFileExists() && !baseJson.exists()) {
-                return (R) baseJson;
+                return (T) baseJson;
             }
             baseJson.keepCache();
             baseJson.setCacheId(hash);
             JSON_CACHE.put(hash, baseJson);
         }
-        return (R) baseJson;
+        return (T) baseJson;
     }
 
     /**
-     * {@link GsonHolder}を取得します。
-     * @return {@link GsonHolder}
+     * キャッシュを取得します。
+     * <p>
+     * キャッシュが見つからない場合は、生成したインスタンスを返します。
+     * <p>
+     * また、キャッシュを利用する場合は基本的に"private"なコンストラクタの実装を推奨します。
+     * @param <T> JSONの型
+     * @param name - ファイルの名前
+     * @param cacheJson - キャッシュ
+     * @return {@link BaseJson} - インスタンス
      */
     @NotNull
-    protected static GsonHolder getGsonHolder() {
-        return GSON_HOLDER;
+    public static <T extends BaseJson<?>> T getCache(@NotNull String name, @NotNull CacheJson cacheJson) {
+        BaseJson<?> baseJson = JSON_CACHE.get(hash(name, cacheJson.getJsonClass()));
+        if (baseJson == null) {
+            baseJson = cacheJson.newInstance(name);
+        }
+        return (T) baseJson;
     }
 
     /**
@@ -266,12 +206,43 @@ public abstract class BaseJson<E extends BaseElement> {
     }
 
     /**
+     * {@link IntMap}&lt;{@link E}&gt;を取得します。
+     * @return {@link IntMap}&lt;{@link E}&gt; - エレメントのマップ
+     */
+    @Override
+    @NotNull
+    protected final IntMap<E> getElementMap() {
+        return elementMap;
+    }
+
+    /**
+     * {@link IntMap}&lt;{@link E}&gt;を生成します。
+     * @return {@link IntMap}&lt;{@link E}&gt; - マップ
+     */
+    @NotNull
+    protected IntMap<E> createMap() {
+        return IntHashMap.create();
+    }
+
+    /**
+     * 要素の再読み込みを行います。
+     */
+    public final void reload() {
+        Objects.requireNonNull(file, "Please load the file");
+        try {
+            setMap(loadJson());
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * 拡張子を除いたファイルの名前を取得します。
      * @return {@link String} - ファイルの名前
      */
     @NotNull
     public final String getName() {
-        return Objects.requireNonNull(name, "Please load the file");
+        return name;
     }
 
     /**
@@ -289,20 +260,16 @@ public abstract class BaseJson<E extends BaseElement> {
      */
     @NotNull
     public final File getParentFile() {
-        Validate.notNull(file, "Please load the file");
-        if (parent == null) {
-            this.parent = file.getParentFile();
-        }
-        return parent;
+        return parent == null ? parent = file.getParentFile() : parent;
     }
 
     /**
      * キャッシュIDを設定します。
-     * @param cacheId - キャッシュID
+     * @param id - キャッシュID
      */
-    private void setCacheId(final int cacheId) {
-        if (this.cacheId == 0) {
-            this.cacheId = cacheId;
+    private void setCacheId(final int id) {
+        if (this.id == 0) {
+            this.id = id;
         }
     }
 
@@ -311,7 +278,7 @@ public abstract class BaseJson<E extends BaseElement> {
      * @return {@link int} - キャッシュID
      */
     public int getCacheId() {
-        return cacheId;
+        return id;
     }
 
     /**
@@ -372,11 +339,11 @@ public abstract class BaseJson<E extends BaseElement> {
     }
 
     /**
-     * リストに要素が存在しない場合に{@code true}を返します。
+     * マップに要素が存在しない場合に{@code true}を返します。
      * @return {@link boolean} - 要素が存在しない場合は{@code true}
      */
     public final boolean isEmpty() {
-        return list.isEmpty();
+        return elementMap.isEmpty();
     }
 
     /**
@@ -392,7 +359,7 @@ public abstract class BaseJson<E extends BaseElement> {
      * @return {@link boolean} - 削除に成功した場合は{@code true}
      */
     public final boolean deleteFile() {
-        if (!exists()) {
+        if (!file.exists()) {
             return false;
         }
         try {
@@ -409,16 +376,18 @@ public abstract class BaseJson<E extends BaseElement> {
     /**
      * JSONのシリアライズ化を行います。
      */
-    public final void saveFile() {
-        if (!getParentFile().exists()) {
-            getParentFile().mkdirs();
+    public final void saveJson() {
+        File parent = getParentFile();
+        if (!parent.exists()) {
+            parent.mkdirs();
         }
-        try {
-            try (JsonWriter writer = new JsonWriter(new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8))) {
+        Collection<E> elements = copyElements();
+        try (JsonWriter writer = new JsonWriter(FileUtils.newBufferedWriter(file))) {
+            if (elementMap.size() < SBConfig.FORMAT_LIMIT.getValue()) {
                 writer.setIndent(INDENT);
-                GSON_HOLDER.getGson().toJson(this, getClass(), writer);
             }
-        } catch (IOException e) {
+            GSON_HOLDER.getGson().toJson(elements, getCollectionType(), writer);
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
             if (isTemporary() && getStatus() == Status.KEEP_CACHE) {
@@ -429,36 +398,93 @@ public abstract class BaseJson<E extends BaseElement> {
     }
 
     /**
+     * エレメントのコレクションをコピーします。
+     * @return {@link Collection}&lt;{@link E}&gt; - エレメントのコレクション
+     */
+    @NotNull
+    private Collection<E> copyElements() {
+        int size = elementMap.size() + subSize();
+        if (size == 0) {
+            return Collections.emptyList();
+        }
+        if (isSubEmpty()) {
+            return elementMap.values();
+        }
+        List<E> newList = new ArrayList<E>(size);
+        for (E element : elementMap.values()) {
+            newList.add(element);
+        }
+        for (E subElement : subValues()) {
+            newList.add(subElement);
+        }
+        return newList;
+    }
+
+    /**
      * JSONのデシリアライズ化を行います。
-     * @return {@link BaseJson} - JSON
+     * @return {@link Set}&lt;{@link E}&gt; - エレメントの配列
+     * @throws ClassNotFoundException
      */
     @Nullable
-    private BaseJson<E> loadFile() throws IOException {
-        if (!exists()) {
+    private List<E> loadJson() throws IOException, ClassNotFoundException {
+        if (!file.exists()) {
             return null;
         }
-        if (!getParentFile().exists()) {
-            getParentFile().mkdirs();
+        File parent = getParentFile();
+        if (!parent.exists()) {
+            parent.mkdirs();
         }
-        try (JsonReader reader = new JsonReader(new InputStreamReader(new FileInputStream(file), Charsets.UTF_8))) {
-            return (BaseJson<E>) GSON_HOLDER.getGson().fromJson(reader, getClass());
+        try (JsonReader reader = new JsonReader(FileUtils.newBufferedReader(file))) {
+            return (List<E>) GSON_HOLDER.getGson().fromJson(reader, getCollectionType());
         }
     }
 
     /**
+     * コレクションタイプを取得します。
+     * @return {@link CollectionType} - コレクションタイプ 
+     */
+    @NotNull
+    private CollectionType getCollectionType() throws ClassNotFoundException {
+        if (collectionType == null) {
+            this.collectionType = new CollectionType(Collection.class, this);
+        }
+        return collectionType;
+    }
+
+    /**
+     * マップに要素を追加します。
+     * @param elements - エレメントの配列
+     */
+    private void setMap(@Nullable List<E> elements) {
+        IntMap<E> newMap = createMap();
+        if (elements != null && elements.size() > 0) {
+            int size = elements.size();
+            if (size == 1) {
+                E element = elements.get(0);
+                newMap.put(element.hashCode(), element);
+            } else {
+                for (int i = 0; i < size; i++) {
+                    E element = elements.get(i);
+                    int hashCode = element.hashCode();
+                    if (newMap.containsKey(hashCode)) {
+                        subPut(hashCode, element);
+                    } else {
+                        newMap.put(hashCode, element);
+                    }
+                }
+            }
+        }
+        this.elementMap = newMap;
+    }
+
+    /**
      * JSONのファイルを取得します。
-     * @throws NullPointerException {@link JsonTag}が見つからなかった時にスローされます。
-     * @param jsonTag - JSONタグ
+     * @param name - ファイルの名前
      * @return {@link File} - JSONのファイル
      */
     @NotNull
-    private File getJsonFile(@NotNull JsonTag jsonTag) {
-        if (file == null) {
-            String path = StringUtils.replace(jsonTag.path() + "/" + jsonTag.file(), "{id}", name);
-            Plugin plugin = Bukkit.getPluginManager().getPlugin(jsonTag.plugin());
-            return new SBFile(plugin.getDataFolder(), path + ".json");
-        }
-        return file;
+    private File getJsonFile(@Nullable String name) {
+        return new SBFile(getPlugin(jsonTag).getDataFolder(), jsonTag.path() + "/" + name + ".json");
     }
 
     /**
@@ -475,40 +501,68 @@ public abstract class BaseJson<E extends BaseElement> {
         if (jsonTag == null) {
             throw new NullPointerException("Annotation not found @JsonTag()");
         }
-        Plugin plugin = Bukkit.getPluginManager().getPlugin(jsonTag.plugin());
-        SBFile folder = new SBFile(plugin.getDataFolder(), jsonTag.path());
-        if (folder.exists()) {
-            try {
-                return folder.listFiles(f -> f.getName().endsWith(".json"));
-            } finally {
-                clear(jsonClass);
-            }
+        File folder = new SBFile(getPlugin(jsonTag).getDataFolder(), jsonTag.path());
+        return folder.exists() ? folder.listFiles(f -> f.getName().endsWith(".json")) : new File[0];
+    }
+
+    /**
+     * フォルダ内の全てのファイルの名前を取得します。
+     * @throws NullPointerException {@link JsonTag}が見つからなかった時にスローされます。
+     * @param jsonClass - {@link BaseJson}を継承したクラス
+     * @return {@link List}&lt;{@link String}&gt; - 全てのファイルの名前
+     */
+    @NotNull
+    public static List<String> getNames(@NotNull Class<? extends BaseJson<?>> jsonClass) {
+        JsonTag jsonTag = jsonClass.getAnnotation(JsonTag.class);
+        if (jsonTag == null) {
+            throw new NullPointerException("Annotation not found @JsonTag()");
         }
-        return new File[0];
+        SBFile folder = new SBFile(getPlugin(jsonTag).getDataFolder(), jsonTag.path());
+        return folder.exists() ? folder.listNames((f, s) -> s.endsWith(".json")) : Collections.emptyList();
+    }
+
+    /**
+     * プラグインを取得します。
+     * @param jsonTag - JSONタグ
+     * @return {@link Plugin} - プラグイン
+     */
+    @NotNull
+    private static Plugin getPlugin(@NotNull JsonTag jsonTag) {
+        Plugin plugin = (Plugin) ScriptBlock.getInstance();
+        if (StringUtils.isNotEmpty(jsonTag.plugin())) {
+            plugin = Bukkit.getPluginManager().getPlugin(jsonTag.plugin());
+        }
+        return plugin;
+    }
+
+    /**
+     * {@link InstanceCreator}を生成します。
+     * @param <T> インスタンスの型
+     * @param newInstance - インスタンスの生成処理
+     * @return {@link InstanceCreator}&lt;{@link T}&gt; - インスタンスクリエイター
+     */
+    @NotNull
+    private static <T> InstanceCreator<T> newInstace(@NotNull Supplier<T> newInstance) {
+        return t -> newInstance.get();
     }
 
     /**
      * ハッシュコードを生成します。
-     * @param argment - 引数
+     * @param name - ファイルの名前
      * @param jsonClass - JSONのクラス
      * @return {@link int} - ハッシュコード
      */
-    @NotNull
-    private static int hash(@NotNull Object argment, @NotNull Class<?> jsonClass) {
+    private static int hash(@NotNull String name, @NotNull Class<?> jsonClass) {
         int hash = 1;
         int prime = 31;
-        hash = prime * hash + Objects.hashCode(argment);
+        hash = prime * hash + name.hashCode();
         hash = prime * hash + jsonClass.hashCode();
         return hash;
     }
 
     @Override
     public int hashCode() {
-        int hash = 1;
-        int prime = 31;
-        hash = prime * hash + name.hashCode();
-        hash = prime * hash + file.hashCode();
-        return hash;
+        return hash(name, getClass());
     }
 
     @Override

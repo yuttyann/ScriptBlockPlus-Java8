@@ -28,7 +28,7 @@ import org.bukkit.entity.Player;
  * @author yuttyann44581
  */
 @OptionTag(name = "command", syntax = "@command ")
-public class Command extends BaseOption {
+public final class Command extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {

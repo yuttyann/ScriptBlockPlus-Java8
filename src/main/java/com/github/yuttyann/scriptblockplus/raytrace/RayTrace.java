@@ -98,11 +98,11 @@ public final class RayTrace {
     @NotNull
     public static Set<Block> rayTraceBlocks(@NotNull Player player, final double distance, final double accuracy, final boolean square) {
         World world = player.getWorld();
-        Set<Block> blocks = new LinkedHashSet<Block>();
+        Set<Block> blocks = new LinkedHashSet<>();
         RayTrace rayTrace = new RayTrace(player);
         List<Vector> positions = rayTrace.traverse(distance, accuracy);
         SBBoundingBox boundingBox = new SBBoundingBox();
-        for (int i = 0, l = positions.size(); i < l; i++) {
+        for(int i = 0, l = positions.size(); i < l; i++) {
             Vector position = positions.get(i);
             Location location = position.toLocation(world);
             boundingBox.setBlock(location.getBlock(), square);
@@ -130,7 +130,7 @@ public final class RayTrace {
 
     @NotNull
     public List<Vector> traverse(final double distance, final double accuracy) {
-        List<Vector> positions = new ArrayList<Vector>();
+        List<Vector> positions = new ArrayList<>();
         for (double d = 0.0D; d <= distance; d += accuracy) {
             positions.add(getPostion(d));
         }
@@ -149,7 +149,7 @@ public final class RayTrace {
     @Nullable
     public Vector positionOfIntersection(@NotNull SBBoundingBox boundingBox, final double distance, final double accuracy) {
         List<Vector> positions = traverse(distance, accuracy);
-        for (int i = 0, l = positions.size(); i < l; i++) {
+        for(int i = 0, l = positions.size(); i < l; i++) {
             Vector position = positions.get(i);
             if (intersects(position, boundingBox)) {
                 return position;
@@ -160,7 +160,7 @@ public final class RayTrace {
 
     public boolean intersects(@NotNull SBBoundingBox boundingBox, final double distance, final double accuracy) {
         List<Vector> positions = traverse(distance, accuracy);
-        for (int i = 0, l = positions.size(); i < l; i++) {
+        for(int i = 0, l = positions.size(); i < l; i++) {
             if (intersects(positions.get(i), boundingBox)) {
                 return true;
             }

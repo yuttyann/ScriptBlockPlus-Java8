@@ -27,7 +27,7 @@ import org.bukkit.entity.Player;
  * @author yuttyann44581
  */
 @OptionTag(name = "group_remove", syntax = "@groupREMOVE:")
-public class GroupRemove extends BaseOption {
+public final class GroupRemove extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {

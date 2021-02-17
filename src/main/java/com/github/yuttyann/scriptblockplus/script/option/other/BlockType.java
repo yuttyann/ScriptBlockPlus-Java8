@@ -31,13 +31,12 @@ import org.jetbrains.annotations.NotNull;
  * @author yuttyann44581
  */
 @OptionTag(name = "blocktype", syntax = "@blocktype:")
-public class BlockType extends BaseOption {
+public final class BlockType extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {
-        String[] array = StringUtils.split(getOptionValue(), ',');
         Block block = getBlockCoords().getBlock();
-        return StreamUtils.anyMatch(array, s -> equals(block, s));
+        return StreamUtils.anyMatch(StringUtils.split(getOptionValue(), ','), s -> equals(block, s));
     }
 
     private boolean equals(@NotNull Block block, @NotNull String type) {

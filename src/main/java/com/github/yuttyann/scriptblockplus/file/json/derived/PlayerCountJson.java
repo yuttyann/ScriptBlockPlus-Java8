@@ -18,8 +18,8 @@ package com.github.yuttyann.scriptblockplus.file.json.derived;
 import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.file.json.CacheJson;
 import com.github.yuttyann.scriptblockplus.file.json.annotation.JsonTag;
+import com.github.yuttyann.scriptblockplus.file.json.basic.TwoJson;
 import com.github.yuttyann.scriptblockplus.file.json.element.PlayerCount;
-import com.github.yuttyann.scriptblockplus.file.json.multi.TwoJson;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
 import com.github.yuttyann.scriptblockplus.utils.collection.ReuseIterator;
@@ -27,7 +27,7 @@ import com.github.yuttyann.scriptblockplus.utils.collection.ReuseIterator;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -35,16 +35,12 @@ import java.util.UUID;
  * @author yuttyann44581
  */
 @JsonTag(path = "json/playercount")
-public class PlayerCountJson extends TwoJson<ScriptKey, BlockCoords, PlayerCount> {
+public final class PlayerCountJson extends TwoJson<ScriptKey, BlockCoords, PlayerCount> {
 
-    private static final CacheJson<UUID> CACHE_JSON = new CacheJson<>(PlayerCountJson.class, PlayerCountJson::new);
-    
-    private PlayerCountJson(@NotNull File json) {
-        super(json);
-    }
+    public static final CacheJson CACHE_JSON = new CacheJson(PlayerCountJson.class, PlayerCountJson::new);
 
-    protected PlayerCountJson(@NotNull UUID uuid) {
-        super(uuid.toString());
+    private PlayerCountJson(@NotNull String name) {
+        super(name.toString());
     }
 
     @Override
@@ -55,7 +51,7 @@ public class PlayerCountJson extends TwoJson<ScriptKey, BlockCoords, PlayerCount
 
     @NotNull
     public static PlayerCountJson get(@NotNull UUID uuid) {
-        return newJson(uuid, CACHE_JSON);
+        return newJson(uuid.toString(), CACHE_JSON);
     }
 
     @NotNull
@@ -72,9 +68,12 @@ public class PlayerCountJson extends TwoJson<ScriptKey, BlockCoords, PlayerCount
         removeAll(scriptKey, new ReuseIterator<>(new BlockCoords[] { blockCoords }));
     }
 
-    public static synchronized void removeAll(@NotNull ScriptKey scriptKey, @NotNull ReuseIterator<BlockCoords> reuseIterator) {
-        for (File json : getFiles(PlayerCountJson.class)) {
-            PlayerCountJson countJson = new PlayerCountJson(json);
+    public static void removeAll(@NotNull ScriptKey scriptKey, @NotNull ReuseIterator<BlockCoords> reuseIterator) {
+        List<String> names = getNames(PlayerCountJson.class);
+        for (int i = 0, l = names.size(), e = ".json".length(); i < l; i++) {
+            String name = names.get(i);
+            int index = name.length() - e;
+            PlayerCountJson countJson = getCache(name.substring(0, index), CACHE_JSON);
             if (countJson.isEmpty()) {
                 continue;
             }
@@ -86,7 +85,7 @@ public class PlayerCountJson extends TwoJson<ScriptKey, BlockCoords, PlayerCount
                 }
             }
             if (removed) {
-                countJson.saveFile();
+                countJson.saveJson();
             }
         }
     }

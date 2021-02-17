@@ -13,9 +13,9 @@
  * You should have received a copy of the GNU General Public License along with this program.
  * If not, see <https://www.gnu.org/licenses/>.
  */
-package com.github.yuttyann.scriptblockplus.file.json.multi;
+package com.github.yuttyann.scriptblockplus.file.json.basic;
 
-import java.io.File;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import com.github.yuttyann.scriptblockplus.file.json.BaseElement;
@@ -42,22 +42,47 @@ public abstract class TwoJson<A, B, E extends TwoJson.TwoElement<A, B>> extends 
     public static abstract class TwoElement<A, B> extends BaseElement {
 
         /**
+         * 引数{@link A}を取得します。
+         * <p>
+         * コンストラクタ宣言時に渡す引数と同じでなければなりません。
+         * @return {@link A} - 引数1
+         */
+        @Nullable
+        protected abstract A getA();
+
+        /**
+         * 引数{@link B}を取得します。
+         * <p>
+         * コンストラクタ宣言時に渡す引数と同じでなければなりません。
+         * @return {@link B} - 引数2
+         */
+        @Nullable
+        protected abstract B getB();
+
+        /**
          * 引数が一致するのか比較します。
          * @param a - 引数1
          * @param b - 引数2
          * @return {@link boolean} - 要素が存在する場合は{@code true}
          */
-        public abstract boolean isElement(@NotNull A a, @NotNull B b);
-    }
+        public boolean isElement(@Nullable A a, @Nullable B b) {
+            return compare(getA(), a) && compare(getB(), b);
+        }
 
-    /**
-     * コンストラクタ
-     * <p>
-     * 必ずシリアライズ、デシリアライズ化が可能なファイルを指定してください。
-     * @param json - JSONのファイル
-     */
-    protected TwoJson(@NotNull File json) {
-        super(json);
+        /**
+         * ハッシュコードを生成します。
+         * @return {@link int} - ハッシュコード
+         */
+        @Override
+        public final int hashCode() {
+            return TwoJson.hash(getA(), getB());
+        }
+
+        @Override
+        @NotNull
+        public final Class<? extends BaseElement> getElementType() {
+            return TwoElement.class;
+        }
     }
 
     /**
@@ -75,7 +100,7 @@ public abstract class TwoJson<A, B, E extends TwoJson.TwoElement<A, B>> extends 
      * @return {@link E} - インスタンス
      */
     @NotNull
-    protected abstract E newInstance(@NotNull A a, @NotNull B b);
+    protected abstract E newInstance(@Nullable A a, @Nullable B b);
 
     /**
      * 要素を取得します。
@@ -84,10 +109,16 @@ public abstract class TwoJson<A, B, E extends TwoJson.TwoElement<A, B>> extends 
      * @return {@link E} - 要素
      */
     @NotNull
-    public final E load(@NotNull A a, @NotNull B b) {
-        E element = fastLoad(a, b);
+    public final E load(@Nullable A a, @Nullable B b) {
+        int hash = hash(a, b);
+        E element = getElementMap().get(hash);
         if (element == null) {
-            list.add(element = newInstance(a, b));
+            getElementMap().put(hash, element = newInstance(a, b));
+        } else if (!element.isElement(a, b)) {
+            Integer objectHash = Integer.valueOf(hash);
+            if ((element = subGet(objectHash, e -> e.isElement(a, b))) == null) {
+                subPut(objectHash, element = newInstance(a, b));
+            }
         }
         return element;
     }
@@ -101,14 +132,15 @@ public abstract class TwoJson<A, B, E extends TwoJson.TwoElement<A, B>> extends 
      * @return {@link E} - 要素
      */
     @Nullable
-    public final E fastLoad(@NotNull A a, @NotNull B b) {
-        for (int i = 0, l = list.size(); i < l; i++) {
-            E element = list.get(i);
-            if (element.isElement(a, b)) {
-                return (E) element;
-            }
+    public final E fastLoad(@Nullable A a, @Nullable B b) {
+        int hash = hash(a, b);
+        E element = getElementMap().get(hash);
+        if (element == null) {
+            return null;
+        } else if (!element.isElement(a, b) && isSubNotEmpty()) {
+            element = subGet(hash, e -> e.isElement(a, b));
         }
-        return null;
+        return element;
     }
 
     /**
@@ -117,25 +149,31 @@ public abstract class TwoJson<A, B, E extends TwoJson.TwoElement<A, B>> extends 
      * @param b - 引数2
      * @return {@link boolean} - 要素が存在する場合は{@code true}
      */
-    public final boolean has(@NotNull A a, @NotNull B b) {
+    public final boolean has(@Nullable A a, @Nullable B b) {
         return fastLoad(a, b) != null;
     }
 
-     /**
-     * 要素を削除します。
+    /**
+     * 一致する要素を削除します。
      * @param a - 引数1
      * @param b - 引数2
      * @return {@link boolean} - 削除に成功した場合は{@code true}
      */
-    public final boolean remove(@NotNull A a, @NotNull B b) {
-        for (int i = 0, l = list.size(); i < l; i++) {
-            E element = list.get(i);
-            if (element.isElement(a, b)) {
-                list.remove(i);
-                return true;
-            }
+    public final boolean remove(@Nullable A a, @Nullable B b) {
+        int hash = hash(a, b);
+        E element = getElementMap().get(hash);
+        if (element == null) {
+            return false;
         }
-        return false;
+        if (element.isElement(a, b)) {
+            getElementMap().remove(hash);
+            if (isSubNotEmpty()) {
+                subMapFirstShift(hash);
+            }
+        } else if (isSubNotEmpty()) {
+            return subRemove(hash, e -> e.isElement(a, b));
+        }
+        return true;
     }
 
     /**
@@ -144,8 +182,16 @@ public abstract class TwoJson<A, B, E extends TwoJson.TwoElement<A, B>> extends 
      * @param a - 引数1
      * @param b - 引数2
      */
-    public final void action(@NotNull Consumer<E> action, @NotNull A a, @NotNull B b) {
+    public final void action(@NotNull Consumer<E> action, @Nullable A a, @Nullable B b) {
         action.accept(load(a, b));
-        saveFile();
+        saveJson();
+    }
+
+    private static int hash(@Nullable Object a, @Nullable Object b) {
+        int hash = 1;
+        int prime = 31;
+        hash = prime * hash + Objects.hashCode(a);
+        hash = prime * hash + Objects.hashCode(b);
+        return hash;
     }
 }

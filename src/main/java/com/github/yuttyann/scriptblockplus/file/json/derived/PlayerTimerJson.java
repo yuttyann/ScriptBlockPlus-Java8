@@ -17,75 +17,71 @@ package com.github.yuttyann.scriptblockplus.file.json.derived;
 
 import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.file.json.CacheJson;
-import com.github.yuttyann.scriptblockplus.file.json.SingleJson;
 import com.github.yuttyann.scriptblockplus.file.json.annotation.JsonTag;
-import com.github.yuttyann.scriptblockplus.file.json.element.PlayerTemp;
-import com.github.yuttyann.scriptblockplus.file.json.element.TimerTemp;
+import com.github.yuttyann.scriptblockplus.file.json.basic.ThreeJson;
+import com.github.yuttyann.scriptblockplus.file.json.element.PlayerTimer;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
+import com.github.yuttyann.scriptblockplus.script.option.time.OldCooldown;
 import com.github.yuttyann.scriptblockplus.utils.collection.ReuseIterator;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 /**
- * ScriptBlockPlus PlayerTempJson クラス
+ * ScriptBlockPlus PlayerTimerJson クラス
  * @author yuttyann44581
  */
-@JsonTag(path = "json/playertemp")
-public class PlayerTempJson extends SingleJson<PlayerTemp> {
+@JsonTag(path = "json/playertimer")
+public final class PlayerTimerJson extends ThreeJson<UUID, ScriptKey, BlockCoords, PlayerTimer> {
 
-    private static final CacheJson<UUID> CACHE_JSON = new CacheJson<>(PlayerTempJson.class, PlayerTempJson::new);
-    
-    private PlayerTempJson(@NotNull File json) {
-        super(json);
-    }
+    public static final CacheJson CACHE_JSON = new CacheJson(PlayerTimerJson.class, PlayerTimerJson::new);
 
-    protected PlayerTempJson(@NotNull UUID uuid) {
-        super(uuid.toString());
+    private PlayerTimerJson(@NotNull String name) {
+        super(name);
     }
 
     @Override
     @NotNull
-    protected PlayerTemp newInstance() {
-        return new PlayerTemp();
+    protected PlayerTimer newInstance(@Nullable UUID uuid, @NotNull ScriptKey scriptKey, @NotNull BlockCoords blockCoords) {
+        return new PlayerTimer(uuid, scriptKey, blockCoords);
     }
 
     @NotNull
-    public static PlayerTempJson get(@NotNull UUID uuid) {
-        return newJson(uuid, CACHE_JSON);
+    public static PlayerTimerJson get(@NotNull UUID uuid) {
+        return newJson(uuid.toString(), CACHE_JSON);
     }
 
     public static void removeAll(@NotNull ScriptKey scriptKey, @NotNull BlockCoords blockCoords) {
         removeAll(scriptKey, new ReuseIterator<>(new BlockCoords[] { blockCoords }));
     }
 
-    public static synchronized void removeAll(@NotNull ScriptKey scriptKey, @NotNull ReuseIterator<BlockCoords> reuseIterator) {
-        TimerTemp timerTemp = TimerTemp.empty();
-        for (File json : getFiles(PlayerTempJson.class)) {
-            PlayerTempJson tempJson = new PlayerTempJson(json);
-            if (tempJson.isEmpty()) {
+    public static void removeAll(@NotNull ScriptKey scriptKey, @NotNull ReuseIterator<BlockCoords> reuseIterator) {
+        List<String> names = getNames(PlayerTimerJson.class);
+        String oldUUID = OldCooldown.UUID_OLDCOOLDOWN.toString();
+        for (int i = 0, l = names.size(), e = ".json".length(); i < l; i++) {
+            String name = names.get(i);
+            int index = name.length() - e;
+            PlayerTimerJson timerJson = getCache(name.substring(0, index), CACHE_JSON);
+            if (timerJson.isEmpty()) {
                 continue;
             }
-            Set<TimerTemp> timer = tempJson.load().getTimerTemp();
-            if (timer.isEmpty()) {
-                continue;
+            UUID uuid = null;
+            if (!oldUUID.equals(timerJson.getName())) {
+                uuid = UUID.fromString(timerJson.getName());
             }
             boolean removed = false;
             reuseIterator.reset();
             while (reuseIterator.hasNext()) {
                 BlockCoords blockCoords = reuseIterator.next();
-                if (timer.remove(timerTemp.setUniqueId(null).setScriptKey(scriptKey).setBlockCoords(blockCoords))) {
-                    removed = true;
-                }
-                if (timer.remove(timerTemp.setUniqueId(UUID.fromString(tempJson.getName())))) {
+                if (timerJson.remove(uuid, scriptKey, blockCoords)) {
                     removed = true;
                 }
             }
             if (removed) {
-                tempJson.saveFile();
+                timerJson.saveJson();
             }
         }
     }

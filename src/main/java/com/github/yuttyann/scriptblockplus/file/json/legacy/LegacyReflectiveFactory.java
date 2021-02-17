@@ -15,7 +15,7 @@
  * 
  * Gson license <https://github.com/google/gson/blob/master/LICENSE>
  */
-package com.github.yuttyann.scriptblockplus.file.json.builder;
+package com.github.yuttyann.scriptblockplus.file.json.legacy;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -100,22 +100,22 @@ public final class LegacyReflectiveFactory implements TypeAdapterFactory {
             return Collections.singletonList(fieldNamingPolicy.translateName(field));
         }
         String value = serializedName.value();
-        Alternate alternate = field.getAnnotation(Alternate.class);
-        if (alternate == null) {
+        Alternate legacyAlternate = field.getAnnotation(Alternate.class);
+        if (legacyAlternate == null) {
             return Collections.singletonList(value);
         }
-        String[] alternates = alternate.value();
+        String[] alternates = legacyAlternate.value();
         if (alternates.length == 0) {
             return Collections.singletonList(value);
         }
-        List<String> names = new ArrayList<>(alternates.length + 1);
+        List<String> names = new ArrayList<String>(alternates.length + 1);
         names.add(value); Collections.addAll(names, alternates);
         return names;
     }
 
     @NotNull
     private Map<String, BoundField> getBoundFields(@NotNull Gson gson, @NotNull TypeToken<?> typeToken, @NotNull Class<?> rawType) {
-        Map<String, BoundField> result = new LinkedHashMap<String, BoundField>();
+        Map<String, BoundField> result = new LinkedHashMap<>();
         if (rawType.isInterface()) {
             return result;
         }
@@ -185,7 +185,7 @@ public final class LegacyReflectiveFactory implements TypeAdapterFactory {
         };
     }
   
-    private static abstract class BoundField {
+    private abstract class BoundField {
 
         final String name;
         final boolean serialized;
@@ -204,7 +204,7 @@ public final class LegacyReflectiveFactory implements TypeAdapterFactory {
         protected abstract void read(@NotNull JsonReader reader, @NotNull Object value) throws IOException, IllegalAccessException;
     }
 
-    public static final class Adapter<T> extends TypeAdapter<T> {
+    private final class Adapter<T> extends TypeAdapter<T> {
 
         private final ObjectConstructor<T> constructor;
         private final Map<String, BoundField> boundFields;

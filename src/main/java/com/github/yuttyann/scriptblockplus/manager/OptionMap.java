@@ -110,7 +110,7 @@ public final class OptionMap {
 
     @NotNull
     public List<SBInstance<Option>> list() {
-        List<SBInstance<Option>> list = new ArrayList<>(values());
+        List<SBInstance<Option>> list = new ArrayList<SBInstance<Option>>(values());
         list.sort((c1, c2) -> c1.get().compareTo(c2.get()));
         return list;
     }

@@ -13,9 +13,9 @@
  * You should have received a copy of the GNU General Public License along with this program.
  * If not, see <https://www.gnu.org/licenses/>.
  */
-package com.github.yuttyann.scriptblockplus.file.json.multi;
+package com.github.yuttyann.scriptblockplus.file.json.basic;
 
-import java.io.File;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import com.github.yuttyann.scriptblockplus.file.json.BaseElement;
@@ -40,21 +40,37 @@ public abstract class OneJson<A, E extends OneJson.OneElement<A>> extends BaseJs
     public static abstract class OneElement<A> extends BaseElement {
 
         /**
+         * 引数{@link A}を取得します。
+         * <p>
+         * コンストラクタ宣言時に渡す引数と同じでなければなりません。
+         * @return {@link A} - 引数
+         */
+        @Nullable
+        protected abstract A getA();
+
+        /**
          * 引数が一致するのか比較します。
          * @param a - 引数
          * @return {@link boolean} - 要素が存在する場合は{@code true}
          */
-        public abstract boolean isElement(@NotNull A a);
-    }
+        public boolean isElement(@Nullable A a) {
+            return compare(getA(), a);
+        }
 
-    /**
-     * コンストラクタ
-     * <p>
-     * 必ずシリアライズ、デシリアライズ化が可能なファイルを指定してください。
-     * @param json - JSONのファイル
-     */
-    protected OneJson(@NotNull File json) {
-        super(json);
+        /**
+         * ハッシュコードを生成します。
+         * @return {@link int} - ハッシュコード
+         */
+        @Override
+        public final int hashCode() {
+            return OneJson.hash(getA());
+        }
+
+        @Override
+        @NotNull
+        public final Class<? extends BaseElement> getElementType() {
+            return OneElement.class;
+        }
     }
 
     /**
@@ -71,7 +87,7 @@ public abstract class OneJson<A, E extends OneJson.OneElement<A>> extends BaseJs
      * @return {@link E} - インスタンス
      */
     @NotNull
-    protected abstract E newInstance(@NotNull A a);
+    protected abstract E newInstance(@Nullable A a);
 
     /**
      * 要素を取得します。
@@ -79,10 +95,16 @@ public abstract class OneJson<A, E extends OneJson.OneElement<A>> extends BaseJs
      * @return {@link E} - 要素
      */
     @NotNull
-    public final E load(@NotNull A a) {
-        E element = fastLoad(a);
+    public final E load(@Nullable A a) {
+        int hash = hash(a);
+        E element = getElementMap().get(hash);
         if (element == null) {
-            list.add(element = newInstance(a));
+            getElementMap().put(hash, element = newInstance(a));
+        } else if (!element.isElement(a)) {
+            Integer subHash = Integer.valueOf(hash);
+            if ((element = subGet(subHash, e -> e.isElement(a))) == null) {
+                subPut(subHash, element = newInstance(a));
+            }
         }
         return element;
     }
@@ -95,14 +117,15 @@ public abstract class OneJson<A, E extends OneJson.OneElement<A>> extends BaseJs
      * @return {@link E} - 要素
      */
     @Nullable
-    public final E fastLoad(@NotNull A a) {
-        for (int i = 0, l = list.size(); i < l; i++) {
-            E element = list.get(i);
-            if (element.isElement(a)) {
-                return element;
-            }
+    public final E fastLoad(@Nullable A a) {
+        int hash = hash(a);
+        E element = getElementMap().get(hash);
+        if (element == null) {
+            return null;
+        } else if (!element.isElement(a) && isSubNotEmpty()) {
+            element = subGet(hash, e -> e.isElement(a));
         }
-        return null;
+        return element;
     }
 
     /**
@@ -110,24 +133,30 @@ public abstract class OneJson<A, E extends OneJson.OneElement<A>> extends BaseJs
      * @param a - 引数
      * @return {@link boolean} - 要素が存在する場合は{@code true}
      */
-    public final boolean has(@NotNull A a) {
+    public final boolean has(@Nullable A a) {
         return fastLoad(a) != null;
     }
 
-     /**
-     * 要素を削除します。
+    /**
+     * 一致する要素を削除します。
      * @param a - 引数
      * @return {@link boolean} - 削除に成功した場合は{@code true}
      */
-    public final boolean remove(@NotNull A a) {
-        for (int i = 0, l = list.size(); i < l; i++) {
-            E element = list.get(i);
-            if (element.isElement(a)) {
-                list.remove(i);
-                return true;
-            }
+    public final boolean remove(@Nullable A a) {
+        int hash = hash(a);
+        E element = getElementMap().get(hash);
+        if (element == null) {
+            return false;
         }
-        return false;
+        if (element.isElement(a)) {
+            getElementMap().remove(hash);
+            if (isSubNotEmpty()) {
+                subMapFirstShift(hash);
+            }
+        } else if (isSubNotEmpty()) {
+            return subRemove(hash, e -> e.isElement(a));
+        }
+        return true;
     }
 
     /**
@@ -135,8 +164,12 @@ public abstract class OneJson<A, E extends OneJson.OneElement<A>> extends BaseJs
      * @param action - 処理
      * @param a - 引数
      */
-    public final void action(@NotNull Consumer<E> action, @NotNull A a) {
+    public final void action(@NotNull Consumer<E> action, @Nullable A a) {
         action.accept(load(a));
-        saveFile();
+        saveJson();
+    }
+
+    private static int hash(@Nullable Object a) {
+        return Objects.hashCode(a);
     }
 }

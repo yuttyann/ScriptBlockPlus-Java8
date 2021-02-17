@@ -26,9 +26,9 @@ import com.github.yuttyann.scriptblockplus.file.SBFiles;
 import com.github.yuttyann.scriptblockplus.file.config.SBConfig;
 import com.github.yuttyann.scriptblockplus.file.config.YamlConfig;
 import com.github.yuttyann.scriptblockplus.file.json.BaseJson;
+import com.github.yuttyann.scriptblockplus.file.json.CacheJson;
 import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
 import com.github.yuttyann.scriptblockplus.file.json.element.BlockScript;
-import com.github.yuttyann.scriptblockplus.file.json.element.ScriptParam;
 import com.github.yuttyann.scriptblockplus.item.ItemAction;
 import com.github.yuttyann.scriptblockplus.manager.OptionManager;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
@@ -156,6 +156,7 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
         }
         SBFiles.reload();
         BaseJson.clear();
+        CacheJson.loading();
         PackageType.clear();
         setUsage(getUsages());
         SBConfig.ALL_FILE_RELOAD.send(sender);
@@ -216,14 +217,14 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
         } else {
             SBConfig.DATAMIGR_START.send(sender);
             UUID uuid = ((Player) sender).getUniqueId();
-            new Thread(() -> {
+            ScriptBlock.getScheduler().asyncRun(() -> {
                 try {
                     convart(uuid, interactFile, ScriptKey.INTERACT);
                     convart(uuid, walkFile, ScriptKey.WALK);
                 } finally {
                     SBConfig.DATAMIGR_END.send(sender);
                 }
-            }).start();
+            });
         }
         return true;
     }
@@ -234,22 +235,21 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
         }
         YamlConfig scriptFile = YamlConfig.load(getPlugin(), file, false);
         BlockScriptJson scriptJson = BlockScriptJson.get(scriptKey);
-        BlockScript blockScript = scriptJson.load();
         for (String name : scriptFile.getKeys()) {
             World world = Utils.getWorld(name);
             for (String coords : scriptFile.getKeys(name)) {
-                List<String> script = scriptFile.getStringList(name + "." + coords);
-                script.replaceAll(s -> StringUtils.replace(s, "@cooldown:", "@oldcooldown:"));
-                if (script.size() > 0 && script.get(0).startsWith("Author:")) {
-                    script.remove(0);
+                List<String> options = scriptFile.getStringList(name + "." + coords);
+                options.replaceAll(s -> StringUtils.replace(s, "@cooldown:", "@oldcooldown:"));
+                if (options.size() > 0 && options.get(0).startsWith("Author:")) {
+                    options.remove(0);
                 }
-                ScriptParam scriptParam = blockScript.get(BlockCoords.fromString(world, coords));
-                scriptParam.getAuthor().add(uuid);
-                scriptParam.setLastEdit(Utils.getFormatTime(Utils.DATE_PATTERN));
-                scriptParam.setScript(script);
+                BlockScript blockScript = scriptJson.load(BlockCoords.fromString(world, coords));
+                blockScript.getAuthors().add(uuid);
+                blockScript.setLastEdit(Utils.getFormatTime(Utils.DATE_PATTERN));
+                blockScript.setScripts(options);
             }
         }
-        scriptJson.saveFile();
+        scriptJson.saveJson();
     }
 
     private boolean doRun(@NotNull CommandSender sender, @NotNull String[] args) {
@@ -412,10 +412,10 @@ public final class ScriptBlockPlusCommand extends BaseCommand {
 
     private boolean isScripts(@NotNull String scriptLine) {
         try {
-            int[] success = new int[] { 0 };
-            List<String> scripts = StringUtils.getScripts(scriptLine);
-            StreamUtils.fForEach(scripts, OptionManager::has, o -> success[0]++);
-            if (success[0] == 0 || success[0] != scripts.size()) {
+            int[] count = new int[] { 0 };
+            List<String> parse = StringUtils.parseScript(scriptLine);
+            StreamUtils.fForEach(parse, OptionManager::has, o -> count[0]++);
+            if (count[0] == 0 || count[0] != parse.size()) {
                 return false;
             }
         } catch (Exception e) {

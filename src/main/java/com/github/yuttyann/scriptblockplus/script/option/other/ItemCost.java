@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  * @author yuttyann44581
  */
 @OptionTag(name = "itemcost", syntax = "$item:")
-public class ItemCost extends BaseOption {
+public final class ItemCost extends BaseOption {
 
     public static final String KEY_OPTION = Utils.randomUUID();
     public static final String KEY_PLAYER = Utils.randomUUID();
@@ -63,7 +63,7 @@ public class ItemCost extends BaseOption {
             }
         }
         if (result > 0) {
-            SBConfig.ERROR_ITEM.replace(material, amount, damage, name).send(player);
+            SBConfig.ERROR_ITEM.replace(material, amount, damage, StringUtils.setColor(create)).send(player);
             return false;
         }
         inventory.setContents(inventoryItems);

@@ -21,6 +21,7 @@ import java.lang.annotation.Target;
 import com.google.gson.annotations.SerializedName;
 
 import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
@@ -28,15 +29,15 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * <p>
  * Gsonのバージョンが古い場合に呼び出される。
  * <p>
- * {@link SerializedName#alternate()}と同等の機能を持っている。
+ * {@link SerializedName#alternate()}と同等の機能を持っています。
  * @author yuttyann44581
  */
-@Target(FIELD)
+@Target({ FIELD, METHOD })
 @Retention(RUNTIME)
 public @interface Alternate {
 
     /**
-     * @return the alternative names of the field when it is deserialized.
+     * @return {@link String} - デシリアライズされた時の代替名を返します。
      */
     String[] value() default {};
 }
