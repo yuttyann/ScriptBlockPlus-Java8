@@ -1,4 +1,4 @@
-ScriptBlockPlus [Java8](https://jdk.java.net/) [MC1.9-1.16.x]
+ScriptBlockPlus [Java8](https://www.java.com/) [MC1.9-1.16.x]
 ==========
 概要
 -----------
