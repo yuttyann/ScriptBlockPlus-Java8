@@ -51,7 +51,7 @@ import org.bukkit.inventory.ItemStack;
  * ScriptBlockPlus JoinQuitListener クラス
  * @author yuttyann44581
  */
-public class PlayerListener implements Listener {
+public final class PlayerListener implements Listener {
 
     private static final String KEY_INVENTORY = Utils.randomUUID();
 

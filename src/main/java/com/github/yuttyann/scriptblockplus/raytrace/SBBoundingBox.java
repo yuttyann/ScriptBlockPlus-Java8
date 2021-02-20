@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  * ScriptBlockPlus SBBoundingBox クラス
  * @author yuttyann44581
  */
-public class SBBoundingBox {
+public final class SBBoundingBox {
 
     private double minX, minY, minZ;
     private double maxX, maxY, maxZ;
