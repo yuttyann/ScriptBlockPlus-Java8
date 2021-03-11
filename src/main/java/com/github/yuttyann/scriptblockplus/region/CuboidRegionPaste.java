@@ -25,6 +25,7 @@ import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerTimerJson;
 import com.github.yuttyann.scriptblockplus.file.json.element.BlockScript;
 import com.github.yuttyann.scriptblockplus.script.SBClipboard;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
+import com.github.yuttyann.scriptblockplus.utils.ItemUtils;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
 import com.github.yuttyann.scriptblockplus.utils.collection.ReuseIterator;
@@ -66,7 +67,7 @@ public final class CuboidRegionPaste {
         CuboidRegionIterator iterator = new CuboidRegionIterator(region);
         while (iterator.hasNext()) {
             BlockCoords blockCoords = iterator.next();
-            if (!pasteonair && Utils.isAIR(blockCoords.getBlock().getType())) {
+            if (!pasteonair && ItemUtils.isAIR(blockCoords.getBlock().getType())) {
                 continue;
             }
             BlockScriptJson scriptJson = sbClipboard.getBlockScriptJson();

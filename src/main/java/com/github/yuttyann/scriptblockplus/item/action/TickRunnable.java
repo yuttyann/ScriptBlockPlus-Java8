@@ -34,6 +34,7 @@ import com.github.yuttyann.scriptblockplus.region.CuboidRegionIterator;
 import com.github.yuttyann.scriptblockplus.region.PlayerRegion;
 import com.github.yuttyann.scriptblockplus.region.Region;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
+import com.github.yuttyann.scriptblockplus.utils.ItemUtils;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils.ThrowableConsumer;
@@ -159,7 +160,7 @@ public final class TickRunnable implements Runnable {
         if (hasProtocolLib) {
             for (BlockCoords blockCoords : getBlockCoords(sbPlayer, KEY_TEMP)) {
                 Block block = blockCoords.getBlock();
-                spawnParticlesOnBlock(sbPlayer.getPlayer(), block, Utils.isAIR(block.getType()) ? Color.BLUE : Color.GREEN);
+                spawnParticlesOnBlock(sbPlayer.getPlayer(), block, ItemUtils.isAIR(block.getType()) ? Color.BLUE : Color.GREEN);
             }
         } else {
             int[] count = new int[] { 0 };
@@ -183,7 +184,7 @@ public final class TickRunnable implements Runnable {
 
     @NotNull
     private TeamColor getTeamColor(@NotNull Block block) {
-        return Utils.isAIR(block.getType()) ? TeamColor.BLUE : TeamColor.GREEN;
+        return ItemUtils.isAIR(block.getType()) ? TeamColor.BLUE : TeamColor.GREEN;
     }
 
     private boolean inRange(@NotNull GlowEntity glowEntity, @NotNull BlockCoords min, @NotNull BlockCoords max) {
@@ -201,23 +202,19 @@ public final class TickRunnable implements Runnable {
 
     @NotNull
     private void forEach(@NotNull Region region, @NotNull ThrowableConsumer<BlockCoords> action) throws Exception {
-        try {
-            CuboidRegionIterator iterator = new CuboidRegionIterator(region);
-            for (ScriptKey scriptKey : ScriptKey.iterable()) {
-                BlockScriptJson scriptJson = BlockScriptJson.get(scriptKey);
-                if (scriptJson.isEmpty()) {
-                    continue;
-                }
-                while (iterator.hasNext()) {
-                    BlockCoords blockCoords = iterator.next();
-                    if (scriptJson.has(blockCoords)) {
-                        action.accept(blockCoords);
-                    }
-                }
-                iterator.reset();
+        CuboidRegionIterator iterator = new CuboidRegionIterator(region);
+        for (ScriptKey scriptKey : ScriptKey.iterable()) {
+            BlockScriptJson scriptJson = BlockScriptJson.get(scriptKey);
+            if (scriptJson.isEmpty()) {
+                continue;
             }
-        } catch (Exception e) {
-            throw e;
+            while (iterator.hasNext()) {
+                BlockCoords blockCoords = iterator.next();
+                if (scriptJson.has(blockCoords)) {
+                    action.accept(blockCoords);
+                }
+            }
+            iterator.reset();
         }
     }
 

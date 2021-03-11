@@ -18,6 +18,7 @@ package com.github.yuttyann.scriptblockplus.raytrace;
 import java.lang.reflect.Field;
 
 import com.github.yuttyann.scriptblockplus.enums.reflection.PackageType;
+import com.github.yuttyann.scriptblockplus.utils.ItemUtils;
 import com.github.yuttyann.scriptblockplus.utils.NMSHelper;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
 
@@ -72,7 +73,7 @@ public final class SBBoundingBox {
     }
 
     public void setBlock(@NotNull Block block, final boolean square) {
-        if (square || Utils.isAIR(block.getType())) {
+        if (square || ItemUtils.isAIR(block.getType())) {
             setSquare(block);
         } else {
             if (Utils.isCBXXXorLater("1.13.2")) {
