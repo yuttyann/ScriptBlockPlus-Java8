@@ -13,12 +13,13 @@
  * You should have received a copy of the GNU General Public License along with this program.
  * If not, see <https://www.gnu.org/licenses/>.
  */
-package com.github.yuttyann.scriptblockplus.hook.protocol;
+package com.github.yuttyann.scriptblockplus.bridge.nms;
 
 import java.util.UUID;
 
 import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.enums.TeamColor;
+import com.github.yuttyann.scriptblockplus.enums.reflection.PackageType;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -31,7 +32,9 @@ import org.jetbrains.annotations.Nullable;
  * @author yuttyann44581
  */
 public final class GlowEntity {
-        
+
+    public static final GlowEntityPacket DEFAULT = new GlowEntityPacket();
+
     private final int id;
     private final int x, y, z;
     
@@ -56,8 +59,10 @@ public final class GlowEntity {
     }
 
     @NotNull
-    static GlowEntity create(@NotNull SBPlayer sbPlayer, @NotNull TeamColor teamColor, @NotNull BlockCoords blockCoords, final int flagSize) {
-        GlowEntity glowEntity = new GlowEntity(EntityCount.next(), UUID.randomUUID(), sbPlayer, teamColor, blockCoords, flagSize);
+    static GlowEntity create(@NotNull Object nmsEntity, @NotNull SBPlayer sbPlayer, @NotNull TeamColor teamColor, @NotNull BlockCoords blockCoords, final int flagSize) throws ReflectiveOperationException {
+        int id = (int) PackageType.NMS.invokeMethod(nmsEntity, "EntityMagmaCube", "getId");
+        UUID uuid = (UUID) PackageType.NMS.getFieldValue(true, "Entity", "uniqueID", nmsEntity);
+        GlowEntity glowEntity = new GlowEntity(id, uuid, sbPlayer, teamColor, blockCoords, flagSize);
         teamColor.getTeam().addEntry(glowEntity.uuid.toString());
         return glowEntity;
     }

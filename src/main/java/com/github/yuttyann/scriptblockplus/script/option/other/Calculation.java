@@ -16,9 +16,9 @@
 package com.github.yuttyann.scriptblockplus.script.option.other;
 
 import com.github.yuttyann.scriptblockplus.BlockCoords;
+import com.github.yuttyann.scriptblockplus.bridge.plugin.VaultEconomy;
 import com.github.yuttyann.scriptblockplus.enums.reflection.PackageType;
 import com.github.yuttyann.scriptblockplus.file.json.derived.PlayerCountJson;
-import com.github.yuttyann.scriptblockplus.hook.plugin.VaultEconomy;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
 import com.github.yuttyann.scriptblockplus.script.option.BaseOption;
 import com.github.yuttyann.scriptblockplus.script.option.OptionTag;
@@ -30,6 +30,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Objective;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -44,17 +45,17 @@ public final class Calculation extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {
-        String[] array = StringUtils.split(getOptionValue(), ' ');
+        List<String> split = StringUtils.split(getOptionValue(), ' ');
         Player player = getPlayer();
-        Object value1 = parse(player, array[0]);
-        Object value2 = parse(player, array[2]);
-        String operator = array[1];
+        Object value1 = parse(player, split.get(0));
+        Object value2 = parse(player, split.get(2));
+        String operator = split.get(1);
 
         if (result(operator, value1, value2)) {
             return true;
         }
-        if (array.length > 3) {
-            String message = StringUtils.setColor(StringUtils.createString(array, 3));
+        if (split.size() > 3) {
+            String message = StringUtils.setColor(StringUtils.createString(split, 3));
             message = StringUtils.replace(message, "%value1%", value1);
             message = StringUtils.replace(message, "%value2%", value2);
             message = StringUtils.replace(message, "%operator%", operator);
@@ -70,12 +71,12 @@ public final class Calculation extends BaseOption {
         }
         if (source.startsWith("%player_count_") && source.endsWith("%")) {
             source = source.substring("%player_count_".length(), source.length() - 1);
-            String[] array = StringUtils.split(source, '/');
-            if (array.length < 1 || array.length > 2) {
+            List<String> split = StringUtils.split(source, '/');
+            if (split.size() < 1 || split.size() > 2) {
                 return 0;
             }
-            ScriptKey scriptKey = array.length == 1 ? getScriptKey() : ScriptKey.valueOf(array[0]);
-            BlockCoords blockCoords = BlockCoords.fromString(array.length == 1 ? array[0] : array[1]);
+            ScriptKey scriptKey = split.size() == 1 ? getScriptKey() : ScriptKey.valueOf(split.get(0));
+            BlockCoords blockCoords = BlockCoords.fromString(split.size() == 1 ? split.get(0) : split.get(1));
             return PlayerCountJson.get(getUniqueId()).load(scriptKey, blockCoords).getAmount();
         }
         if (source.startsWith("%player_others_in_range_") && source.endsWith("%")) {

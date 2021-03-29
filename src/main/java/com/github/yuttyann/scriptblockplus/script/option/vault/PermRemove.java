@@ -15,7 +15,9 @@
  */
 package com.github.yuttyann.scriptblockplus.script.option.vault;
 
-import com.github.yuttyann.scriptblockplus.hook.plugin.VaultPermission;
+import java.util.List;
+
+import com.github.yuttyann.scriptblockplus.bridge.plugin.VaultPermission;
 import com.github.yuttyann.scriptblockplus.script.option.BaseOption;
 import com.github.yuttyann.scriptblockplus.script.option.OptionTag;
 import com.github.yuttyann.scriptblockplus.utils.StringUtils;
@@ -33,9 +35,9 @@ public final class PermRemove extends BaseOption {
         if (!vaultPermission.isEnabled() || vaultPermission.isSuperPerms()) {
             throw new UnsupportedOperationException();
         }
-        String[] array = StringUtils.split(getOptionValue(), '/');
-        String world = array.length > 1 ? array[0] : null;
-        String permission = array.length > 1 ? array[1] : array[0];
+        List<String> slash = StringUtils.split(getOptionValue(), '/');
+        String world = slash.size() > 1 ? slash.get(0) : null;
+        String permission = slash.size() > 1 ? slash.get(1) : slash.get(0);
         vaultPermission.playerRemove(world, getPlayer(), permission);
         return true;
     }

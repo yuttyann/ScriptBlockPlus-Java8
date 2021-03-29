@@ -28,6 +28,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -39,15 +40,15 @@ public final class ItemHand extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {
-        String[] array = StringUtils.split(getOptionValue(), ' ');
-        String[] param = StringUtils.split(StringUtils.removeStart(array[0], Utils.MINECRAFT), ':');
-        if (Calculation.REALNUMBER_PATTERN.matcher(param[0]).matches()) {
+        List<String> space = StringUtils.split(getOptionValue(), ' ');
+        List<String> itemId = StringUtils.split(StringUtils.removeStart(space.get(0), Utils.MINECRAFT), ':');
+        if (Calculation.REALNUMBER_PATTERN.matcher(itemId.get(0)).matches()) {
             throw new IllegalAccessException("Numerical values can not be used");
         }
-        Material material = ItemUtils.getMaterial(param[0]);
-        int damage = param.length > 1 ? Integer.parseInt(param[1]) : 0;
-        int amount = Integer.parseInt(array[1]);
-        String create = array.length > 2 ? StringUtils.createString(array, 2) : null;
+        Material material = ItemUtils.getMaterial(itemId.get(0));
+        int damage = itemId.size() > 1 ? Integer.parseInt(itemId.get(1)) : 0;
+        int amount = Integer.parseInt(space.get(1));
+        String create = space.size() > 2 ? StringUtils.createString(space, 2) : null;
         String name = StringUtils.isEmpty(create) ? material.name() : StringUtils.setColor(create);
 
         Player player = getPlayer();

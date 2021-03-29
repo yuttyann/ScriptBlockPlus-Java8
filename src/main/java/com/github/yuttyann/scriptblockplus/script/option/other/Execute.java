@@ -15,6 +15,8 @@
  */
 package com.github.yuttyann.scriptblockplus.script.option.other;
 
+import java.util.List;
+
 import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.script.ScriptKey;
 import com.github.yuttyann.scriptblockplus.script.ScriptRead;
@@ -31,8 +33,8 @@ public final class Execute extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {
-        String[] array = StringUtils.split(getOptionValue(), '/');
-        ScriptKey scriptKey = ScriptKey.valueOf(array[0]);
-        return new ScriptRead(getPlayer(), BlockCoords.fromString(array[1]), scriptKey).read(0);
+        List<String> split = StringUtils.split(getOptionValue(), '/');
+        ScriptKey scriptKey = ScriptKey.valueOf(split.get(0));
+        return new ScriptRead(getPlayer(), BlockCoords.fromString(split.get(1)), scriptKey).read(0);
     }
 }

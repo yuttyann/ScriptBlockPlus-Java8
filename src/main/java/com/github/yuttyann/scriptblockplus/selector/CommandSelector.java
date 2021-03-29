@@ -15,13 +15,13 @@
  */
 package com.github.yuttyann.scriptblockplus.selector;
 
+import com.github.yuttyann.scriptblockplus.BlockCoords;
+import com.github.yuttyann.scriptblockplus.bridge.plugin.Placeholder;
 import com.github.yuttyann.scriptblockplus.enums.reflection.PackageType;
-import com.github.yuttyann.scriptblockplus.hook.plugin.Placeholder;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
 import com.github.yuttyann.scriptblockplus.utils.NMSHelper;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
-import com.github.yuttyann.scriptblockplus.selector.entity.EntitySelector;
 import com.google.common.collect.Lists;
 
 import org.apache.commons.lang.StringUtils;
@@ -46,6 +46,7 @@ import java.util.List;
  */
 public final class CommandSelector {
 
+    private final static String NUMBERS = "+-.0123456789";
     private final static String SELECTOR_SUFFIX = "aeprs";
     private final static String[] SELECTOR_NAMES = { "@a", "@e", "@p", "@r", "@s" };
     private final static String[] SELECTOR_ARGMENT_NAMES = { "@a[", "@e[", "@p[", "@r[", "@s[" };
@@ -76,32 +77,33 @@ public final class CommandSelector {
     @NotNull
     public static List<String> build(@NotNull CommandSender sender, @Nullable Location start, @NotNull String command) {
         int modCount = 0;
-        List<Index> indexList = new ArrayList<>();
+        List<Index> indexList = new ArrayList<Index>();
         List<String> commandList = Lists.newArrayList(parse(command, sender, indexList));
         for (int i = 0, l = indexList.size(); i < l; i++) {
             String selector = indexList.get(i).substring(command);
-            Entity[] entities = getTargets(sender, start, selector);
-            if (entities == null || entities.length == 0) {
+            List<Entity> entities = getTargets(sender, start, selector);
+            if (entities == null || entities.size() == 0) {
                 if (StreamUtils.anyMatch(SELECTOR_ARGMENT_NAMES, selector::startsWith)) {
                     continue;
                 } else if (selector.startsWith(SELECTOR_NAMES[2]) && sender instanceof Player) {
-                    entities = new Entity[] { (Entity) sender };
+                    entities = Collections.singletonList((Entity) sender);
                 } else {
                     continue;
                 }
             }
             boolean works = true;
-            for (int j = 1, k = entities.length; j < k; j++) {
-                if (entities[j] == null) {
+            for (int j = 1, k = entities.size(); j < k; j++) {
+                Entity entity = entities.get(j);
+                if (entity == null) {
                     works = false;
                     break;
                 }
-                commandList.add(StringUtils.replace(commandList.get(0), getReplaceIndex(i), getEntityName(entities[j])));
+                commandList.add(StringUtils.replace(commandList.get(0), getReplaceIndex(i), getEntityName(entity)));
             }
-            if (!works || entities.length == 0 || entities[0] == null) {
+            if (!works || entities.size() == 0 || entities.get(0) == null) {
                 return Collections.emptyList();
             } else {
-                replaceAll(commandList, i, getEntityName(entities[0]));
+                replaceAll(commandList, i, getEntityName(entities.get(0)));
             }
             modCount++;
         }
@@ -151,7 +153,7 @@ public final class CommandSelector {
                     tempBuilder.append(chars[i]);
                     String axes = k == 0 ? "x" : k == 1 ? "y" : k == 2 ? "z" : "x";
                     for (int l = one; l < chars.length; l++) {
-                        if ("+-.0123456789".indexOf(chars[l]) > -1) {
+                        if (NUMBERS.indexOf(chars[l]) > -1) {
                             tempBuilder.append(chars[l]);
                             i++;
                         } else {
@@ -179,7 +181,7 @@ public final class CommandSelector {
     }
 
     @NotNull
-    public static Entity[] getTargets(@NotNull CommandSender sender, @Nullable Location start, @NotNull String selector) {
+    public static List<Entity> getTargets(@NotNull CommandSender sender, @Nullable Location start, @NotNull String selector) {
         selector = Placeholder.INSTANCE.replace(getWorld(sender, start), selector);
         if (PackageType.HAS_NMS && Utils.isCBXXXorLater("1.13")) {
             try {
@@ -188,7 +190,7 @@ public final class CommandSelector {
                 e.printStackTrace();
             }
         } else if (Utils.isCBXXXorLater("1.13.2")) {
-            return Bukkit.selectEntities(sender, selector).toArray(new Entity[0]);
+            return Bukkit.selectEntities(sender, selector);
         }
         return EntitySelector.getEntities(sender, start, selector);
     }
@@ -198,7 +200,7 @@ public final class CommandSelector {
         if (location != null) {
             return location.getWorld();
         }
-        World world = null;
+        World world = (World) null;
         if (sender instanceof ProxiedCommandSender) {
             sender = ((ProxiedCommandSender) sender).getCallee();
         }
@@ -209,7 +211,7 @@ public final class CommandSelector {
         } else if (sender instanceof BlockCommandSender) {
             world = ((BlockCommandSender) sender).getBlock().getWorld();
         }
-        return world == null ? Bukkit.getWorlds().get(0) : world;
+        return world == null ? BlockCoords.DEFAULT_WORLD : world;
     }
 
     @NotNull
@@ -219,10 +221,7 @@ public final class CommandSelector {
 
     @NotNull
     private static String getReplaceIndex(int index) {
-        if (index >= SEARCH_INDEX.length) {
-            return "{" + index + "}";
-        }
-        return SEARCH_INDEX[index];
+        return index >= SEARCH_INDEX.length ? "{" + index + "}" : SEARCH_INDEX[index];
     }
 
     private static void replaceAll(@NotNull List<String> commandList, int index, @NotNull String name) {

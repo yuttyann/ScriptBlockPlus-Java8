@@ -16,6 +16,7 @@
 package com.github.yuttyann.scriptblockplus.script.option.other;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
 import com.github.yuttyann.scriptblockplus.ScriptBlock;
@@ -45,13 +46,13 @@ public final class PlaySound extends BaseOption implements Runnable {
 
     @Override
     protected boolean isValid() throws Exception {
-        String[] array = StringUtils.split(getOptionValue(), '/');
-        String[] param = StringUtils.split(array[0], '-');
-        long delay = param.length > 3 ? Long.parseLong(param[3]) : 0L;
-        this.name = StringUtils.removeStart(param[0], Utils.MINECRAFT).toLowerCase(Locale.ROOT);
-        this.volume = Integer.parseInt(param[1]);
-        this.pitch = Integer.parseInt(param[2]);
-        this.sendAllPlayer = array.length > 1 && Boolean.parseBoolean(array[1]);
+        List<String> slash = StringUtils.split(getOptionValue(), '/');
+        List<String> hyphen = StringUtils.split(slash.get(0), '-');
+        long delay = hyphen.size() > 3 ? Long.parseLong(hyphen.get(3)) : 0L;
+        this.name = StringUtils.removeStart(hyphen.get(0), Utils.MINECRAFT).toLowerCase(Locale.ROOT);
+        this.volume = Integer.parseInt(hyphen.get(1));
+        this.pitch = Integer.parseInt(hyphen.get(2));
+        this.sendAllPlayer = slash.size() > 1 && Boolean.parseBoolean(slash.get(1));
 
         if (delay < 1) {
             playSound();

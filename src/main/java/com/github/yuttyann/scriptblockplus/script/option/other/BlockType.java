@@ -15,6 +15,8 @@
  */
 package com.github.yuttyann.scriptblockplus.script.option.other;
 
+import java.util.List;
+
 import com.github.yuttyann.scriptblockplus.script.option.BaseOption;
 import com.github.yuttyann.scriptblockplus.script.option.OptionTag;
 import com.github.yuttyann.scriptblockplus.utils.ItemUtils;
@@ -43,16 +45,16 @@ public final class BlockType extends BaseOption {
         if (StringUtils.isEmpty(type)) {
             return false;
         }
-        String[] array = StringUtils.split(StringUtils.removeStart(type, Utils.MINECRAFT), ':');
-        if (Calculation.REALNUMBER_PATTERN.matcher(array[0]).matches()) {
+        List<String> split = StringUtils.split(StringUtils.removeStart(type, Utils.MINECRAFT), ':');
+        if (Calculation.REALNUMBER_PATTERN.matcher(split.get(0)).matches()) {
             Utils.sendColorMessage(getSBPlayer(), "§cNumerical values can not be used");
             return false;
         }
-        Material material = ItemUtils.getMaterial(array[0]);
+        Material material = ItemUtils.getMaterial(split.get(0));
         if (material == null || !material.isBlock()) {
             return false;
         }
-        byte data = array.length == 2 ? Byte.parseByte(array[1]) : -1;
+        byte data = split.size() == 2 ? Byte.parseByte(split.get(1)) : -1;
         return material == block.getType() && (data == -1 || data == getData(block));
     }
 

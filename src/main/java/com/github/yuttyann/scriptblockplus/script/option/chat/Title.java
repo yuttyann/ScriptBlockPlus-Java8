@@ -15,6 +15,8 @@
  */
 package com.github.yuttyann.scriptblockplus.script.option.chat;
 
+import java.util.List;
+
 import com.github.yuttyann.scriptblockplus.enums.Permission;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
 import com.github.yuttyann.scriptblockplus.script.option.BaseOption;
@@ -36,16 +38,16 @@ public final class Title extends BaseOption {
 
     @Override
     protected boolean isValid() throws Exception {
-        String[] array = StringUtils.split(getOptionValue(), '/');
-        String title = StringUtils.setColor(array[0] + "");
-        String subtitle = StringUtils.setColor(array.length > 1 ? array[1] : "");
+        List<String> split = StringUtils.split(getOptionValue(), '/');
+        String title = StringUtils.setColor(split.get(0) + "");
+        String subtitle = StringUtils.setColor(split.size() > 1 ? split.get(1) : "");
         int fadeIn = 10, stay = 40, fadeOut = 10;
-        if (array.length == 3) {
-            String[] times = StringUtils.split(array[2], '-');
-            if (times.length == 3) {
-                fadeIn = Integer.parseInt(times[0]);
-                stay = Integer.parseInt(times[1]);
-                fadeOut = Integer.parseInt(times[2]);
+        if (split.size() == 3) {
+            List<String> times = StringUtils.split(split.get(2), '-');
+            if (times.size() == 3) {
+                fadeIn = Integer.parseInt(times.get(0));
+                stay = Integer.parseInt(times.get(1));
+                fadeOut = Integer.parseInt(times.get(2));
             }
         }
         send(getSBPlayer(), title, subtitle, fadeIn, stay, fadeOut);

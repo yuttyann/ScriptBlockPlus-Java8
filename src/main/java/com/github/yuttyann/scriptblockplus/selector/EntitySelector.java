@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License along with this program.
  * If not, see <https://www.gnu.org/licenses/>.
  */
-package com.github.yuttyann.scriptblockplus.selector.entity;
+package com.github.yuttyann.scriptblockplus.selector;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,7 +24,7 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.github.yuttyann.scriptblockplus.enums.Argment;
+import com.github.yuttyann.scriptblockplus.enums.splittype.Argment;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.StringUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
@@ -54,24 +54,22 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class EntitySelector {
 
-    private static final Entity[] EMPTY_ENTITY_ARRAY = new Entity[0];
-
     @NotNull
-    public static Entity[] getEntities(@NotNull CommandSender sender, @Nullable Location start, @NotNull String selector) {
+    public static List<Entity> getEntities(@NotNull CommandSender sender, @Nullable Location start, @NotNull String selector) {
         List<Entity> result = new ArrayList<>();
         Location location = setCenter(copy(sender, start));
-        ArgmentSplit argmentSplit = new ArgmentSplit(selector);
-        ArgmentValue[] argmentValues = argmentSplit.getArgmentValues();
-        switch (argmentSplit.getSelector()) {
+        Split split = new Split(selector, "@", "[", "]");
+        SplitValue[] splitValues = split.getValues(Argment.values());
+        switch (split.getName()) {
             case "@p": {
                 List<Player> players = location.getWorld().getPlayers();
                 if (players.size() == 0) {
-                    return EMPTY_ENTITY_ARRAY;
+                    return Collections.emptyList();
                 }
                 int count = 0;
-                int limit = sort(getLimit(argmentValues, 1), location, players);
+                int limit = sort(getLimit(splitValues, 1), location, players);
                 for (Player player : players) {
-                    if (!StreamUtils.allMatch(argmentValues, t -> canBeAccepted(player, location, t))) {
+                    if (!StreamUtils.allMatch(splitValues, t -> canBeAccepted(player, location, t))) {
                         continue;
                     }
                     if (limit <= count) {
@@ -85,12 +83,12 @@ public final class EntitySelector {
             case "@a": {
                 List<Player> players = location.getWorld().getPlayers();
                 if (players.size() == 0) {
-                    return EMPTY_ENTITY_ARRAY;
+                    return Collections.emptyList();
                 }
                 int count = 0;
-                int limit = sort(getLimit(argmentValues, players.size()), location, players);
+                int limit = sort(getLimit(splitValues, players.size()), location, players);
                 for (Player player : players) {
-                    if (!StreamUtils.allMatch(argmentValues, t -> canBeAccepted(player, location, t))) {
+                    if (!StreamUtils.allMatch(splitValues, t -> canBeAccepted(player, location, t))) {
                         continue;
                     }
                     if (limit <= count) {
@@ -104,15 +102,15 @@ public final class EntitySelector {
             case "@r": {
                 List<Player> players = location.getWorld().getPlayers();
                 if (players.size() == 0) {
-                    return EMPTY_ENTITY_ARRAY;
+                    return Collections.emptyList();
                 }
                 int count = 0;
-                int limit = getLimit(argmentValues, 1);
+                int limit = getLimit(splitValues, 1);
                 List<Integer> randomInts = IntStream.range(0, players.size()).boxed().collect(Collectors.toList());
                 Collections.shuffle(randomInts, new Random());
                 for (int value : randomInts) {
                     Player player = players.get(value);
-                    if (!StreamUtils.allMatch(argmentValues, t -> canBeAccepted(player, location, t))) {
+                    if (!StreamUtils.allMatch(splitValues, t -> canBeAccepted(player, location, t))) {
                         continue;
                     }
                     if (limit <= count) {
@@ -126,12 +124,12 @@ public final class EntitySelector {
             case "@e": {
                 List<Entity> entities = location.getWorld().getEntities();
                 if (entities.size() == 0) {
-                    return EMPTY_ENTITY_ARRAY;
+                    return Collections.emptyList();
                 }
                 int count = 0;
-                int limit = sort(getLimit(argmentValues, entities.size()), location, entities);
+                int limit = sort(getLimit(splitValues, entities.size()), location, entities);
                 for (Entity entity : entities) {
-                    if (!StreamUtils.allMatch(argmentValues, t -> canBeAccepted(entity, location, t))) {
+                    if (!StreamUtils.allMatch(splitValues, t -> canBeAccepted(entity, location, t))) {
                         continue;
                     }
                     if (limit <= count) {
@@ -143,15 +141,15 @@ public final class EntitySelector {
                 break;
             }
             case "@s": {
-                if (sender instanceof Entity && StreamUtils.allMatch(argmentValues, t -> canBeAccepted((Entity) sender, location, t))) {
+                if (sender instanceof Entity && StreamUtils.allMatch(splitValues, t -> canBeAccepted((Entity) sender, location, t))) {
                     result.add((Entity) sender);
                 }
                 break;
             }
             default:
-                return EMPTY_ENTITY_ARRAY;
+                return Collections.emptyList();
         }
-        return result.size() > 0 ? result.toArray(new Entity[0]) : EMPTY_ENTITY_ARRAY;
+        return result.size() > 0 ? result : Collections.emptyList();
     }
 
     @NotNull
@@ -187,20 +185,20 @@ public final class EntitySelector {
         return limit;
     }
 
-    private static int getLimit(@NotNull ArgmentValue[] argmentValues, int other) {
-        for (ArgmentValue argmentValue : argmentValues) {
-            if (argmentValue.getArgment() == Argment.C) {
+    private static int getLimit(@NotNull SplitValue[] splitValues, int other) {
+        for (SplitValue argmentValue : splitValues) {
+            if (argmentValue.getType() == Argment.C) {
                 return Integer.parseInt(argmentValue.getValue());
             }
         }
         return other;
     }
 
-    private static boolean canBeAccepted(@NotNull Entity entity, @NotNull Location location, @NotNull ArgmentValue argmentValue) {
+    private static boolean canBeAccepted(@NotNull Entity entity, @NotNull Location location, @NotNull SplitValue argmentValue) {
         if (argmentValue.getValue()== null) {
             return false;
         }
-        switch (argmentValue.getArgment()) {
+        switch ((Argment) argmentValue.getType()) {
             case C:
                 return true;
             case X:
@@ -241,8 +239,8 @@ public final class EntitySelector {
         }
     }
 
-    private static boolean setXYZ(@NotNull Location location, @NotNull ArgmentValue argmentValue) {
-        switch (argmentValue.getArgment()) {
+    private static boolean setXYZ(@NotNull Location location, @NotNull SplitValue argmentValue) {
+        switch ((Argment) argmentValue.getType()) {
             case X:
                 setLocation(location, "x", argmentValue.getValue());
                 break;
@@ -319,12 +317,12 @@ public final class EntitySelector {
         return yaw;
     }
     
-    private static boolean isDRange(@NotNull Entity entity, @NotNull Location location, @NotNull ArgmentValue argmentValue) {
+    private static boolean isDRange(@NotNull Entity entity, @NotNull Location location, @NotNull SplitValue argmentValue) {
         if (!entity.getWorld().equals(location.getWorld())) {
             return false;
         }
         double base = 0.0D, value = 0.0D;
-        switch (argmentValue.getArgment()) {
+        switch ((Argment) argmentValue.getType()) {
             case DX:
                 base = location.getX();
                 value = entity.getLocation().getX();
@@ -343,33 +341,33 @@ public final class EntitySelector {
         return value > (base - 0.35D) && value < (base + Double.parseDouble(argmentValue.getValue()) + 1.35D);
     }
 
-    private static boolean isR(@NotNull Entity entity, @NotNull Location location, @NotNull ArgmentValue argmentValue) {
+    private static boolean isR(@NotNull Entity entity, @NotNull Location location, @NotNull SplitValue argmentValue) {
         if (!entity.getWorld().equals(location.getWorld())) {
             return false;
         }
-        if (argmentValue.getArgment() == Argment.R) {
+        if (argmentValue.getType() == Argment.R) {
             return isLessThan(argmentValue, location.distance(entity.getLocation()));
         }
         return isGreaterThan(argmentValue, location.distance(entity.getLocation()));
     }
 
-    private static boolean isRX(@NotNull Entity entity, @NotNull ArgmentValue argmentValue) {
-        if (argmentValue.getArgment() == Argment.RX) {
+    private static boolean isRX(@NotNull Entity entity, @NotNull SplitValue argmentValue) {
+        if (argmentValue.getType() == Argment.RX) {
             return isGreaterThan(argmentValue, entity.getLocation().getYaw());
         }
         return isLessThan(argmentValue, entity.getLocation().getYaw());
     }
 
-    private static boolean isRY(@NotNull Entity entity, @NotNull ArgmentValue argmentValue) {
-        if (argmentValue.getArgment() == Argment.RY) {
+    private static boolean isRY(@NotNull Entity entity, @NotNull SplitValue argmentValue) {
+        if (argmentValue.getType() == Argment.RY) {
             return isGreaterThan(argmentValue, entity.getLocation().getPitch());
         }
         return isLessThan(argmentValue, entity.getLocation().getPitch());
     }
 
-    private static boolean isL(@NotNull Entity entity, @NotNull ArgmentValue argmentValue) {
+    private static boolean isL(@NotNull Entity entity, @NotNull SplitValue argmentValue) {
         if (entity instanceof Player) {
-            if (argmentValue.getArgment() == Argment.L) {
+            if (argmentValue.getType() == Argment.L) {
                 return isLessThan(argmentValue, ((Player) entity).getTotalExperience());
             }
             return isGreaterThan(argmentValue, ((Player) entity).getTotalExperience());
@@ -377,15 +375,15 @@ public final class EntitySelector {
         return false;
     }
 
-    private static boolean isLessThan(@NotNull ArgmentValue argmentValue, double value) {
+    private static boolean isLessThan(@NotNull SplitValue argmentValue, double value) {
         return argmentValue.isInverted() != value < Double.parseDouble(argmentValue.getValue());
     }
 
-    private static boolean isGreaterThan(@NotNull ArgmentValue argmentValue, double value) {
+    private static boolean isGreaterThan(@NotNull SplitValue argmentValue, double value) {
         return argmentValue.isInverted() != value > Double.parseDouble(argmentValue.getValue());
     }
 
-    private static boolean isM(@NotNull Entity entity, @NotNull ArgmentValue argmentValue) {
+    private static boolean isM(@NotNull Entity entity, @NotNull SplitValue argmentValue) {
         if (entity instanceof HumanEntity) {
             String value = argmentValue.getValue();
             HumanEntity human = (HumanEntity) entity;
@@ -411,11 +409,11 @@ public final class EntitySelector {
         return null;
     }
 
-    private static boolean isTag(@NotNull Entity entity, @NotNull ArgmentValue argmentValue) {
+    private static boolean isTag(@NotNull Entity entity, @NotNull SplitValue argmentValue) {
         return argmentValue.isInverted() != entity.getScoreboardTags().contains(argmentValue.getValue());
     }
 
-    private static boolean isTeam(@NotNull Entity entity, @NotNull ArgmentValue argmentValue) {
+    private static boolean isTeam(@NotNull Entity entity, @NotNull SplitValue argmentValue) {
         for (Team team : Bukkit.getScoreboardManager().getMainScoreboard().getTeams()) {
             if (!team.getName().equals(argmentValue.getValue())) {
                 continue;
@@ -428,7 +426,7 @@ public final class EntitySelector {
         return false;
     }
 
-    private static boolean isType(@NotNull Entity entity, @NotNull ArgmentValue argmentValue) {
+    private static boolean isType(@NotNull Entity entity, @NotNull SplitValue argmentValue) {
         return argmentValue.isInverted() != (entity.getType() == getEntityType(argmentValue.getValue()));
     }
 
@@ -445,7 +443,7 @@ public final class EntitySelector {
         return null;
     }
 
-    private static boolean isName(@NotNull Entity entity, @NotNull ArgmentValue argmentValue) {
+    private static boolean isName(@NotNull Entity entity, @NotNull SplitValue argmentValue) {
         if (entity instanceof Player) {
             return argmentValue.isInverted() != argmentValue.getValue().equals(entity.getName());
         } else {
@@ -453,15 +451,15 @@ public final class EntitySelector {
         }
     }
 
-    private static boolean isScore(@NotNull Entity entity, @NotNull ArgmentValue argmentValue) {
-        String[] array = StringUtils.split(argmentValue.getValue(), '*');
-        boolean scoreArgment = argmentValue.getArgment() == Argment.SCORE;
+    private static boolean isScore(@NotNull Entity entity, @NotNull SplitValue argmentValue) {
+        List<String> split = StringUtils.split(argmentValue.getValue(), '*');
+        boolean scoreArgment = argmentValue.getType() == Argment.SCORE;
         for (Objective objective : Bukkit.getScoreboardManager().getMainScoreboard().getObjectives()) {
-            if (!objective.getName().equals(array[1])) {
+            if (!objective.getName().equals(split.get(1))) {
                 continue;
             }
             int score = objective.getScore(entity instanceof Player ? entity.getName() : entity.getUniqueId().toString()).getScore();
-            if (argmentValue.isInverted() != (scoreArgment ? score <= Integer.parseInt(array[0]) : score >= Integer.parseInt(array[0]))) {
+            if (argmentValue.isInverted() != (scoreArgment ? score <= Integer.parseInt(split.get(1)) : score >= Integer.parseInt(split.get(0)))) {
                 return true;
             }
         }

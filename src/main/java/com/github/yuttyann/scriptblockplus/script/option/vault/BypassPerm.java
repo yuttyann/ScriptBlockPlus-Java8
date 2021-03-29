@@ -15,8 +15,10 @@
  */
 package com.github.yuttyann.scriptblockplus.script.option.vault;
 
+import java.util.List;
+
+import com.github.yuttyann.scriptblockplus.bridge.plugin.VaultPermission;
 import com.github.yuttyann.scriptblockplus.enums.CommandLog;
-import com.github.yuttyann.scriptblockplus.hook.plugin.VaultPermission;
 import com.github.yuttyann.scriptblockplus.script.option.BaseOption;
 import com.github.yuttyann.scriptblockplus.script.option.OptionTag;
 import com.github.yuttyann.scriptblockplus.utils.StringUtils;
@@ -37,15 +39,15 @@ public final class BypassPerm extends BaseOption {
         if (!vaultPermission.isEnabled() || vaultPermission.isSuperPerms()) {
             throw new UnsupportedOperationException();
         }
-        String[] array = StringUtils.split(getOptionValue(), '/');
-        if (array.length < 2) {
+        List<String> slash = StringUtils.split(getOptionValue(), '/');
+        if (slash.size() < 2) {
             throw new IllegalArgumentException("Insufficient parameters");
         }
         Player player = getPlayer();
-        String command = StringUtils.setColor(array[0]);
+        String command = StringUtils.setColor(slash.get(0));
         return CommandLog.supplier(player.getWorld(), () -> {
-            String world = array.length > 2 ? array[1] : null;
-            String permission = array.length > 2 ? array[2] : array[1];
+            String world = slash.size() > 2 ? slash.get(1) : null;
+            String permission = slash.size() > 2 ? slash.get(2) : slash.get(1);
             if (vaultPermission.playerHas(world, player, permission)) {
                 return Utils.dispatchCommand(player, getLocation(), command);
             } else {

@@ -94,13 +94,13 @@ public final class Utils {
     }
 
     public static int getVersionInt(@NotNull String version) {
-        String[] array = split(version, '.');
-        if (array.length < 1) {
+        List<String> split = split(version, '.');
+        if (split.size() < 1) {
             return -1;
         }
-        int result = (Integer.parseInt(array[0]) * 100000) + (Integer.parseInt(array[1]) * 1000);
-        if (array.length == 3) {
-            result += Integer.parseInt(array[2]);
+        int result = (Integer.parseInt(split.get(0)) * 100000) + (Integer.parseInt(split.get(1)) * 1000);
+        if (split.size() == 3) {
+            result += Integer.parseInt(split.get(2));
         }
         return result;
     }

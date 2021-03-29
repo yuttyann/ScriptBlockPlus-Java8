@@ -15,7 +15,6 @@
  */
 package com.github.yuttyann.scriptblockplus.utils;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,15 +59,15 @@ public final class StringUtils {
     }
 
     @NotNull
-    public static String[] split(@Nullable String source, @NotNull char delimiter) {
+    public static List<String> split(@Nullable String source, @NotNull char delimiter) {
         if (isEmpty(source)) {
-            return ArrayUtils.EMPTY_STRING_ARRAY;   
+            return Collections.emptyList();   
         }
         List<String> list = new ArrayList<String>();
         char[] chars = source.toCharArray();
         boolean match = false;
         int start = 0;
-        for (int i = 0; i < chars.length; i++) {
+        for (int i = 0, l = chars.length; i < l; i++) {
             if (chars[i] == delimiter) {
                 if (!match) {
                     list.add(source.substring(start, i));
@@ -81,11 +80,11 @@ public final class StringUtils {
         }
         if (!match) {
             if (list.size() == 0) {
-                return new String[] { source };
+                return Collections.singletonList(source);
             }
             list.add(source.substring(start, chars.length));
         }
-        return list.toArray(new String[list.size()]);
+        return list;
     }
 
     @NotNull
@@ -122,9 +121,16 @@ public final class StringUtils {
     }
 
     @NotNull
-    public static String createString(@NotNull String[] args, int start) {
+    public static String createString(@NotNull String[] args, final int start) {
         StringJoiner joiner = new StringJoiner(" ");
         IntStream.range(start, args.length).forEach(i -> joiner.add(args[i]));
+        return joiner.toString();
+    }
+
+    @NotNull
+    public static String createString(@NotNull List<String> list, final int start) {
+        StringJoiner joiner = new StringJoiner(" ");
+        IntStream.range(start, list.size()).forEach(i -> joiner.add(list.get(i)));
         return joiner.toString();
     }
 

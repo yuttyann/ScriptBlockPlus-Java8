@@ -22,11 +22,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.github.yuttyann.scriptblockplus.BlockCoords;
+import com.github.yuttyann.scriptblockplus.bridge.nms.GlowEntity;
+import com.github.yuttyann.scriptblockplus.bridge.nms.GlowEntityPacket;
 import com.github.yuttyann.scriptblockplus.enums.TeamColor;
 import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
-import com.github.yuttyann.scriptblockplus.hook.plugin.ProtocolLib;
-import com.github.yuttyann.scriptblockplus.hook.protocol.GlowEntity;
-import com.github.yuttyann.scriptblockplus.hook.protocol.GlowEntityPacket;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
 import com.github.yuttyann.scriptblockplus.raytrace.RayResult;
 import com.github.yuttyann.scriptblockplus.raytrace.RayTrace;
@@ -57,12 +56,10 @@ import org.jetbrains.annotations.Nullable;
 public final class TickRunnable implements Runnable {
 
     private static final int PLAYER_RANGE = 15;
-    private static final int PARTICLE_RANGE = 10;
 
     private static final String KEY = Utils.randomUUID();
     private static final String KEY_TEMP = Utils.randomUUID();
-    private static final boolean HAS_PROTOCOLLIB = ProtocolLib.INSTANCE.has();
-    private static final GlowEntityPacket GLOW_ENTITY_PACKET = ProtocolLib.GLOW_ENTITY;
+    private static final GlowEntityPacket GLOW_ENTITY_PACKET = GlowEntity.DEFAULT;
 
     private int tick = 0;
 
@@ -86,17 +83,39 @@ public final class TickRunnable implements Runnable {
     }
 
     private void tick(@NotNull SBPlayer sbPlayer, int tick) throws Exception {
-        if (HAS_PROTOCOLLIB) {
-            lookBlocks(sbPlayer);
-            if (tick % 5 == 0) {
-                sendParticles(sbPlayer, true);
+        lookBlocks(sbPlayer);
+        if (tick % 5 == 0) {
+            for (BlockCoords blockCoords : getBlockCoords(sbPlayer, KEY_TEMP)) {
+                Block block = blockCoords.getBlock();
+                spawnParticlesOnBlock(sbPlayer.getPlayer(), block, ItemUtils.isAIR(block.getType()) ? Color.BLUE : Color.GREEN);
             }
-            if (tick % 10 == 0) {
-                spawnGlowEntity(sbPlayer);
+        }
+        if (tick % 10 == 0) {
+            PlayerRegion region = new PlayerRegion(sbPlayer.getPlayer(), PLAYER_RANGE);
+            Set<BlockCoords> lookBlocks = getBlockCoords(sbPlayer, KEY);
+            forEach(region, b -> {
+                if (lookBlocks.size() > 0 && StreamUtils.anyMatch(lookBlocks, l -> l.equals(b))) {
+                    return;
+                }
+                GLOW_ENTITY_PACKET.spawnGlowEntity(sbPlayer, b, getTeamColor(b.getBlock()));
+            });
+            Multimap<UUID, GlowEntity> entities = GLOW_ENTITY_PACKET.getEntities();
+            if (entities.isEmpty()) {
+                return;
             }
-        } else {
-            if (tick % 10 == 0) {
-                sendParticles(sbPlayer, false);
+            Collection<GlowEntity> glowEntities = entities.get(sbPlayer.getUniqueId());
+            if (glowEntities.isEmpty()) {
+                return;
+            }
+            BlockCoords min = region.getMinimumPoint();
+            BlockCoords max = region.getMaximumPoint();
+            Iterator<GlowEntity> iterator = glowEntities.iterator();
+            while (iterator.hasNext()) {
+                GlowEntity glowEntity = iterator.next();
+                if (!inRange(glowEntity, min, max)) {
+                    iterator.remove();
+                    GLOW_ENTITY_PACKET.destroyGlowEntity(glowEntity);
+                }
             }
         }
     }
@@ -124,52 +143,6 @@ public final class TickRunnable implements Runnable {
                     destroyEntity(sbPlayer, blockCoords, blocks);
                 }
             }
-        }
-    }
-
-    private void spawnGlowEntity(@NotNull SBPlayer sbPlayer) throws Exception {
-        PlayerRegion region = new PlayerRegion(sbPlayer.getPlayer(), PLAYER_RANGE);
-        Set<BlockCoords> lookBlocks = getBlockCoords(sbPlayer, KEY);
-        forEach(region, b -> {
-            if (lookBlocks.size() > 0 && StreamUtils.anyMatch(lookBlocks, l -> l.equals(b))) {
-                return;
-            }
-            GLOW_ENTITY_PACKET.spawnGlowEntity(sbPlayer, b, getTeamColor(b.getBlock()));
-        });
-        Multimap<UUID, GlowEntity> entities = GLOW_ENTITY_PACKET.getEntities();
-        if (entities.isEmpty()) {
-            return;
-        }
-        Collection<GlowEntity> glowEntities = entities.get(sbPlayer.getUniqueId());
-        if (glowEntities.isEmpty()) {
-            return;
-        }
-        BlockCoords min = region.getMinimumPoint();
-        BlockCoords max = region.getMaximumPoint();
-        Iterator<GlowEntity> iterator = glowEntities.iterator();
-        while (iterator.hasNext()) {
-            GlowEntity glowEntity = iterator.next();
-            if (!inRange(glowEntity, min, max)) {
-                iterator.remove();
-                GLOW_ENTITY_PACKET.destroyGlowEntity(glowEntity);
-            }
-        }
-    }
-
-    private void sendParticles(@NotNull SBPlayer sbPlayer, final boolean hasProtocolLib) throws Exception {
-        if (hasProtocolLib) {
-            for (BlockCoords blockCoords : getBlockCoords(sbPlayer, KEY_TEMP)) {
-                Block block = blockCoords.getBlock();
-                spawnParticlesOnBlock(sbPlayer.getPlayer(), block, ItemUtils.isAIR(block.getType()) ? Color.BLUE : Color.GREEN);
-            }
-        } else {
-            int[] count = new int[] { 0 };
-            Player player = sbPlayer.getPlayer();
-            forEach(new PlayerRegion(player, PARTICLE_RANGE), b -> {
-                if (count[0]++ < 800) {
-                    spawnParticlesOnBlock(player, b.getBlock(), null);
-                }
-            });
         }
     }
 
