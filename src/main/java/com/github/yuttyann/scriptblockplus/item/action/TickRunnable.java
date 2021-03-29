@@ -22,10 +22,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.github.yuttyann.scriptblockplus.BlockCoords;
-import com.github.yuttyann.scriptblockplus.bridge.nms.GlowEntity;
-import com.github.yuttyann.scriptblockplus.bridge.nms.GlowEntityPacket;
 import com.github.yuttyann.scriptblockplus.enums.TeamColor;
 import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
+import com.github.yuttyann.scriptblockplus.hook.nms.GlowEntity;
+import com.github.yuttyann.scriptblockplus.hook.nms.GlowEntityPacket;
 import com.github.yuttyann.scriptblockplus.player.SBPlayer;
 import com.github.yuttyann.scriptblockplus.raytrace.RayResult;
 import com.github.yuttyann.scriptblockplus.raytrace.RayTrace;
