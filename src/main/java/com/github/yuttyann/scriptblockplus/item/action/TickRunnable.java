@@ -15,14 +15,15 @@
  */
 package com.github.yuttyann.scriptblockplus.item.action;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import com.github.yuttyann.scriptblockplus.BlockCoords;
 import com.github.yuttyann.scriptblockplus.enums.TeamColor;
+import com.github.yuttyann.scriptblockplus.enums.reflection.PackageType;
 import com.github.yuttyann.scriptblockplus.file.json.derived.BlockScriptJson;
 import com.github.yuttyann.scriptblockplus.hook.nms.GlowEntity;
 import com.github.yuttyann.scriptblockplus.hook.nms.GlowEntityPacket;
@@ -37,7 +38,7 @@ import com.github.yuttyann.scriptblockplus.utils.ItemUtils;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils;
 import com.github.yuttyann.scriptblockplus.utils.Utils;
 import com.github.yuttyann.scriptblockplus.utils.StreamUtils.ThrowableConsumer;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ArrayListMultimap;
 
 import org.bukkit.Color;
 import org.bukkit.GameMode;
@@ -56,6 +57,7 @@ import org.jetbrains.annotations.Nullable;
 public final class TickRunnable implements Runnable {
 
     private static final int PLAYER_RANGE = 15;
+    private static final int PARTICLE_RANGE = 10;
 
     private static final String KEY = Utils.randomUUID();
     private static final String KEY_TEMP = Utils.randomUUID();
@@ -63,15 +65,14 @@ public final class TickRunnable implements Runnable {
 
     private int tick = 0;
 
-    TickRunnable() { }
-
     @Override
     public final void run() {
         try {
             for (SBPlayer sbPlayer : ScriptViewer.PLAYERS) {
-                if (sbPlayer.isOnline()) {
-                    tick(sbPlayer, tick);
+                if (!sbPlayer.isOnline()) {
+                    continue;
                 }
+                tick(sbPlayer);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -82,39 +83,26 @@ public final class TickRunnable implements Runnable {
         }
     }
 
-    private void tick(@NotNull SBPlayer sbPlayer, int tick) throws Exception {
-        lookBlocks(sbPlayer);
-        if (tick % 5 == 0) {
-            for (BlockCoords blockCoords : getBlockCoords(sbPlayer, KEY_TEMP)) {
-                Block block = blockCoords.getBlock();
-                spawnParticlesOnBlock(sbPlayer.getPlayer(), block, ItemUtils.isAIR(block.getType()) ? Color.BLUE : Color.GREEN);
+    private void tick(@NotNull SBPlayer sbPlayer) throws Exception {
+        if (PackageType.HAS_NMS) {
+            lookBlocks(sbPlayer);
+            if (tick % 5 == 0) {
+                int[] count = new int[] { 0 };
+                Player player = sbPlayer.getPlayer();
+                forEach(new PlayerRegion(player, PARTICLE_RANGE), b -> {
+                    if (count[0]++ < 800) {
+                        spawnParticlesOnBlock(player, b.getBlock(), null);
+                    }
+                });
             }
-        }
-        if (tick % 10 == 0) {
-            PlayerRegion region = new PlayerRegion(sbPlayer.getPlayer(), PLAYER_RANGE);
-            Set<BlockCoords> lookBlocks = getBlockCoords(sbPlayer, KEY);
-            forEach(region, b -> {
-                if (lookBlocks.size() > 0 && StreamUtils.anyMatch(lookBlocks, l -> l.equals(b))) {
-                    return;
-                }
-                GLOW_ENTITY_PACKET.spawnGlowEntity(sbPlayer, b, getTeamColor(b.getBlock()));
-            });
-            Multimap<UUID, GlowEntity> entities = GLOW_ENTITY_PACKET.getEntities();
-            if (entities.isEmpty()) {
-                return;
+            if (tick % 10 == 0) {
+                spawnGlowEntity(sbPlayer);
             }
-            Collection<GlowEntity> glowEntities = entities.get(sbPlayer.getUniqueId());
-            if (glowEntities.isEmpty()) {
-                return;
-            }
-            BlockCoords min = region.getMinimumPoint();
-            BlockCoords max = region.getMaximumPoint();
-            Iterator<GlowEntity> iterator = glowEntities.iterator();
-            while (iterator.hasNext()) {
-                GlowEntity glowEntity = iterator.next();
-                if (!inRange(glowEntity, min, max)) {
-                    iterator.remove();
-                    GLOW_ENTITY_PACKET.destroyGlowEntity(glowEntity);
+        } else {
+            if (tick % 10 == 0) {
+                for (BlockCoords blockCoords : getBlockCoords(sbPlayer, KEY_TEMP)) {
+                    Block block = blockCoords.getBlock();
+                    spawnParticlesOnBlock(sbPlayer.getPlayer(), block, ItemUtils.isAIR(block.getType()) ? Color.BLUE : Color.GREEN);
                 }
             }
         }
@@ -142,6 +130,35 @@ public final class TickRunnable implements Runnable {
                 if (!blocks.contains(blockCoords)) {
                     destroyEntity(sbPlayer, blockCoords, blocks);
                 }
+            }
+        }
+    }
+
+    private void spawnGlowEntity(@NotNull SBPlayer sbPlayer) throws Exception {
+        PlayerRegion region = new PlayerRegion(sbPlayer.getPlayer(), PLAYER_RANGE);
+        Set<BlockCoords> lookBlocks = getBlockCoords(sbPlayer, KEY);
+        forEach(region, b -> {
+            if (lookBlocks.size() > 0 && StreamUtils.anyMatch(lookBlocks, l -> l.equals(b))) {
+                return;
+            }
+            GLOW_ENTITY_PACKET.spawnGlowEntity(sbPlayer, b, getTeamColor(b.getBlock()));
+        });
+        ArrayListMultimap<UUID, GlowEntity> entities = GLOW_ENTITY_PACKET.getEntities();
+        if (entities.isEmpty()) {
+            return;
+        }
+        List<GlowEntity> glowEntities = entities.get(sbPlayer.getUniqueId());
+        if (glowEntities.isEmpty()) {
+            return;
+        }
+        BlockCoords min = region.getMinimumPoint();
+        BlockCoords max = region.getMaximumPoint();
+        Iterator<GlowEntity> iterator = glowEntities.iterator();
+        while (iterator.hasNext()) {
+            GlowEntity glowEntity = iterator.next();
+            if (!inRange(glowEntity, min, max)) {
+                iterator.remove();
+                GLOW_ENTITY_PACKET.destroyGlowEntity(glowEntity);
             }
         }
     }
