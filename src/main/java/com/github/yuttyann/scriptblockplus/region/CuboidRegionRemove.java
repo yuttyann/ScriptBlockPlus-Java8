@@ -61,34 +61,39 @@ public final class CuboidRegionRemove {
         scriptKeys.clear();
         Set<BlockCoords> blocks = new HashSet<>();
         CuboidRegionIterator iterator = new CuboidRegionIterator(region);
-        for (ScriptKey scriptKey : ScriptKey.iterable()) {
-            BlockScriptJson scriptJson = BlockScriptJson.get(scriptKey);
-            if (scriptJson.isEmpty()) {
-                continue;
-            }
-            iterator.reset();
-            boolean removed = false;
-            while (iterator.hasNext()) {
-                BlockCoords blockCoords = iterator.next();
-                if (lightRemove(blockCoords, scriptJson)) {
-                    removed = true;
-                    if (!blocks.contains(blockCoords)) {
-                        blocks.add(BlockCoords.copy(blockCoords));
-                        GlowEntity.DEFAULT.broadcastDestroyGlowEntity(blockCoords);
+        try {
+            for (ScriptKey scriptKey : ScriptKey.iterable()) {
+                BlockScriptJson scriptJson = BlockScriptJson.get(scriptKey);
+                if (scriptJson.isEmpty()) {
+                    continue;
+                }
+                iterator.reset();
+                boolean removed = false;
+                while (iterator.hasNext()) {
+                    BlockCoords blockCoords = iterator.next();
+                    if (lightRemove(blockCoords, scriptJson)) {
+                        removed = true;
+                        if (!blocks.contains(blockCoords)) {
+                            blocks.add(BlockCoords.copy(blockCoords));
+                            GlowEntity.DEFAULT.broadcastDestroyGlowEntity(blockCoords);
+                        }
                     }
                 }
+                if (removed) {
+                    scriptKeys.add(scriptKey);
+                    scriptJson.saveJson();
+                }
             }
-            if (removed) {
-                scriptKeys.add(scriptKey);
-                scriptJson.saveJson();
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
+        } finally {
+            ReuseIterator<BlockCoords> reuseIterator = new ReuseIterator<>(blocks);
+            for (ScriptKey scriptKey : scriptKeys) {
+                PlayerTimerJson.removeAll(scriptKey, reuseIterator);
+                PlayerCountJson.removeAll(scriptKey, reuseIterator);
             }
+            this.iterator = iterator;
         }
-        ReuseIterator<BlockCoords> reuseIterator = new ReuseIterator<>(blocks);
-        for (ScriptKey scriptKey : scriptKeys) {
-            PlayerTimerJson.removeAll(scriptKey, reuseIterator);
-            PlayerCountJson.removeAll(scriptKey, reuseIterator);
-        }
-        this.iterator = iterator;
         return this;
     }
     
