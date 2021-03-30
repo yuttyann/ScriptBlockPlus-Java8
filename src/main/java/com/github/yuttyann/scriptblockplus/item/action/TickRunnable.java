@@ -87,6 +87,16 @@ public final class TickRunnable implements Runnable {
         if (PackageType.HAS_NMS) {
             lookBlocks(sbPlayer);
             if (tick % 5 == 0) {
+                for (BlockCoords blockCoords : getBlockCoords(sbPlayer, KEY_TEMP)) {
+                    Block block = blockCoords.getBlock();
+                    spawnParticlesOnBlock(sbPlayer.getPlayer(), block, ItemUtils.isAIR(block.getType()) ? Color.BLUE : Color.GREEN);
+                }
+            }
+            if (tick % 10 == 0) {
+                spawnGlowEntity(sbPlayer);
+            }
+        } else {
+            if (tick % 10 == 0) {
                 int[] count = new int[] { 0 };
                 Player player = sbPlayer.getPlayer();
                 forEach(new PlayerRegion(player, PARTICLE_RANGE), b -> {
@@ -94,16 +104,6 @@ public final class TickRunnable implements Runnable {
                         spawnParticlesOnBlock(player, b.getBlock(), null);
                     }
                 });
-            }
-            if (tick % 10 == 0) {
-                spawnGlowEntity(sbPlayer);
-            }
-        } else {
-            if (tick % 10 == 0) {
-                for (BlockCoords blockCoords : getBlockCoords(sbPlayer, KEY_TEMP)) {
-                    Block block = blockCoords.getBlock();
-                    spawnParticlesOnBlock(sbPlayer.getPlayer(), block, ItemUtils.isAIR(block.getType()) ? Color.BLUE : Color.GREEN);
-                }
             }
         }
     }
